@@ -4,28 +4,28 @@ import { Star, Quote } from "lucide-react";
 
 const TESTIMONIALS = [
   {
-    name: "Sarah Chen",
-    role: "CTO, TechVentures",
-    text: "Haque & Sons delivered our AI platform 3 weeks ahead of schedule. The code quality and security posture exceeded our enterprise standards.",
+    name: "Nejamul Haque",
+    role: "CEO, ABC Company",
+    text: "Haque And Sons provided us with a fantastic website! Highly recommended for anyone looking for professional digital services.",
     stars: 5,
   },
   {
-    name: "Marcus Rodriguez",
-    role: "Founder, FinStack",
-    text: "Nestfy transformed how we handle personal finance for our users. The OCR accuracy and AI insights are genuinely best-in-class.",
+    name: "Nejamul Haque",
+    role: "Founder, XYZ Corp",
+    text: "Excellent customer support and great value for money! The team delivered beyond our expectations.",
     stars: 5,
   },
   {
-    name: "Aisha Patel",
-    role: "VP Engineering, DataFlow",
-    text: "Their DevSecOps pipeline caught vulnerabilities our internal team missed. The GitHub Actions setup alone saved us months of work.",
+    name: "Nejamul Haque",
+    role: "Manager, 123 Industries",
+    text: "Professional team and timely delivery of services. They understood our requirements perfectly.",
     stars: 5,
   },
 ];
 
 export function Testimonials() {
   return (
-    <section className="py-32 bg-gradient-to-b from-black to-gray-950 px-6 relative overflow-hidden">
+    <section className="py-32 bg-black px-6 relative overflow-hidden">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -38,17 +38,16 @@ export function Testimonials() {
             Testimonials
           </span>
           <h2 className="text-4xl md:text-6xl font-bold text-white mt-3 mb-6">
-            Trusted by{" "}
+            What Our Clients{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-              Innovators
+              Say
             </span>
           </h2>
         </motion.div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

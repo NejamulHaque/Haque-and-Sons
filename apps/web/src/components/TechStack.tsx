@@ -3,7 +3,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CATEGORIES = ["Frontend", "Backend", "DevOps", "Security", "AI/ML"] as const;
-
 const TECH: Record<string, { name: string; desc: string }[]> = {
   Frontend: [
     { name: "Next.js 16", desc: "React framework with App Router & Turbopack" },
@@ -44,7 +43,6 @@ const TECH: Record<string, { name: string; desc: string }[]> = {
 
 export function TechStack() {
   const [active, setActive] = useState<string>("Frontend");
-
   return (
     <section id="tech" className="py-32 bg-black px-6 relative overflow-hidden">
       <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
@@ -68,25 +66,17 @@ export function TechStack() {
             Every tool chosen for performance, security, and developer experience.
           </p>
         </motion.div>
-
-        {/* Category Tabs */}
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                active === cat
-                  ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                  : "border border-white/[0.08] text-gray-400 hover:border-white/20 hover:text-white"
-              }`}
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${active === cat ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]" : "border border-white/[0.08] text-gray-400 hover:border-white/20 hover:text-white"}`}
             >
               {cat}
             </button>
           ))}
         </div>
-
-        {/* Tech Grid */}
         <AnimatePresence mode="wait">
           <motion.div
             key={active}

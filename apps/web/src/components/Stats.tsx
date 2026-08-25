@@ -14,24 +14,19 @@ function AnimatedCounter({
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
-
   useEffect(() => {
     if (!isInView) return;
-    let start = 0;
     const duration = 2000;
     const startTime = performance.now();
-
     function animate(currentTime: number) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 4);
-      const current = Math.floor(eased * target);
-      setCount(current);
+      setCount(Math.floor(eased * target));
       if (progress < 1) requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
   }, [isInView, target]);
-
   return (
     <span ref={ref}>
       {prefix}
@@ -42,10 +37,26 @@ function AnimatedCounter({
 }
 
 const STATS = [
-  { value: 6, suffix: "+", label: "Production Products", desc: "Shipped & live in production" },
-  { value: 10000, suffix: "+", label: "Active Users", desc: "Across all platforms globally" },
-  { value: 99, suffix: ".9%", label: "Uptime SLA", desc: "Enterprise-grade reliability" },
-  { value: 0, prefix: "$", label: "Core Tools Free", desc: "Open-source first philosophy" },
+  {
+    value: 5,
+    suffix: "+",
+    label: "Projects Completed",
+    desc: "Delivering excellence for clients worldwide",
+  },
+  {
+    value: 5,
+    suffix: "+",
+    label: "Happy Clients",
+    desc: "Satisfied with our outstanding services",
+  },
+  { value: 2, suffix: "+", label: "Years Experience", desc: "Providing quality digital solutions" },
+  {
+    value: 100,
+    suffix: "%",
+    prefix: "",
+    label: "Client Satisfaction",
+    desc: "Professional team and timely delivery",
+  },
 ];
 
 export function Stats() {

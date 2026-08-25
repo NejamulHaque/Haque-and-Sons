@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Send, CheckCircle } from "lucide-react";
+import { Mail, Send, CheckCircle, AlertCircle } from "lucide-react";
 
 function GithubSvg({ size = 20 }: { size?: number }) {
   return (
@@ -10,7 +10,6 @@ function GithubSvg({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
-
 function LinkedinSvg({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -20,16 +19,32 @@ function LinkedinSvg({ size = 20 }: { size?: number }) {
 }
 
 export function CTA() {
-  const [formState, setFormState] = useState<"idle" | "submitting" | "success">("idle");
+  const [formState, setFormState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormState("submitting");
-    await new Promise((r) => setTimeout(r, 1500));
-    setFormState("success");
-    setFormData({ name: "", email: "", message: "" });
-    setTimeout(() => setFormState("idle"), 3000);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to send");
+      }
+      setFormState("success");
+      setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setFormState("idle"), 4000);
+    } catch (err: unknown) {
+      setFormState("error");
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+      setTimeout(() => setFormState("idle"), 4000);
+    }
   };
 
   return (
@@ -56,9 +71,7 @@ export function CTA() {
             architecture — we&apos;re ready.
           </p>
         </motion.div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Contact Form */}
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0, x: -30 }}
@@ -108,6 +121,11 @@ export function CTA() {
                 placeholder="Tell us about your project..."
               />
             </div>
+            {formState === "error" && (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <AlertCircle size={16} /> {errorMsg}
+              </div>
+            )}
             <button
               type="submit"
               disabled={formState !== "idle"}
@@ -119,19 +137,20 @@ export function CTA() {
                 </>
               )}
               {formState === "submitting" && (
-                <>
-                  <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                </>
+                <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               )}
               {formState === "success" && (
                 <>
                   <CheckCircle size={18} /> Message Sent!
                 </>
               )}
+              {formState === "error" && (
+                <>
+                  <AlertCircle size={18} /> Try Again
+                </>
+              )}
             </button>
           </motion.form>
-
-          {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -148,7 +167,6 @@ export function CTA() {
                 nejamulhaque.works@gmail.com
               </a>
             </div>
-
             <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
               <h3 className="text-lg font-bold text-white mb-4">Follow Us</h3>
               <div className="flex gap-4">
@@ -172,7 +190,6 @@ export function CTA() {
                 </a>
               </div>
             </div>
-
             <div className="p-8 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
               <h3 className="text-lg font-bold text-white mb-2">Response Time</h3>
               <p className="text-gray-400 text-sm">
@@ -182,7 +199,6 @@ export function CTA() {
             </div>
           </motion.div>
         </div>
-
         <p className="mt-20 text-center text-xs text-gray-600">
           © 2026 Haque & Sons. All rights reserved.
         </p>

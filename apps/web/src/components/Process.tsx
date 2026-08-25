@@ -59,7 +59,6 @@ export function Process() {
             A battle-tested methodology refined across dozens of production deployments.
           </p>
         </motion.div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {STEPS.map((step, i) => (
             <motion.div
