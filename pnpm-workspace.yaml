@@ -3,6 +3,7 @@ packages:
   - "packages/*"
 allowBuilds:
   esbuild: false
+  protobufjs: true
   unrs-resolver: false
 minimumReleaseAgeExclude:
   - '@types/node@26.3.0'
