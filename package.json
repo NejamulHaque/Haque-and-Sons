@@ -31,5 +31,11 @@
     "*.{ts,tsx,json,md,yml}": [
       "pnpm exec prettier --write"
     ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "protobufjs"
+    ]
   }
 }
