@@ -6,6 +6,7 @@ import { Features } from "@/components/Features";
 import { Process } from "@/components/Process";
 import { TechStack } from "@/components/TechStack";
 import { Testimonials } from "@/components/Testimonials";
+import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
       <Process />
       <TechStack />
       <Testimonials />
+      <FAQ />
       <CTA />
     </>
   );
