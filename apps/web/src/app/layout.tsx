@@ -90,7 +90,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-XXXXXXXXXX');
+            gtag('config', '<meta name="google-site-verification" content="ODppaoTQS8GBiLvwbHsskXc7VAz_ati8QqVi5sFImKU" />');
           `}
         </Script>
       </body>
