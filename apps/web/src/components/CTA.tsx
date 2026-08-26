@@ -46,7 +46,42 @@ export function CTA() {
       setTimeout(() => setFormState("idle"), 4000);
     }
   };
+   
+  // Add these if you don't have them already
+const InstagramSvg = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
 
+const XSvg = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+const WhatsappSvg = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+  </svg>
+);
+
+// Assuming you already have these, but just in case:
+const GithubSvg = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+  </svg>
+);
+
+const LinkedinSvg = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect x="2" y="9" width="4" height="12"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+  </svg>
+);
   return (
     <section id="contact" className="py-32 bg-black px-6 relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
@@ -168,28 +203,53 @@ export function CTA() {
               </a>
             </div>
             <div className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-              <h3 className="text-lg font-bold text-white mb-4">Follow Us</h3>
-              <div className="flex gap-4">
-                <a
-                  href="https://github.com/NejamulHaque"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-gray-400 hover:text-white transition-all"
-                  aria-label="GitHub"
-                >
-                  <GithubSvg size={22} />
-                </a>
-                <a
-                  href="https://linkedin.com/in/nejamulhaque"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-gray-400 hover:text-white transition-all"
-                  aria-label="LinkedIn"
-                >
-                  <LinkedinSvg size={22} />
-                </a>
-              </div>
-            </div>
+  <h3 className="text-lg font-bold text-white mb-4">Follow Us</h3>
+  <div className="flex flex-wrap gap-3">
+    {/* GitHub */}
+    <a
+      href="https://github.com/NejamulHaque"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="p-3 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-gray-400 hover:text-white transition-all"
+      aria-label="GitHub"
+    >
+      <GithubSvg size={22} />
+    </a>
+
+    {/* LinkedIn */}
+    <a
+      href="https://www.linkedin.com/in/nejamulhaque"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="p-3 rounded-xl border border-white/[0.08] hover:bg-blue-500/10 hover:border-blue-500/30 text-gray-400 hover:text-blue-400 transition-all"
+      aria-label="LinkedIn"
+    >
+      <LinkedinSvg size={22} />
+    </a>
+
+    {/* Instagram */}
+    <a
+      href="https://instagram.com/neja_mul_"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="p-3 rounded-xl border border-white/[0.08] hover:bg-pink-500/10 hover:border-pink-500/30 text-gray-400 hover:text-pink-400 transition-all"
+      aria-label="Instagram"
+    >
+      <InstagramSvg size={22} />
+    </a>
+
+    {/* X (Twitter) */}
+    <a
+      href="https://x.com/Nejamul_Haque_"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="p-3 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-gray-400 hover:text-white transition-all"
+      aria-label="X (Twitter)"
+    >
+      <XSvg size={22} />
+    </a>
+  </div>
+</div>
             <div className="p-8 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/20">
               <h3 className="text-lg font-bold text-white mb-2">Response Time</h3>
               <p className="text-gray-400 text-sm">
