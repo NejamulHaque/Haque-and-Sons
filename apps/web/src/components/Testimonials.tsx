@@ -4,20 +4,20 @@ import { Star, Quote } from "lucide-react";
 
 const TESTIMONIALS = [
   {
-    name: "Nejamul Haque",
-    role: "CEO, ABC Company",
+    name: "Rohan",
+    role: "HR, Tech Company",
     text: "Haque And Sons provided us with a fantastic website! Highly recommended for anyone looking for professional digital services.",
     stars: 5,
   },
   {
-    name: "Nejamul Haque",
-    role: "Founder, XYZ Corp",
+    name: "Shalini",
+    role: "Founder, ABC Corp",
     text: "Excellent customer support and great value for money! The team delivered beyond our expectations.",
     stars: 5,
   },
   {
-    name: "Nejamul Haque",
-    role: "Manager, 123 Industries",
+    name: "Amitabh",
+    role: "Manager, IT Industries",
     text: "Professional team and timely delivery of services. They understood our requirements perfectly.",
     stars: 5,
   },

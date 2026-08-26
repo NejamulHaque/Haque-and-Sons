@@ -199,9 +199,6 @@ export function CTA() {
             </div>
           </motion.div>
         </div>
-        <p className="mt-20 text-center text-xs text-gray-600">
-          © 2026 Haque & Sons. All rights reserved.
-        </p>
       </div>
     </section>
   );
