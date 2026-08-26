@@ -8,11 +8,13 @@ import { TechStack } from "@/components/TechStack";
 import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
-import { ProjectShowcase } from "@/components/ProjectShowcase"; // Import new component
+import { ProjectShowcase } from "@/components/ProjectShowcase";
+import { ShareButtons } from "@/components/ShareButtons";
 
 export default function Home() {
   return (
     <>
+      <ShareButtons />
       <Hero3D />
       <Stats />
       <About />
