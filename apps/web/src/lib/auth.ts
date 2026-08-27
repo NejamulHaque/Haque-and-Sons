@@ -1,6 +1,18 @@
 import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
-  emailAndPassword: { enabled: true },
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: schema, // This links the tables above
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://haqueandsons.vercel.app"
+  ],
 });

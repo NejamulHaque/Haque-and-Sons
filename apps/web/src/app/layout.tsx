@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { CookieConsent } from "@/components/CookieConsent";
 import { ShareButtons } from "@/components/ShareButtons";
 import Script from "next/script";
+import { Tracker } from "@/components/Tracker";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -95,6 +96,7 @@ export default function RootLayout({
         <Footer />
         <CookieConsent />
         <ShareButtons />
+        <Tracker />
         
         {/* Analytics placeholder */}
         {process.env.NEXT_PUBLIC_GA_ID && (
