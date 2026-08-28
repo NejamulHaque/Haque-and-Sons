@@ -1,64 +1,61 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CookieConsent } from "@/components/CookieConsent";
 import { ShareButtons } from "@/components/ShareButtons";
+import { CommandPalette } from "@/components/CommandPalette";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import Script from "next/script";
 import { Tracker } from "@/components/Tracker";
 
-
-const inter = Inter({ subsets: ["latin"] });
-
-// IMPORTANT: Replace this with your actual deployed URL
 const baseUrl = "https://haqueandsons.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Haque & Sons | Next-Gen Software Studio",
+    default: "Haque & Sons | Next-Gen Software & AI Studio",
     template: "%s | Haque & Sons",
   },
   description:
-    "Experience the future of web development. Haque & Sons builds enterprise-grade AI, 3D interactive platforms, and financial software using Next.js 16.",
+    "Experience the future of digital engineering. Haque & Sons architects enterprise-grade AI, 3D interactive platforms, and financial software using Next.js 16.",
   keywords: [
     "Nejamul Haque",
     "Haque and Sons",
     "Next.js 16",
+    "React 19",
     "Three.js",
     "Web Development",
     "AI Solutions",
-    "Portfolio"
+    "DevSecOps",
+    "Full-Stack Engineer",
+    "Portfolio",
   ],
   authors: [{ name: "Nejamul Haque", url: "https://github.com/NejamulHaque" }],
-  
-  // --- SOCIAL MEDIA PREVIEW CONFIGURATION ---
   openGraph: {
     type: "website",
     locale: "en_US",
     url: baseUrl,
     siteName: "Haque & Sons",
     title: "Haque & Sons | Building the Future of Software",
-    description: "Interactive 3D portfolio & AI software studio by Nejamul Haque. Built with Next.js 16, Three.js, and Tailwind CSS v4.",
+    description:
+      "Interactive 3D portfolio & AI software studio by Nejamul Haque. Built with Next.js 16, React Three Fiber, and Tailwind CSS.",
     images: [
       {
-        url: "/og-image.png", // YOU MUST CREATE THIS IMAGE (1200x630px)
+        url: "/logo.svg",
         width: 1200,
         height: 630,
-        alt: "Haque & Sons Portfolio Preview",
+        alt: "Haque & Sons Studio Preview",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Haque & Sons | Next-Gen Software Studio",
-    description: "Interactive 3D portfolio & AI software studio. Check out the live demo!",
-    images: ["/og-image.png"],
+    description: "Interactive 3D portfolio & AI software studio by Nejamul Haque.",
+    images: ["/logo.svg"],
     creator: "@Nejamul_Haque_",
   },
-  // ------------------------------------------
-
   robots: {
     index: true,
     follow: true,
@@ -80,6 +77,39 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://haqueandsons.vercel.app/#organization",
+      "name": "Haque & Sons",
+      "url": "https://haqueandsons.vercel.app",
+      "logo": "https://haqueandsons.vercel.app/logo.svg",
+      "founder": {
+        "@type": "Person",
+        "name": "Nejamul Haque",
+        "jobTitle": "Lead Full-Stack Engineer & Founder",
+        "url": "https://github.com/NejamulHaque"
+      },
+      "sameAs": [
+        "https://github.com/NejamulHaque",
+        "https://www.linkedin.com/in/nejamulhaque",
+        "https://x.com/Nejamul_Haque_"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://haqueandsons.vercel.app/#website",
+      "url": "https://haqueandsons.vercel.app",
+      "name": "Haque & Sons Software Studio",
+      "publisher": {
+        "@id": "https://haqueandsons.vercel.app/#organization"
+      }
+    }
+  ]
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -89,20 +119,45 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="canonical" href={baseUrl} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
-      <body className={`${inter.className} antialiased bg-black text-white`}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <CookieConsent />
-        <ShareButtons />
-        <Tracker />
-        
-        {/* Analytics placeholder */}
-        {process.env.NEXT_PUBLIC_GA_ID && (
+      <body className="antialiased bg-black text-white selection:bg-cyan-500/30 selection:text-white">
+        <SmoothScroll>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+          <CookieConsent />
+          <ShareButtons />
+          <CommandPalette />
+          <Tracker />
+        </SmoothScroll>
+
+        <Script id="sw-dev-cleanup" strategy="beforeInteractive">
+          {`
+            if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 'serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (var r of registrations) { r.unregister(); }
+              });
+            }
+          `}
+        </Script>
+
+        {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === "production" && (
           <>
-            <Script src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`} strategy="afterInteractive" />
-            <Script id="google-analytics" strategy="afterInteractive">
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+              strategy="lazyOnload"
+            />
+            <Script id="google-analytics" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}

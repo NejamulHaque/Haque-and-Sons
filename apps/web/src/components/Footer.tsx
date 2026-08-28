@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { MessageCircle, Heart } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Heart } from "lucide-react";
 
 export function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <footer className="relative border-t border-white/10 bg-black pt-16 pb-8">

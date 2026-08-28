@@ -2,9 +2,31 @@
 
 @custom-variant light (&:where(.light, .light *));
 
+:root {
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #000000;
+  color: #f9fafb;
+  overflow-x: hidden;
+}
+
 @keyframes gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
 .animate-gradient {
@@ -12,20 +34,45 @@
   animation: gradient 4s ease infinite;
 }
 
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Glassmorphism & Cyber Sheen */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.15);
+  transform: translateY(-2px);
+}
+
 html { scroll-behavior: smooth; }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
-::selection { background: rgba(6, 182, 212, 0.3); color: white; }
+::selection { background: rgba(6, 182, 212, 0.35); color: white; }
 
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-/* Light mode — sections only (navbar handled by inline styles) */
+/* Light mode support */
 html.light body { background-color: #ffffff !important; color: #111827 !important; }
 html.light section { background-color: #ffffff !important; background-image: none !important; }
 html.light section.border-y { border-color: #e5e7eb !important; }
@@ -36,9 +83,10 @@ html.light .text-cyan-400 { color: #0891b2 !important; }
 html.light .text-purple-400 { color: #7c3aed !important; }
 html.light .text-emerald-400 { color: #059669 !important; }
 html.light [class*="bg-white/[0.0"] { background-color: #f3f4f6 !important; border-color: #e5e7eb !important; }
-html.light input, html.light textarea { background-color: #f3f4f6 !important; border-color: #e5e7eb !important; color: #111827 !important; }
+html.light input, html.light textarea, html.light select { background-color: #f3f4f6 !important; border-color: #e5e7eb !important; color: #111827 !important; }
 html.light label { color: #6b7280 !important; }
 html.light [class*="blur-[1"] { opacity: 0.1 !important; }
 html.light ::-webkit-scrollbar-track { background: #f3f4f6; }
 html.light ::-webkit-scrollbar-thumb { background: #d1d5db; }
 html.light ::selection { background: rgba(6, 182, 212, 0.2); color: #111827; }
+

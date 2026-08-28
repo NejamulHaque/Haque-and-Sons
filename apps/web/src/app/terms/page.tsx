@@ -17,7 +17,7 @@ export default function TermsPage() {
         <p className="text-gray-300 mb-4">By accessing and using Haque & Sons website and services, you accept and agree to be bound by the terms and provision of this agreement.</p>
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">2. Services</h2>
-        <p className="text-gray-300 mb-4">We provide web development, AI solutions, and digital consulting services. All services are provided "as is" unless otherwise specified in a separate service agreement.</p>
+        <p className="text-gray-300 mb-4">We provide web development, AI solutions, and digital consulting services. All services are provided &ldquo;as is&rdquo; unless otherwise specified in a separate service agreement.</p>
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">3. Intellectual Property</h2>
         <p className="text-gray-300 mb-4">All content on this website, including text, graphics, logos, and software, is the property of Haque & Sons and protected by intellectual property laws.</p>

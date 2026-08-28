@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Inline SVGs to avoid dependency issues
@@ -25,11 +26,18 @@ const WhatsappIcon = ({ className }: { className?: string }) => (
 );
 
 export function ShareButtons() {
+  const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  
-  // Use window.location for dynamic URL, fallback for SSR
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : "https://haqueandsons.vercel.app";
+  const [shareUrl, setShareUrl] = useState("https://haqueandsons.vercel.app");
   const shareText = "Check out Haque & Sons - Next-Gen Software Studio! 🚀";
+
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl);

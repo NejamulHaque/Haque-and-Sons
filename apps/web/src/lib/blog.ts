@@ -52,90 +52,6 @@ Stay tuned for more updates!`,
     readTime: "3 min read",
   },
   {
-    slug: "why-devsecops-matters-for-startups",
-    title: "Why DevSecOps Matters for Startups",
-    excerpt:
-      "Security isn't a luxury for startups — it's a competitive advantage. Here's how we integrate security from day one.",
-    content: `Many startups treat security as an afterthought. By the time they realize they need it, technical debt has accumulated and retrofitting becomes expensive.
-
-## Shift Left Security
-
-At Haque & Sons, we practice "shift left" security — integrating security checks into every stage of development:
-
-1. **Pre-commit hooks** catch secrets before they reach version control
-2. **CI pipeline** runs Semgrep SAST on every pull request
-3. **Dependency audits** via OSV Scanner flag vulnerable packages automatically
-4. **Supply-chain policies** enforce minimum release age for all dependencies
-
-## Free Tools That Punch Above Their Weight
-
-You don't need enterprise budgets for enterprise security:
-
-- **Semgrep** — Open-source SAST with OWASP Top 10 rules
-- **Gitleaks** — Secret scanning in GitHub Actions
-- **npm audit** — Built-in dependency vulnerability checking
-- **Cloudflare Free Tier** — WAF, DDoS protection, and SSL
-
-## The ROI of Early Security
-
-Investing in security early saves 10-100x compared to fixing breaches later. More importantly, it builds trust with clients who increasingly demand security documentation and compliance evidence.
-
-Security isn't a cost center — it's your strongest differentiator.`,
-    author: "Nejamul Haque",
-    date: "2026-08-20",
-    tags: ["Security", "DevSecOps", "Startups"],
-    readTime: "4 min read",
-  },
-  {
-    slug: "building-ai-powered-tools-with-open-source",
-    title: "Building AI-Powered Tools with Open Source",
-    excerpt:
-      "How we built Irus AI, Digital Lens, and Builder AI using only open-source tools and free-tier services.",
-    content: `AI tools don't require massive budgets. Here's how we built three production AI products using entirely open-source stacks and free-tier cloud services.
-
-## Irus AI — Personal Command Center
-
-Built with LangChain, vector embeddings, and OpenAI API. Features live search, document intelligence, and long-term memory — all running on Render's free tier.
-
-## Digital Lens — News Intelligence
-
-Real-time news aggregation with sentiment analysis powered by Hugging Face transformers. Deployed on Vercel with edge functions for sub-100ms responses.
-
-## Builder AI — Portfolio Generator
-
-AI-powered site generator that takes user inputs and produces a live, responsive portfolio in seconds. Uses ONNX Runtime for client-side inference.
-
-## The Free-Tier Stack
-
-| Service | Tool | Cost |
-|---------|------|------|
-| Hosting | Vercel / Render | $0 |
-| Database | Neon PostgreSQL | $0 |
-| AI Models | Hugging Face + OpenAI | $0-$5/mo |
-| CDN/WAF | Cloudflare | $0 |
-| Monitoring | Grafana Cloud | $0 |
-
-## Key Takeaway
-
-Open-source AI has reached production quality. The bottleneck is no longer technology — it's imagination and execution.`,
-    author: "Nejamul Haque",
-    date: "2026-08-15",
-    tags: ["AI", "Open Source", "Products"],
-    readTime: "5 min read",
-  },
-];
-
-export function getPost(slug: string): BlogPost | undefined {
-  return blogPosts.find((p) => p.slug === slug);
-}
-
-export function getAllPosts(): BlogPost[] {
-  return [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
-
-// Add these new posts to the blogPosts array
-const newPosts: BlogPost[] = [
-  {
     slug: "building-irus-ai-command-center",
     title: "Building Irus AI: A Personal Command Center",
     excerpt: "How we built an AI-powered personal command center with live search, document intelligence, and long-term memory using LangChain and vector embeddings.",
@@ -178,6 +94,41 @@ Try Irus AI at [irus-ai.onrender.com](https://irus-ai.onrender.com/)`,
     readTime: "6 min read",
   },
   {
+    slug: "why-devsecops-matters-for-startups",
+    title: "Why DevSecOps Matters for Startups",
+    excerpt:
+      "Security isn't a luxury for startups — it's a competitive advantage. Here's how we integrate security from day one.",
+    content: `Many startups treat security as an afterthought. By the time they realize they need it, technical debt has accumulated and retrofitting becomes expensive.
+
+## Shift Left Security
+
+At Haque & Sons, we practice "shift left" security — integrating security checks into every stage of development:
+
+1. **Pre-commit hooks** catch secrets before they reach version control
+2. **CI pipeline** runs Semgrep SAST on every pull request
+3. **Dependency audits** via OSV Scanner flag vulnerable packages automatically
+4. **Supply-chain policies** enforce minimum release age for all dependencies
+
+## Free Tools That Punch Above Their Weight
+
+You don't need enterprise budgets for enterprise security:
+
+- **Semgrep** — Open-source SAST with OWASP Top 10 rules
+- **Gitleaks** — Secret scanning in GitHub Actions
+- **npm audit** — Built-in dependency vulnerability checking
+- **Cloudflare Free Tier** — WAF, DDoS protection, and SSL
+
+## The ROI of Early Security
+
+Investing in security early saves 10-100x compared to fixing breaches later. More importantly, it builds trust with clients who increasingly demand security documentation and compliance evidence.
+
+Security isn't a cost center — it's your strongest differentiator.`,
+    author: "Nejamul Haque",
+    date: "2026-08-20",
+    tags: ["Security", "DevSecOps", "Startups"],
+    readTime: "4 min read",
+  },
+  {
     slug: "collabsheets-real-time-collaboration",
     title: "CollabSheets: Real-Time Collaboration at Scale",
     excerpt: "Deep dive into building a real-time collaborative code editor supporting 60+ languages with AI assistance and WebSocket architecture.",
@@ -190,7 +141,7 @@ Real-time collaboration is hard. Add code execution in 60+ languages, AI assista
 ## Architecture Decisions
 
 ### CRDTs vs OT
-We chose Operational Transformation (OT) over CRDTs for simpler conflict resolution in text editing. Y.js would have been easier but added bundle size we couldn't afford.
+We chose Operational Transformation (OT) over CRDTs for simpler conflict resolution in text editing.
 
 ### WebSocket Infrastructure
 Using Socket.io with Redis adapter for horizontal scaling. Each room (document) is sharded across Redis pub/sub channels.
@@ -207,13 +158,48 @@ The AI assistant runs in a separate service, communicating via gRPC. It has cont
 - **Concurrent users**: Tested up to 100 per document
 - **Uptime**: 99.9% over 6 months
 
-## Try It
-
 Visit [collabsheets.onrender.com](https://collabsheets.onrender.com/) to collaborate in real-time.`,
     author: "Nejamul Haque",
-    date: "2026-08-15",
+    date: "2026-08-18",
     tags: ["Real-time", "WebSockets", "Engineering"],
     readTime: "7 min read",
+  },
+  {
+    slug: "building-ai-powered-tools-with-open-source",
+    title: "Building AI-Powered Tools with Open Source",
+    excerpt:
+      "How we built Irus AI, Digital Lens, and Builder AI using only open-source tools and free-tier services.",
+    content: `AI tools don't require massive budgets. Here's how we built three production AI products using entirely open-source stacks and free-tier cloud services.
+
+## Irus AI — Personal Command Center
+
+Built with LangChain, vector embeddings, and OpenAI API. Features live search, document intelligence, and long-term memory — all running on Render's free tier.
+
+## Digital Lens — News Intelligence
+
+Real-time news aggregation with sentiment analysis powered by Hugging Face transformers. Deployed on Vercel with edge functions for sub-100ms responses.
+
+## Builder AI — Portfolio Generator
+
+AI-powered site generator that takes user inputs and produces a live, responsive portfolio in seconds. Uses ONNX Runtime for client-side inference.
+
+## The Free-Tier Stack
+
+| Service | Tool | Cost |
+| --- | --- | --- |
+| Hosting | Vercel / Render | $0 |
+| Database | Neon PostgreSQL | $0 |
+| AI Models | Hugging Face + OpenAI | $0-$5/mo |
+| CDN/WAF | Cloudflare | $0 |
+| Monitoring | Grafana Cloud | $0 |
+
+## Key Takeaway
+
+Open-source AI has reached production quality. The bottleneck is no longer technology — it's imagination and execution.`,
+    author: "Nejamul Haque",
+    date: "2026-08-15",
+    tags: ["AI", "Open Source", "Products"],
+    readTime: "5 min read",
   },
   {
     slug: "nestfy-personal-finance-ai",
@@ -241,16 +227,10 @@ A finance app that:
 Snap a photo of any receipt. Our ML model extracts merchant, date, amount, and line items with 94% accuracy.
 
 ### Smart Budgets
-Instead of static budgets, Nestfy learns your spending patterns and suggests dynamic budgets. "You typically spend $200 on groceries in the first week, but $50 in the fourth."
+Instead of static budgets, Nestfy learns your spending patterns and suggests dynamic budgets.
 
 ### AI Insights
 Weekly AI-generated reports: "Your dining out increased 40% this month. Here are 3 cheaper alternatives near you."
-
-## Privacy First
-
-All financial data is encrypted at rest and in transit. We never sell your data. OCR processing happens on-device when possible.
-
-## Try Nestfy
 
 Visit [nestfy-beta.vercel.app](https://nestfy-beta.vercel.app/) to track your finances beautifully.`,
     author: "Nejamul Haque",
@@ -279,17 +259,12 @@ Using Hugging Face transformers, we analyze sentiment (positive/negative/neutral
 ### Automated Summaries
 Each article gets a 3-sentence TL;DR generated by our fine-tuned summarization model.
 
-### Personalized Feeds
-The more you read, the smarter your feed gets. Collaborative filtering + content-based recommendations.
-
 ## Architecture
 
 - **Edge**: Vercel Edge Functions for sub-100ms response
 - **AI**: Hugging Face Inference API
 - **Database**: Neon PostgreSQL (serverless)
 - **Cache**: Upstash Redis
-
-## Try Digital Lens
 
 Visit [digital-lens.vercel.app](https://digital-lens.vercel.app/) for your personalized news feed.`,
     author: "Nejamul Haque",
@@ -305,10 +280,7 @@ Visit [digital-lens.vercel.app](https://digital-lens.vercel.app/) for your perso
 
 ## The ATS Problem
 
-Applicant Tracking Systems parse resumes looking for keywords, proper formatting, and structure. Most resumes fail because:
-- Wrong format (tables, columns, graphics)
-- Missing keywords from job description
-- Poor section ordering
+Applicant Tracking Systems parse resumes looking for keywords, proper formatting, and structure. Most resumes fail because of improper formats or missing key skill phrases.
 
 ## How ProResume Works
 
@@ -321,22 +293,6 @@ Paste a job description. Our AI identifies missing keywords and suggests where t
 ### ATS Optimization
 We score your resume against common ATS parsers (Greenhouse, Lever, Workday) and suggest fixes.
 
-### Beautiful Templates
-Choose from 10+ professionally designed templates that are guaranteed ATS-compatible.
-
-## Tech Stack
-
-- **Frontend**: Next.js 16, React Hook Form, Zod validation
-- **PDF Generation**: @react-pdf/renderer
-- **AI**: OpenAI API for keyword extraction and suggestions
-- **Hosting**: Vercel
-
-## Results
-
-Beta users reported 3x more interview callbacks after optimizing with ProResume.
-
-## Try ProResume
-
 Build your ATS-friendly resume at [proresume-six.vercel.app](https://proresume-six.vercel.app/)`,
     author: "Nejamul Haque",
     date: "2026-07-30",
@@ -345,5 +301,10 @@ Build your ATS-friendly resume at [proresume-six.vercel.app](https://proresume-s
   },
 ];
 
-// Merge with existing posts
-blogPosts.push(...newPosts);
+export function getPost(slug: string): BlogPost | undefined {
+  return blogPosts.find((p) => p.slug === slug);
+}
+
+export function getAllPosts(): BlogPost[] {
+  return [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}

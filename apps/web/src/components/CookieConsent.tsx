@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function CookieConsent() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -12,14 +14,21 @@ export function CookieConsent() {
     }
   }, []);
 
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "true");
     setIsVisible(false);
     // Initialize analytics here if needed
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('consent', 'update', {
-        analytics_storage: 'granted'
-      });
+    if (typeof window !== "undefined" && "gtag" in window) {
+      const gtagFn = (window as unknown as { gtag: (...args: unknown[]) => void }).gtag;
+      if (typeof gtagFn === "function") {
+        gtagFn("consent", "update", {
+          analytics_storage: "granted",
+        });
+      }
     }
   };
 
@@ -39,7 +48,7 @@ export function CookieConsent() {
         >
           <h3 className="text-sm font-semibold text-white mb-2">Cookie Consent</h3>
           <p className="text-xs text-gray-400 mb-4">
-            We use cookies to enhance your experience and analyze site traffic. By clicking "Accept", you consent to our use of cookies.
+            We use cookies to enhance your experience and analyze site traffic. By clicking &ldquo;Accept&rdquo;, you consent to our use of cookies.
           </p>
           <div className="flex gap-3">
             <button
