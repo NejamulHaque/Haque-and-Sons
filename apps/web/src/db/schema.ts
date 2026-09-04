@@ -64,3 +64,40 @@ export const visitors = pgTable("visitors", {
   city: varchar("city", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const internshipApplications = pgTable("internship_applications", {
+  id: serial("id").primaryKey(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  college: text("college").notNull(),
+  degree: text("degree").notNull(),
+  graduationYear: text("graduation_year").notNull(),
+  domain: text("domain").notNull(),
+  mode: text("mode").notNull(), // Online | Offline | Hybrid
+  internshipType: text("internship_type").notNull(), // Paid | Unpaid
+  duration: text("duration").notNull(), // 4 Weeks | 8 Weeks | 12 Weeks
+  githubUrl: text("github_url"),
+  linkedinUrl: text("linkedin_url"),
+  portfolioUrl: text("portfolio_url"),
+  resumeLink: text("resume_link"),
+  statement: text("statement"),
+  status: text("status").default("Pending").notNull(), // Pending | Under Review | Accepted | Completed | Rejected
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const certificates = pgTable("certificates", {
+  id: text("id").primaryKey(), // e.g. HS-INT-2026-X7K9P2
+  studentName: text("student_name").notNull(),
+  studentEmail: text("student_email").notNull(),
+  domain: text("domain").notNull(),
+  mode: text("mode").notNull(),
+  internshipType: text("internship_type").notNull(),
+  college: text("college").notNull(),
+  duration: text("duration").notNull(),
+  grade: text("grade").default("Distinction").notNull(),
+  issueDate: timestamp("issue_date").defaultNow().notNull(),
+  signatoryTitle: text("signatory_title").default("Nejamul Haque, Founder & Lead Engineer").notNull(),
+  status: text("status").default("Valid").notNull(), // Valid | Revoked
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

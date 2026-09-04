@@ -16,6 +16,8 @@ import {
   FileText,
   Calculator,
   X,
+  GraduationCap,
+  Award,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -97,6 +99,26 @@ export function CommandPalette() {
       category: "Navigation",
       icon: Sparkles,
       action: () => scrollTo("process"),
+    },
+    {
+      id: "nav-internships",
+      title: "College Internships (11+ Domains)",
+      category: "Navigation",
+      icon: GraduationCap,
+      action: () => {
+        handleClose();
+        router.push("/internships");
+      },
+    },
+    {
+      id: "nav-verify",
+      title: "Verify Official Certificate (QR / ID)",
+      category: "Navigation",
+      icon: Award,
+      action: () => {
+        handleClose();
+        router.push("/verify");
+      },
     },
     {
       id: "nav-blog",

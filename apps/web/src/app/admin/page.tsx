@@ -1,9 +1,16 @@
 import { AdminGuard } from "@/components/AdminGuard";
 import { db } from "@/db";
-import { visitors } from "@/db/schema";
+import { visitors, internshipApplications, certificates } from "@/db/schema";
+import { ensureTablesExist } from "@/db/init-tables";
 import { desc, sql } from "drizzle-orm";
 import { AdminHeader } from "./AdminHeader";
-import { AdminDashboardClient, type VisitorLog, type CountryStat } from "./AdminDashboardClient";
+import {
+  AdminDashboardClient,
+  type VisitorLog,
+  type CountryStat,
+  type InternshipAppRow,
+  type CertificateRow,
+} from "./AdminDashboardClient";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +18,12 @@ async function getStats(): Promise<{
   total: number;
   recent: VisitorLog[];
   countries: CountryStat[];
+  applications: InternshipAppRow[];
+  certificatesList: CertificateRow[];
 }> {
   try {
+    await ensureTablesExist();
+
     const totalVisitors = await db
       .select({ count: sql<number>`count(*)` })
       .from(visitors);
@@ -26,6 +37,18 @@ async function getStats(): Promise<{
     const countryStatsResult = await db.execute(
       sql`SELECT country, COUNT(*) as count FROM visitors GROUP BY country ORDER BY count DESC LIMIT 10`
     );
+
+    const appsResult = await db
+      .select()
+      .from(internshipApplications)
+      .orderBy(desc(internshipApplications.createdAt))
+      .limit(50);
+
+    const certsResult = await db
+      .select()
+      .from(certificates)
+      .orderBy(desc(certificates.createdAt))
+      .limit(50);
 
     const formattedRecent: VisitorLog[] = recentVisits.map((v) => ({
       id: v.id,
@@ -44,10 +67,49 @@ async function getStats(): Promise<{
       })
     );
 
+    const formattedApps: InternshipAppRow[] = appsResult.map((a) => ({
+      id: a.id,
+      fullName: a.fullName,
+      email: a.email,
+      phone: a.phone,
+      college: a.college,
+      degree: a.degree,
+      graduationYear: a.graduationYear,
+      domain: a.domain,
+      mode: a.mode,
+      internshipType: a.internshipType,
+      duration: a.duration,
+      githubUrl: a.githubUrl,
+      linkedinUrl: a.linkedinUrl,
+      portfolioUrl: a.portfolioUrl,
+      resumeLink: a.resumeLink,
+      statement: a.statement,
+      status: a.status,
+      createdAt: a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt),
+    }));
+
+    const formattedCerts: CertificateRow[] = certsResult.map((c) => ({
+      id: c.id,
+      studentName: c.studentName,
+      studentEmail: c.studentEmail,
+      domain: c.domain,
+      mode: c.mode,
+      internshipType: c.internshipType,
+      college: c.college,
+      duration: c.duration,
+      grade: c.grade,
+      issueDate: c.issueDate instanceof Date ? c.issueDate.toISOString() : String(c.issueDate),
+      signatoryTitle: c.signatoryTitle,
+      status: c.status,
+      createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : String(c.createdAt),
+    }));
+
     return {
       total: Number(totalVisitors[0]?.count || 0),
       recent: formattedRecent,
       countries: formattedCountries,
+      applications: formattedApps,
+      certificatesList: formattedCerts,
     };
   } catch (error) {
     console.error("DB Error fetching admin stats:", error);
@@ -55,6 +117,8 @@ async function getStats(): Promise<{
       total: 0,
       recent: [],
       countries: [],
+      applications: [],
+      certificatesList: [],
     };
   }
 }
@@ -70,6 +134,8 @@ export default async function AdminPage() {
           initialTotal={stats.total}
           initialRecent={stats.recent}
           initialCountries={stats.countries}
+          initialApplications={stats.applications}
+          initialCertificates={stats.certificatesList}
         />
       </div>
     </AdminGuard>
