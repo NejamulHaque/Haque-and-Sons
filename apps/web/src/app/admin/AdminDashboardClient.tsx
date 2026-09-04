@@ -24,9 +24,23 @@ import {
   ExternalLink,
   X,
   Clock,
+  Mail,
+  CreditCard,
+  Eye,
+  Trash2,
+  Edit3,
+  Download,
+  Send,
+  FileText,
+  IndianRupee,
+  AlertCircle,
+  FolderArchive,
+  RefreshCw,
+  Code2,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CURRENCIES, type CurrencyCode } from "@/components/ProjectCalculator";
+import { INTERNSHIP_DOMAINS } from "@/lib/domains";
 import Link from "next/link";
 
 export interface VisitorLog {
@@ -62,6 +76,15 @@ export interface InternshipAppRow {
   resumeLink?: string | null;
   statement?: string | null;
   status: string;
+  githubRepo?: string | null;
+  liveUrl?: string | null;
+  googleFormSubmitted?: boolean | null;
+  feedbackRating?: string | null;
+  feedbackText?: string | null;
+  paymentScreenshot?: string | null;
+  paymentUtr?: string | null;
+  paymentStatus?: string | null;
+  certificateId?: string | null;
   createdAt: Date | string;
 }
 
@@ -172,19 +195,36 @@ export function AdminDashboardClient({
 }: AdminDashboardClientProps) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "visitors" | "internships" | "ecosystem" | "system"
-  >("overview");
+  >("internships");
   const [currency, setCurrency] = useState<CurrencyCode>("INR");
   const [totalVisitors, setTotalVisitors] = useState(initialTotal);
   const [recentVisits, setRecentVisits] = useState<VisitorLog[]>(initialRecent);
   const [applications, setApplications] = useState<InternshipAppRow[]>(initialApplications);
   const [certificates, setCertificates] = useState<CertificateRow[]>(initialCertificates);
 
+  // Search and multi-filters
   const [searchQuery, setSearchQuery] = useState("");
   const [appSearchQuery, setAppSearchQuery] = useState("");
   const [appStatusFilter, setAppStatusFilter] = useState("All");
+  const [appDomainFilter, setAppDomainFilter] = useState("All");
+  const [appModeFilter, setAppModeFilter] = useState("All");
+  const [appPaymentFilter, setAppPaymentFilter] = useState("All");
 
   const [pingStatus, setPingStatus] = useState<string | null>(null);
   const [isPinging, setIsPinging] = useState(false);
+
+  // Modals & Action States
+  const [viewDetailApp, setViewDetailApp] = useState<InternshipAppRow | null>(null);
+  const [editingApp, setEditingApp] = useState<InternshipAppRow | null>(null);
+  const [isUpdatingApp, setIsUpdatingApp] = useState(false);
+  const [deletingAppId, setDeletingAppId] = useState<number | null>(null);
+  const [deletingCertId, setDeletingCertId] = useState<string | null>(null);
+
+  // Custom Email Modal state
+  const [emailingApp, setEmailingApp] = useState<InternshipAppRow | null>(null);
+  const [customEmailSubject, setCustomEmailSubject] = useState("");
+  const [customEmailMessage, setCustomEmailMessage] = useState("");
+  const [isSendingCustomEmail, setIsSendingCustomEmail] = useState(false);
 
   // Issue Certificate Modal state
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
@@ -200,6 +240,14 @@ export function AdminDashboardClient({
   const [isIssuingCert, setIsIssuingCert] = useState(false);
   const [certSuccessUrl, setCertSuccessUrl] = useState<string | null>(null);
 
+  // Send Offer Letter state
+  const [sendingOfferEmailId, setSendingOfferEmailId] = useState<number | null>(null);
+  const [offerSentToast, setOfferSentToast] = useState<string | null>(null);
+
+  // Payment Verification & Screenshot Modal state
+  const [viewScreenshotApp, setViewScreenshotApp] = useState<InternshipAppRow | null>(null);
+  const [approvingPaymentId, setApprovingPaymentId] = useState<number | null>(null);
+
   const activeCurrency = CURRENCIES[currency];
 
   const formatCurrency = (usdAmount: number) => {
@@ -209,6 +257,42 @@ export function AdminDashboardClient({
   const totalPortfolioValuationUSD = useMemo(() => {
     return PROJECTS.reduce((acc, p) => acc + p.valuationUSD, 0);
   }, []);
+
+  // Financial Revenue Calculations (INR)
+  const financialStats = useMemo(() => {
+    const getPrice = (mode: string) => {
+      if (mode === "Offline") return 249;
+      if (mode === "Hybrid") return 199;
+      return 99;
+    };
+
+    let collectedINR = 0;
+    let pipelineINR = 0;
+    let onlineCount = 0;
+    let hybridCount = 0;
+    let offlineCount = 0;
+
+    applications.forEach((app) => {
+      const p = getPrice(app.mode);
+      if (app.mode === "Offline") offlineCount++;
+      else if (app.mode === "Hybrid") hybridCount++;
+      else onlineCount++;
+
+      if (app.paymentStatus === "Approved") {
+        collectedINR += p;
+      } else if (app.paymentStatus === "Pending Approval") {
+        pipelineINR += p;
+      }
+    });
+
+    return {
+      collectedINR,
+      pipelineINR,
+      onlineCount,
+      hybridCount,
+      offlineCount,
+    };
+  }, [applications]);
 
   const handleSimulateTrack = async () => {
     setIsPinging(true);
@@ -220,7 +304,7 @@ export function AdminDashboardClient({
         const newLog: VisitorLog = {
           id: Date.now(),
           ip: "127.0.0.1 (Local Ping)",
-          userAgent: navigator.userAgent,
+          userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Chrome / Edge Browser",
           path: "/admin",
           country: "India",
           city: "New Delhi",
@@ -239,6 +323,77 @@ export function AdminDashboardClient({
     }
   };
 
+  const handleSendOfferLetter = async (app: InternshipAppRow) => {
+    setSendingOfferEmailId(app.id);
+    setOfferSentToast(null);
+    try {
+      const res = await fetch("/api/internships/send-offer-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: app.email,
+          studentName: app.fullName,
+          college: app.college,
+          degree: app.degree,
+          domain: app.domain,
+          mode: app.mode,
+          duration: app.duration,
+          internshipType: app.internshipType,
+          offerId: `HS-OFFER-2026-${app.id}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setOfferSentToast(`✓ Official Offer Letter dispatched to ${app.email}!`);
+        setTimeout(() => setOfferSentToast(null), 6000);
+      } else {
+        alert(data.error || "Failed to dispatch offer letter email.");
+      }
+    } catch {
+      alert("Network error while sending offer letter.");
+    } finally {
+      setSendingOfferEmailId(null);
+    }
+  };
+
+  const handleApprovePayment = async (app: InternshipAppRow) => {
+    setApprovingPaymentId(app.id);
+    try {
+      const res = await fetch("/api/admin/approve-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId: app.id, action: "approve" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOfferSentToast(`✓ Payment approved & certificate ${data.certificate?.id} issued to ${app.fullName}!`);
+        setTimeout(() => setOfferSentToast(null), 7000);
+        setApplications((prev) =>
+          prev.map((a) =>
+            a.id === app.id
+              ? {
+                  ...a,
+                  paymentStatus: "Approved",
+                  status: "Completed",
+                  certificateId: data.certificate?.id,
+                }
+              : a
+          )
+        );
+        if (data.certificate) {
+          setCertificates((prev) => [data.certificate, ...prev]);
+        }
+      } else {
+        alert(data.error || "Failed to approve payment.");
+      }
+    } catch {
+      alert("Network error approving payment.");
+    } finally {
+      setApprovingPaymentId(null);
+    }
+  };
+
   const handleUpdateStatus = async (id: number, newStatus: string) => {
     try {
       const res = await fetch("/api/internships/update-status", {
@@ -254,6 +409,200 @@ export function AdminDashboardClient({
     } catch (err) {
       console.error("Status update error:", err);
     }
+  };
+
+  const handleSaveEditApp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingApp) return;
+    setIsUpdatingApp(true);
+    try {
+      const res = await fetch("/api/admin/update-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingApp),
+      });
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setApplications((prev) =>
+          prev.map((a) => (a.id === editingApp.id ? data.application : a))
+        );
+        if (viewDetailApp?.id === editingApp.id) {
+          setViewDetailApp(data.application);
+        }
+        setEditingApp(null);
+        setOfferSentToast(`✓ Student record #${editingApp.id} updated successfully!`);
+        setTimeout(() => setOfferSentToast(null), 5000);
+      } else {
+        alert(data.error || "Failed to update record.");
+      }
+    } catch (err) {
+      console.error("Save edit error:", err);
+      alert("Network error updating application.");
+    } finally {
+      setIsUpdatingApp(false);
+    }
+  };
+
+  const handleDeleteApp = async (id: number) => {
+    if (!confirm(`Are you sure you want to permanently delete application #${id}? This action cannot be undone.`)) {
+      return;
+    }
+    setDeletingAppId(id);
+    try {
+      const res = await fetch("/api/admin/delete-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setApplications((prev) => prev.filter((a) => a.id !== id));
+        if (viewDetailApp?.id === id) setViewDetailApp(null);
+        setOfferSentToast(`✓ Application #${id} deleted from database.`);
+        setTimeout(() => setOfferSentToast(null), 5000);
+      } else {
+        alert(data.error || "Failed to delete application.");
+      }
+    } catch (err) {
+      console.error("Delete app error:", err);
+      alert("Network error deleting application.");
+    } finally {
+      setDeletingAppId(null);
+    }
+  };
+
+  const handleDeleteCert = async (id: string) => {
+    if (!confirm(`Are you sure you want to revoke/delete Certificate ${id}? This credential will no longer be verifiable.`)) {
+      return;
+    }
+    setDeletingCertId(id);
+    try {
+      const res = await fetch("/api/admin/delete-certificate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCertificates((prev) => prev.filter((c) => c.id !== id));
+        setOfferSentToast(`✓ Certificate ${id} has been revoked.`);
+        setTimeout(() => setOfferSentToast(null), 5000);
+      } else {
+        alert(data.error || "Failed to delete certificate.");
+      }
+    } catch (err) {
+      console.error("Delete cert error:", err);
+      alert("Network error deleting certificate.");
+    } finally {
+      setDeletingCertId(null);
+    }
+  };
+
+  const handleSendCustomEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailingApp || !customEmailSubject.trim() || !customEmailMessage.trim()) return;
+    setIsSendingCustomEmail(true);
+    try {
+      const res = await fetch("/api/admin/send-custom-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: emailingApp.email,
+          subject: customEmailSubject,
+          message: customEmailMessage,
+          studentName: emailingApp.fullName,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailingApp(null);
+        setCustomEmailSubject("");
+        setCustomEmailMessage("");
+        setOfferSentToast(`✓ Custom message sent to ${emailingApp.email}!`);
+        setTimeout(() => setOfferSentToast(null), 5000);
+      } else {
+        alert(data.error || "Failed to send email.");
+      }
+    } catch (err) {
+      console.error("Send custom email error:", err);
+      alert("Network error sending email.");
+    } finally {
+      setIsSendingCustomEmail(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredApplications.length === 0) {
+      alert("No applications to export.");
+      return;
+    }
+    const headers = [
+      "ID",
+      "Full Name",
+      "Email",
+      "Phone",
+      "College",
+      "Degree",
+      "Graduation Year",
+      "Domain",
+      "Mode",
+      "Internship Type",
+      "Duration",
+      "Status",
+      "Payment Status",
+      "Payment UTR",
+      "Feedback Rating",
+      "Feedback Text",
+      "GitHub Profile",
+      "LinkedIn",
+      "Portfolio",
+      "Resume Link",
+      "GitHub Repo",
+      "Live URL",
+      "Certificate ID",
+      "Created At",
+    ];
+
+    const rows = filteredApplications.map((app) => [
+      app.id,
+      `"${(app.fullName || "").replace(/"/g, '""')}"`,
+      `"${(app.email || "").replace(/"/g, '""')}"`,
+      `"${(app.phone || "").replace(/"/g, '""')}"`,
+      `"${(app.college || "").replace(/"/g, '""')}"`,
+      `"${(app.degree || "").replace(/"/g, '""')}"`,
+      `"${(app.graduationYear || "").replace(/"/g, '""')}"`,
+      `"${(app.domain || "").replace(/"/g, '""')}"`,
+      `"${(app.mode || "").replace(/"/g, '""')}"`,
+      `"${(app.internshipType || "").replace(/"/g, '""')}"`,
+      `"${(app.duration || "").replace(/"/g, '""')}"`,
+      `"${(app.status || "").replace(/"/g, '""')}"`,
+      `"${(app.paymentStatus || "").replace(/"/g, '""')}"`,
+      `"${(app.paymentUtr || "").replace(/"/g, '""')}"`,
+      `"${(app.feedbackRating || "").replace(/"/g, '""')}"`,
+      `"${(app.feedbackText || "").replace(/"/g, '""')}"`,
+      `"${(app.githubUrl || "").replace(/"/g, '""')}"`,
+      `"${(app.linkedinUrl || "").replace(/"/g, '""')}"`,
+      `"${(app.portfolioUrl || "").replace(/"/g, '""')}"`,
+      `"${(app.resumeLink || "").replace(/"/g, '""')}"`,
+      `"${(app.githubRepo || "").replace(/"/g, '""')}"`,
+      `"${(app.liveUrl || "").replace(/"/g, '""')}"`,
+      `"${(app.certificateId || "").replace(/"/g, '""')}"`,
+      `"${new Date(app.createdAt).toISOString()}"`,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `haque_and_sons_interns_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const openIssueCertForApp = (app: InternshipAppRow) => {
@@ -312,17 +661,29 @@ export function AdminDashboardClient({
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
       if (appStatusFilter !== "All" && app.status !== appStatusFilter) return false;
+      if (appDomainFilter !== "All" && app.domain !== appDomainFilter) return false;
+      if (appModeFilter !== "All" && app.mode !== appModeFilter) return false;
+      if (appPaymentFilter !== "All") {
+        if (appPaymentFilter === "Approved" && app.paymentStatus !== "Approved") return false;
+        if (appPaymentFilter === "Pending Approval" && app.paymentStatus !== "Pending Approval") return false;
+        if (appPaymentFilter === "Unpaid" && (app.paymentStatus === "Approved" || app.paymentStatus === "Pending Approval")) return false;
+      }
       if (appSearchQuery.trim()) {
         const q = appSearchQuery.toLowerCase();
-        const matchName = app.fullName.toLowerCase().includes(q);
-        const matchEmail = app.email.toLowerCase().includes(q);
-        const matchCollege = app.college.toLowerCase().includes(q);
-        const matchDomain = app.domain.toLowerCase().includes(q);
-        if (!matchName && !matchEmail && !matchCollege && !matchDomain) return false;
+        const matchName = (app.fullName || "").toLowerCase().includes(q);
+        const matchEmail = (app.email || "").toLowerCase().includes(q);
+        const matchCollege = (app.college || "").toLowerCase().includes(q);
+        const matchDomain = (app.domain || "").toLowerCase().includes(q);
+        const matchPhone = (app.phone || "").toLowerCase().includes(q);
+        const matchUtr = (app.paymentUtr || "").toLowerCase().includes(q);
+        const matchCert = (app.certificateId || "").toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchCollege && !matchDomain && !matchPhone && !matchUtr && !matchCert) {
+          return false;
+        }
       }
       return true;
     });
-  }, [applications, appStatusFilter, appSearchQuery]);
+  }, [applications, appStatusFilter, appDomainFilter, appModeFilter, appPaymentFilter, appSearchQuery]);
 
   const filteredLogs = useMemo(() => {
     if (!searchQuery.trim()) return recentVisits;
@@ -342,18 +703,6 @@ export function AdminDashboardClient({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gray-950/80 border border-white/10 p-2.5 rounded-2xl backdrop-blur-xl">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
-              activeTab === "overview"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Overview & Telemetry</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab("internships")}
             className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "internships"
@@ -362,7 +711,19 @@ export function AdminDashboardClient({
             }`}
           >
             <GraduationCap className="w-3.5 h-3.5" />
-            <span>Internships & Certificates ({applications.length})</span>
+            <span>Internships Command OS ({applications.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "overview"
+                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Studio Telemetry</span>
           </button>
 
           <button
@@ -430,38 +791,40 @@ export function AdminDashboardClient({
       {/* TAB: INTERNSHIPS & CERTIFICATES */}
       {activeTab === "internships" && (
         <div className="space-y-8">
-          {/* Top Metric Cards */}
+          {/* Top Metric Cards with Financial Revenue KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Revenue Collected */}
             <SpotlightCard className="p-6 border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Total Applications
+                  <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <IndianRupee className="w-3.5 h-3.5" /> Verified Revenue
                   </p>
-                  <h3 className="text-3xl font-extrabold text-white mt-1">
-                    {applications.length}
+                  <h3 className="text-3xl font-extrabold text-emerald-300 mt-1">
+                    ₹{financialStats.collectedINR.toLocaleString()}
                   </h3>
-                  <p className="text-xs text-cyan-400 mt-2 flex items-center gap-1 font-medium">
-                    <GraduationCap className="w-3.5 h-3.5" /> Across 11+ Domains
+                  <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> From approved UPI verify
                   </p>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-                  <GraduationCap className="w-6 h-6" />
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <IndianRupee className="w-6 h-6" />
                 </div>
               </div>
             </SpotlightCard>
 
+            {/* Pipeline / Pending Revenue */}
             <SpotlightCard className="p-6 border-white/10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Pending Review
+                  <p className="text-xs font-semibold text-yellow-400 uppercase tracking-wider flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> Pipeline Revenue
                   </p>
                   <h3 className="text-3xl font-extrabold text-yellow-300 mt-1">
-                    {applications.filter((a) => a.status === "Pending").length}
+                    ₹{financialStats.pipelineINR.toLocaleString()}
                   </h3>
-                  <p className="text-xs text-yellow-400/80 mt-2 flex items-center gap-1 font-medium">
-                    <Clock className="w-3.5 h-3.5" /> Awaiting Evaluation
+                  <p className="text-[11px] text-yellow-400/80 mt-2 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5" /> {applications.filter((a) => a.paymentStatus === "Pending Approval").length} payments to verify
                   </p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
@@ -470,25 +833,29 @@ export function AdminDashboardClient({
               </div>
             </SpotlightCard>
 
+            {/* Total Applications & Mode Breakdown */}
             <SpotlightCard className="p-6 border-white/10">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Active & Completed
+                    Enrolled Interns
                   </p>
-                  <h3 className="text-3xl font-extrabold text-emerald-400 mt-1">
-                    {applications.filter((a) => a.status === "Accepted" || a.status === "Completed").length}
+                  <h3 className="text-3xl font-extrabold text-white mt-1">
+                    {applications.length}
                   </h3>
-                  <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Production Capstones
-                  </p>
+                  <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-400 font-mono">
+                    <span className="text-cyan-400">Online: {financialStats.onlineCount} (₹99)</span>
+                    <span className="text-purple-400">Hyb: {financialStats.hybridCount} (₹199)</span>
+                    <span className="text-emerald-400">Off: {financialStats.offlineCount} (₹249)</span>
+                  </div>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <CheckCircle2 className="w-6 h-6" />
+                <div className="p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                  <GraduationCap className="w-6 h-6" />
                 </div>
               </div>
             </SpotlightCard>
 
+            {/* Issued Credentials */}
             <SpotlightCard className="p-6 border-white/10">
               <div className="flex items-center justify-between">
                 <div>
@@ -499,7 +866,7 @@ export function AdminDashboardClient({
                     {certificates.length}
                   </h3>
                   <p className="text-xs text-purple-400 mt-2 flex items-center gap-1 font-medium">
-                    <Award className="w-3.5 h-3.5" /> Verified on Ledger
+                    <Award className="w-3.5 h-3.5" /> Verifiable on Ledger
                   </p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
@@ -513,13 +880,27 @@ export function AdminDashboardClient({
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold text-white">Internship Applications Pipeline</h3>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span>Internship Applications Command OS</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-mono">
+                    {filteredApplications.length} showing
+                  </span>
+                </h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Review applicant profiles, change status, and issue verified certificates in 1 click.
+                  Review applicant profiles, inspect submitted project ZIPs, edit student records, send custom emails, and issue verified credentials.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  onClick={handleExportCSV}
+                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="Export currently filtered applications to CSV"
+                >
+                  <Download className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Export CSV</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setCertStudentName("");
@@ -536,35 +917,133 @@ export function AdminDashboardClient({
               </div>
             </div>
 
-            {/* Filter controls */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={appSearchQuery}
-                  onChange={(e) => setAppSearchQuery(e.target.value)}
-                  placeholder="Search by student name, email, college, or domain..."
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
-                />
+            {/* Filter controls & Deep Search */}
+            <div className="bg-black/60 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    value={appSearchQuery}
+                    onChange={(e) => setAppSearchQuery(e.target.value)}
+                    placeholder="Search by name, email, phone, college, domain, UTR, cert ID..."
+                    className="w-full bg-black/80 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                  />
+                  {appSearchQuery && (
+                    <button
+                      onClick={() => setAppSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center gap-1 bg-black/60 border border-white/10 p-1 rounded-xl">
-                {["All", "Pending", "Accepted", "Completed", "Rejected"].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setAppStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      appStatusFilter === st
-                        ? "bg-cyan-500 text-black shadow-sm"
-                        : "text-gray-400 hover:text-white"
-                    }`}
+              {/* Multi-dropdown filters row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                {/* Domain Filter */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    Domain Track:
+                  </label>
+                  <select
+                    value={appDomainFilter}
+                    onChange={(e) => setAppDomainFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
                   >
-                    {st}
-                  </button>
-                ))}
+                    <option value="All">All Domains ({applications.length})</option>
+                    {INTERNSHIP_DOMAINS.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Mode Filter */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    Track Mode:
+                  </label>
+                  <select
+                    value={appModeFilter}
+                    onChange={(e) => setAppModeFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="All">All Modes</option>
+                    <option value="Online">Online Track (₹99)</option>
+                    <option value="Hybrid">Hybrid Mentorship (₹199)</option>
+                    <option value="Offline">Offline Studio (₹249)</option>
+                  </select>
+                </div>
+
+                {/* Payment Filter */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    Payment Status:
+                  </label>
+                  <select
+                    value={appPaymentFilter}
+                    onChange={(e) => setAppPaymentFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="All">All Payments</option>
+                    <option value="Pending Approval">Pending Approval (Action Req.)</option>
+                    <option value="Approved">Paid & Verified</option>
+                    <option value="Unpaid">Unpaid / In Progress</option>
+                  </select>
+                </div>
+
+                {/* Application Lifecycle Status */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    Application Status:
+                  </label>
+                  <select
+                    value={appStatusFilter}
+                    onChange={(e) => setAppStatusFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Payment Review">Payment Review</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
               </div>
+
+              {(appSearchQuery || appDomainFilter !== "All" || appModeFilter !== "All" || appPaymentFilter !== "All" || appStatusFilter !== "All") && (
+                <div className="pt-2 flex items-center justify-between border-t border-white/5 text-xs">
+                  <span className="text-gray-400">
+                    Showing <strong className="text-cyan-300">{filteredApplications.length}</strong> of {applications.length} interns
+                  </span>
+                  <button
+                    onClick={() => {
+                      setAppSearchQuery("");
+                      setAppDomainFilter("All");
+                      setAppModeFilter("All");
+                      setAppPaymentFilter("All");
+                      setAppStatusFilter("All");
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Reset All Filters</span>
+                  </button>
+                </div>
+              )}
             </div>
+
+            {offerSentToast && (
+              <div className="p-3.5 rounded-xl bg-purple-950/70 border border-purple-500/40 text-purple-200 text-xs flex items-center gap-2 shadow-lg">
+                <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+                <span>{offerSentToast}</span>
+              </div>
+            )}
 
             {/* Applications Table */}
             <div className="bg-gray-900/40 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
@@ -572,41 +1051,97 @@ export function AdminDashboardClient({
                 <table className="w-full text-left text-xs text-gray-300">
                   <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] tracking-wider border-b border-white/10">
                     <tr>
-                      <th className="px-5 py-3.5 font-semibold">Applicant</th>
-                      <th className="px-5 py-3.5 font-semibold">College & Branch</th>
-                      <th className="px-5 py-3.5 font-semibold">Domain Track</th>
-                      <th className="px-5 py-3.5 font-semibold">Mode & Type</th>
-                      <th className="px-5 py-3.5 font-semibold">Status</th>
-                      <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                      <th className="px-4 py-3.5 font-semibold">Applicant</th>
+                      <th className="px-4 py-3.5 font-semibold">College & Branch</th>
+                      <th className="px-4 py-3.5 font-semibold">Domain Track</th>
+                      <th className="px-4 py-3.5 font-semibold">Mode & Fee</th>
+                      <th className="px-4 py-3.5 font-semibold">Payment & Review</th>
+                      <th className="px-4 py-3.5 font-semibold">Lifecycle</th>
+                      <th className="px-4 py-3.5 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {filteredApplications.length > 0 ? (
                       filteredApplications.map((app) => (
                         <tr key={app.id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="px-5 py-3.5">
-                            <span className="font-bold text-white block">{app.fullName}</span>
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setViewDetailApp(app)}
+                                className="font-bold text-white hover:text-cyan-400 transition-colors text-left block cursor-pointer"
+                              >
+                                {app.fullName}
+                              </button>
+                              <span className="text-[10px] text-gray-500 font-mono">#{app.id}</span>
+                            </div>
                             <span className="text-[11px] text-cyan-400 font-mono block">{app.email}</span>
                             <span className="text-[10px] text-gray-500 block">{app.phone}</span>
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-4 py-3.5">
                             <span className="text-gray-200 font-medium block">{app.college}</span>
                             <span className="text-[11px] text-gray-400 block">
                               {app.degree} ({app.graduationYear})
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-4 py-3.5">
                             <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold inline-block">
                               {app.domain}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <span className="text-gray-300 block font-medium">
-                              {app.mode} • {app.duration}
-                            </span>
-                            <span className="text-[10px] text-cyan-400/80 block">{app.internshipType}</span>
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-gray-300 font-medium">
+                                {app.mode} • {app.duration}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] font-mono font-bold">
+                                ₹{app.mode === "Offline" ? 249 : app.mode === "Hybrid" ? 199 : 99}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-cyan-400/80 block mt-0.5">{app.internshipType}</span>
                           </td>
-                          <td className="px-5 py-3.5">
+
+                          {/* Payment Column */}
+                          <td className="px-4 py-3.5">
+                            {app.paymentStatus === "Pending Approval" ? (
+                              <div className="space-y-1">
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 text-[10px] font-bold font-mono inline-flex items-center gap-1">
+                                  <Clock className="w-2.5 h-2.5 animate-spin" />
+                                  <span>UTR: {app.paymentUtr || "Submitted"}</span>
+                                </span>
+                                {app.paymentScreenshot && (
+                                  <div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setViewScreenshotApp(app)}
+                                      className="px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-cyan-300 text-[10px] font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Eye className="w-2.5 h-2.5" />
+                                      <span>View Proof</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            ) : app.paymentStatus === "Approved" ? (
+                              <div className="space-y-0.5">
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold inline-flex items-center gap-1">
+                                  <CheckCircle2 className="w-2.5 h-2.5" />
+                                  <span>Paid & Verified</span>
+                                </span>
+                                {app.feedbackRating && (
+                                  <span className="text-[10px] text-gray-400 block">
+                                    ⭐ {app.feedbackRating}/5 Stars
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-gray-500 italic">
+                                Unpaid / In Progress
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Lifecycle Status Select */}
+                          <td className="px-4 py-3.5">
                             <select
                               value={app.status}
                               onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
@@ -615,6 +1150,8 @@ export function AdminDashboardClient({
                                   ? "text-emerald-400 border-emerald-500/30"
                                   : app.status === "Accepted"
                                   ? "text-cyan-400 border-cyan-500/30"
+                                  : app.status === "Payment Review"
+                                  ? "text-yellow-400 border-yellow-500/30"
                                   : app.status === "Pending"
                                   ? "text-yellow-400 border-yellow-500/30"
                                   : "text-gray-400 border-white/10"
@@ -623,25 +1160,98 @@ export function AdminDashboardClient({
                               <option value="Pending">Pending</option>
                               <option value="Under Review">Under Review</option>
                               <option value="Accepted">Accepted</option>
+                              <option value="Payment Review">Payment Review</option>
                               <option value="Completed">Completed</option>
                               <option value="Rejected">Rejected</option>
                             </select>
                           </td>
-                          <td className="px-5 py-3.5 text-right">
-                            <button
-                              onClick={() => openIssueCertForApp(app)}
-                              className="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
-                            >
-                              <Award className="w-3.5 h-3.5" />
-                              <span>Issue Certificate</span>
-                            </button>
+
+                          {/* Action Buttons */}
+                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* 360 Full Inspect */}
+                              <button
+                                onClick={() => setViewDetailApp(app)}
+                                title="Inspect Student 360° Profile"
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-all cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Edit Student Record */}
+                              <button
+                                onClick={() => setEditingApp(app)}
+                                title="Edit Student Record"
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 border border-white/10 transition-all cursor-pointer"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Compose Custom Email */}
+                              <button
+                                onClick={() => {
+                                  setEmailingApp(app);
+                                  setCustomEmailSubject(`Update regarding your Internship Application #${app.id}`);
+                                  setCustomEmailMessage(
+                                    `Dear ${app.fullName},\n\nWe are writing from Haque & Sons regarding your ${app.domain} internship application.\n\nBest regards,\nNejamul Haque`
+                                  );
+                                }}
+                                title="Compose & Send Custom Email"
+                                className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all cursor-pointer"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Send Offer Letter */}
+                              <button
+                                onClick={() => handleSendOfferLetter(app)}
+                                disabled={sendingOfferEmailId === app.id}
+                                title="Email Official Offer Letter to Student"
+                                className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>{sendingOfferEmailId === app.id ? "Sending..." : "Offer"}</span>
+                              </button>
+
+                              {/* Approve Payment or Issue Certificate */}
+                              {app.paymentStatus === "Pending Approval" ? (
+                                <button
+                                  onClick={() => handleApprovePayment(app)}
+                                  disabled={approvingPaymentId === app.id}
+                                  title="Approve UPI Payment & Issue Certificate"
+                                  className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-black text-xs font-bold transition-all shadow-md inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>{approvingPaymentId === app.id ? "Approving..." : "Approve"}</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => openIssueCertForApp(app)}
+                                  title="Issue Verifiable Certificate"
+                                  className="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Award className="w-3.5 h-3.5" />
+                                  <span>Issue Cert</span>
+                                </button>
+                              )}
+
+                              {/* Delete Record */}
+                              <button
+                                onClick={() => handleDeleteApp(app.id)}
+                                disabled={deletingAppId === app.id}
+                                title="Permanently Delete Application"
+                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="text-center py-10 text-gray-500">
-                          No internship applications found matching your criteria.
+                        <td colSpan={7} className="text-center py-10 text-gray-500">
+                          No internship applications found matching your search or filters.
                         </td>
                       </tr>
                     )}
@@ -657,7 +1267,7 @@ export function AdminDashboardClient({
               <div>
                 <h3 className="text-xl font-bold text-white">Issued Certificates Registry</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  All active cryptographic credentials issued to interns.
+                  All active cryptographic credentials issued to interns on the tamper-proof ledger.
                 </p>
               </div>
 
@@ -676,7 +1286,7 @@ export function AdminDashboardClient({
                       <th className="px-5 py-3.5 font-semibold">Domain Track</th>
                       <th className="px-5 py-3.5 font-semibold">Grade</th>
                       <th className="px-5 py-3.5 font-semibold">Issued Date</th>
-                      <th className="px-5 py-3.5 font-semibold text-right font-sans">Verification</th>
+                      <th className="px-5 py-3.5 font-semibold text-right font-sans">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -693,14 +1303,24 @@ export function AdminDashboardClient({
                             {new Date(cert.issueDate).toLocaleDateString()}
                           </td>
                           <td className="px-5 py-3.5 text-right font-sans">
-                            <Link
-                              href={`/verify/${cert.id}`}
-                              target="_blank"
-                              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 text-xs font-semibold transition-all inline-flex items-center gap-1"
-                            >
-                              <span>View Certificate</span>
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Link>
+                            <div className="flex items-center justify-end gap-2">
+                              <Link
+                                href={`/verify/${cert.id}`}
+                                target="_blank"
+                                className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 text-xs font-semibold transition-all inline-flex items-center gap-1"
+                              >
+                                <span>View Live</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteCert(cert.id)}
+                                disabled={deletingCertId === cert.id}
+                                title="Revoke and Delete Certificate"
+                                className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -719,7 +1339,7 @@ export function AdminDashboardClient({
         </div>
       )}
 
-      {/* TAB 1: OVERVIEW */}
+      {/* TAB 1: STUDIO TELEMETRY */}
       {activeTab === "overview" && (
         <div className="space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -1123,9 +1743,689 @@ export function AdminDashboardClient({
         </div>
       )}
 
-      {/* ISSUE CERTIFICATE MODAL */}
+      {/* ================= MODALS ================= */}
+
+      {/* MODAL 1: 360° STUDENT FULL DETAIL INSPECTOR MODAL */}
+      {viewDetailApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-3xl bg-[#0a0f1d] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-xl">
+                  {viewDetailApp.fullName.slice(0, 1).toUpperCase()}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-white">{viewDetailApp.fullName}</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-mono text-cyan-300">
+                      ID #{viewDetailApp.id}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        viewDetailApp.status === "Completed"
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          : viewDetailApp.status === "Accepted"
+                          ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                          : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                      }`}
+                    >
+                      {viewDetailApp.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {viewDetailApp.college} &bull; {viewDetailApp.degree} ({viewDetailApp.graduationYear})
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setViewDetailApp(null)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {/* Contact & Academic */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                <h4 className="text-[11px] uppercase font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" /> Contact & Academic Details
+                </h4>
+                <div className="space-y-1.5 text-gray-300">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Email:</span>
+                    <a href={`mailto:${viewDetailApp.email}`} className="text-cyan-400 hover:underline font-mono">
+                      {viewDetailApp.email}
+                    </a>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Phone:</span>
+                    <span className="font-mono text-white">{viewDetailApp.phone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">College:</span>
+                    <span className="text-right text-white font-medium">{viewDetailApp.college}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Degree & Year:</span>
+                    <span className="text-white">{viewDetailApp.degree} ({viewDetailApp.graduationYear})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Applied Date:</span>
+                    <span className="text-gray-400 font-mono">{new Date(viewDetailApp.createdAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Track & Pricing */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                <h4 className="text-[11px] uppercase font-bold text-purple-400 tracking-wider flex items-center gap-1.5">
+                  <GraduationCap className="w-3.5 h-3.5" /> Track & Financials
+                </h4>
+                <div className="space-y-1.5 text-gray-300">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Domain:</span>
+                    <span className="text-purple-300 font-semibold">{viewDetailApp.domain}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Mode:</span>
+                    <span className="text-white font-medium">{viewDetailApp.mode} Track</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Duration:</span>
+                    <span className="text-white">{viewDetailApp.duration}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Track Fee:</span>
+                    <span className="text-cyan-300 font-bold font-mono">
+                      ₹{viewDetailApp.mode === "Offline" ? 249 : viewDetailApp.mode === "Hybrid" ? 199 : 99}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Payment Status:</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        viewDetailApp.paymentStatus === "Approved"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : viewDetailApp.paymentStatus === "Pending Approval"
+                          ? "bg-yellow-500/20 text-yellow-300"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {viewDetailApp.paymentStatus || "Unpaid"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Statement of Purpose */}
+            {viewDetailApp.statement && (
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-1.5 text-xs">
+                <h4 className="text-[11px] uppercase font-bold text-gray-400 tracking-wider">
+                  Statement of Purpose / Motivation
+                </h4>
+                <p className="text-gray-300 leading-relaxed italic bg-black/50 p-3 rounded-xl border border-white/5">
+                  &ldquo;{viewDetailApp.statement}&rdquo;
+                </p>
+              </div>
+            )}
+
+            {/* Social & Portfolio Links */}
+            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2 text-xs">
+              <h4 className="text-[11px] uppercase font-bold text-gray-400 tracking-wider">
+                Candidate Profiles & Links
+              </h4>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {viewDetailApp.githubUrl && (
+                  <a
+                    href={viewDetailApp.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5"
+                  >
+                    <Code2 className="w-3.5 h-3.5" />
+                    <span>GitHub Profile</span>
+                    <ExternalLink className="w-3 h-3 text-gray-500" />
+                  </a>
+                )}
+                {viewDetailApp.linkedinUrl && (
+                  <a
+                    href={viewDetailApp.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-blue-400" />
+                    <span>LinkedIn</span>
+                    <ExternalLink className="w-3 h-3 text-gray-500" />
+                  </a>
+                )}
+                {viewDetailApp.portfolioUrl && (
+                  <a
+                    href={viewDetailApp.portfolioUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Portfolio</span>
+                    <ExternalLink className="w-3 h-3 text-gray-500" />
+                  </a>
+                )}
+                {viewDetailApp.resumeLink && (
+                  <a
+                    href={viewDetailApp.resumeLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 flex items-center gap-1.5"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>View Resume / CV</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Project Submissions Details */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-gray-900 to-black border border-white/10 space-y-3 text-xs">
+              <h4 className="text-[11px] uppercase font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
+                <FolderArchive className="w-3.5 h-3.5" /> Final Capstone & Code Submissions
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Submitted GitHub Repo:</span>
+                  {viewDetailApp.githubRepo ? (
+                    <a
+                      href={viewDetailApp.githubRepo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5"
+                    >
+                      <span>{viewDetailApp.githubRepo}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 italic">Not submitted yet</span>
+                  )}
+                </div>
+
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Live Demo URL:</span>
+                  {viewDetailApp.liveUrl ? (
+                    <a
+                      href={viewDetailApp.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5"
+                    >
+                      <span>{viewDetailApp.liveUrl}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 italic">Not submitted yet</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-cyan-300 flex items-center justify-between">
+                <div>
+                  <span className="font-semibold block">Project .ZIP Deliverable Email Box:</span>
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    Interns submit project ZIPs to: <strong>haquendsons@gmail.com</strong>
+                  </span>
+                </div>
+                <a
+                  href={`mailto:haquendsons@gmail.com?subject=Project%20ZIP%20Submission%20-%20${encodeURIComponent(
+                    viewDetailApp.fullName
+                  )}`}
+                  className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-xs"
+                >
+                  Check Inbox
+                </a>
+              </div>
+            </div>
+
+            {/* Payment & Feedback Verification */}
+            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-3 text-xs">
+              <h4 className="text-[11px] uppercase font-bold text-yellow-400 tracking-wider flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5" /> Payment & Feedback Ledger
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono">
+                <div className="p-2.5 bg-black/60 rounded-xl border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Payment UTR:</span>
+                  <span className="text-yellow-300 font-bold">{viewDetailApp.paymentUtr || "None"}</span>
+                </div>
+                <div className="p-2.5 bg-black/60 rounded-xl border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Rating:</span>
+                  <span className="text-cyan-300 font-bold font-sans">
+                    {viewDetailApp.feedbackRating ? `⭐ ${viewDetailApp.feedbackRating}/5` : "Unrated"}
+                  </span>
+                </div>
+                <div className="p-2.5 bg-black/60 rounded-xl border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Certificate ID:</span>
+                  <span className="text-purple-300 font-bold">{viewDetailApp.certificateId || "Not Issued"}</span>
+                </div>
+              </div>
+
+              {viewDetailApp.feedbackText && (
+                <div className="p-3 bg-black/60 rounded-xl border border-white/5 text-gray-300 font-sans">
+                  <span className="text-gray-500 text-[10px] uppercase font-bold block mb-0.5">Feedback Note:</span>
+                  <p>{viewDetailApp.feedbackText}</p>
+                </div>
+              )}
+
+              {viewDetailApp.paymentScreenshot && (
+                <div className="space-y-1.5">
+                  <span className="text-gray-400 font-semibold block">Payment Screenshot:</span>
+                  <div className="max-h-60 overflow-y-auto rounded-xl border border-white/10 bg-black p-2 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={viewDetailApp.paymentScreenshot}
+                      alt="Payment Proof Screenshot"
+                      className="max-h-56 rounded-lg object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Bottom Quick Action Bar */}
+            <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = viewDetailApp;
+                    setViewDetailApp(null);
+                    setEditingApp(target);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Edit Record</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = viewDetailApp;
+                    setViewDetailApp(null);
+                    setEmailingApp(target);
+                    setCustomEmailSubject(`Update regarding your Internship Application #${target.id}`);
+                    setCustomEmailMessage(
+                      `Dear ${target.fullName},\n\nWe are writing from Haque & Sons regarding your ${target.domain} internship.\n\nBest regards,\nNejamul Haque`
+                    );
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Send Custom Email</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = viewDetailApp;
+                    handleSendOfferLetter(target);
+                  }}
+                  disabled={sendingOfferEmailId === viewDetailApp.id}
+                  className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{sendingOfferEmailId === viewDetailApp.id ? "Sending..." : "Send Offer Letter"}</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {viewDetailApp.paymentStatus === "Pending Approval" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = viewDetailApp;
+                      setViewDetailApp(null);
+                      handleApprovePayment(target);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-black text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Approve Payment & Issue Cert</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = viewDetailApp;
+                      setViewDetailApp(null);
+                      openIssueCertForApp(target);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Issue Certificate</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setViewDetailApp(null)}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-semibold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: EDIT STUDENT RECORD MODAL */}
+      {editingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-2xl bg-[#0a0f1d] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <Edit3 className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Edit Student Application #{editingApp.id}
+                  </h3>
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    Modify database record directly
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingApp(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditApp} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingApp.fullName}
+                    onChange={(e) => setEditingApp({ ...editingApp, fullName: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={editingApp.email}
+                    onChange={(e) => setEditingApp({ ...editingApp, email: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Phone</label>
+                  <input
+                    type="text"
+                    value={editingApp.phone || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, phone: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">College</label>
+                  <input
+                    type="text"
+                    value={editingApp.college || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, college: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Degree & Year</label>
+                  <input
+                    type="text"
+                    value={`${editingApp.degree || ""} (${editingApp.graduationYear || ""})`}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEditingApp({ ...editingApp, degree: val });
+                    }}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Domain Track</label>
+                  <select
+                    value={editingApp.domain}
+                    onChange={(e) => setEditingApp({ ...editingApp, domain: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    {INTERNSHIP_DOMAINS.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Mode</label>
+                  <select
+                    value={editingApp.mode}
+                    onChange={(e) => setEditingApp({ ...editingApp, mode: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="Online">Online (₹99)</option>
+                    <option value="Hybrid">Hybrid (₹199)</option>
+                    <option value="Offline">Offline (₹249)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Duration</label>
+                  <select
+                    value={editingApp.duration}
+                    onChange={(e) => setEditingApp({ ...editingApp, duration: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="4 Weeks">4 Weeks</option>
+                    <option value="8 Weeks">8 Weeks</option>
+                    <option value="12 Weeks">12 Weeks</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Lifecycle Status</label>
+                  <select
+                    value={editingApp.status}
+                    onChange={(e) => setEditingApp({ ...editingApp, status: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Payment Review">Payment Review</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Payment Status</label>
+                  <select
+                    value={editingApp.paymentStatus || "Unpaid"}
+                    onChange={(e) => setEditingApp({ ...editingApp, paymentStatus: e.target.value })}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="Unpaid">Unpaid</option>
+                    <option value="Pending Approval">Pending Approval</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Payment UTR</label>
+                  <input
+                    type="text"
+                    value={editingApp.paymentUtr || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, paymentUtr: e.target.value })}
+                    placeholder="e.g. 423984729384"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Submitted GitHub Repo</label>
+                  <input
+                    type="url"
+                    value={editingApp.githubRepo || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, githubRepo: e.target.value })}
+                    placeholder="https://github.com/user/project"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Live Project Demo URL</label>
+                  <input
+                    type="url"
+                    value={editingApp.liveUrl || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, liveUrl: e.target.value })}
+                    placeholder="https://project.vercel.app"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingApp(null)}
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingApp}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdatingApp ? "Saving Changes..." : "Save Record"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: COMPOSE & SEND CUSTOM EMAIL MODAL */}
+      {emailingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
+          <div className="relative w-full max-w-xl bg-[#0a0f1d] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <Mail className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Send Direct Email to {emailingApp.fullName}
+                  </h3>
+                  <span className="text-[11px] text-cyan-400 font-mono">
+                    {emailingApp.email}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setEmailingApp(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendCustomEmail} className="space-y-4 text-xs">
+              {/* Quick Template Presets */}
+              <div className="space-y-1">
+                <span className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Quick Subject Presets:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "Internship Application Accepted & Next Steps",
+                    "Project Submission Review & Approval",
+                    "Offer Letter & Onboarding Details",
+                    "Certificate Ready for Verification",
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setCustomEmailSubject(preset)}
+                      className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-[11px] cursor-pointer"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">Subject Line *</label>
+                <input
+                  type="text"
+                  required
+                  value={customEmailSubject}
+                  onChange={(e) => setCustomEmailSubject(e.target.value)}
+                  placeholder="Subject of the email"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">Email Body Content *</label>
+                <textarea
+                  required
+                  rows={6}
+                  value={customEmailMessage}
+                  onChange={(e) => setCustomEmailMessage(e.target.value)}
+                  placeholder="Write your custom message here..."
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEmailingApp(null)}
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSendingCustomEmail}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{isSendingCustomEmail ? "Dispatching..." : "Send Email via Resend"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: ISSUE VERIFIABLE CERTIFICATE MODAL */}
       {isCertModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
           <div className="relative w-full max-w-lg bg-[#090d16] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2.5">
@@ -1149,7 +2449,7 @@ export function AdminDashboardClient({
                 </div>
                 <h4 className="text-lg font-bold text-white">Certificate Issued! 🎓</h4>
                 <p className="text-xs text-gray-300">
-                  The verified credential is now registered and public.
+                  The verified credential is now registered on the cryptographic ledger.
                 </p>
                 <div className="p-3 bg-black rounded-xl border border-white/10 text-xs font-mono text-cyan-400 truncate">
                   {certSuccessUrl}
@@ -1193,7 +2493,7 @@ export function AdminDashboardClient({
                       value={certStudentEmail}
                       onChange={(e) => setCertStudentEmail(e.target.value)}
                       placeholder="student@college.edu"
-                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
                     />
                   </div>
                   <div>
@@ -1212,13 +2512,17 @@ export function AdminDashboardClient({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-gray-300 font-semibold block mb-1">Domain Track</label>
-                    <input
-                      type="text"
-                      required
+                    <select
                       value={certDomain}
                       onChange={(e) => setCertDomain(e.target.value)}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
-                    />
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                    >
+                      {INTERNSHIP_DOMAINS.map((d) => (
+                        <option key={d.id} value={d.name}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="text-gray-300 font-semibold block mb-1">Grade Distinction</label>
@@ -1266,6 +2570,94 @@ export function AdminDashboardClient({
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: VIEW PAYMENT SCREENSHOT PROOF MODAL */}
+      {viewScreenshotApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-[#0a0f1d] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Payment & Feedback Proof
+                  </h3>
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    Applicant: {viewScreenshotApp.fullName} ({viewScreenshotApp.email})
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewScreenshotApp(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-xl bg-black/50 border border-white/10 space-y-1 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Transaction UTR:</span>
+                  <span className="text-yellow-300 font-bold">{viewScreenshotApp.paymentUtr || "Not specified"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Feedback Rating:</span>
+                  <span className="text-cyan-300 font-bold font-sans">⭐ {viewScreenshotApp.feedbackRating || "5"}/5 Stars</span>
+                </div>
+                {viewScreenshotApp.feedbackText && (
+                  <div className="pt-2 border-t border-white/5 text-gray-300 font-sans">
+                    <span className="text-gray-500 font-bold block uppercase text-[10px]">Student Feedback:</span>
+                    <p className="mt-0.5 text-xs text-gray-200">{viewScreenshotApp.feedbackText}</p>
+                  </div>
+                )}
+              </div>
+
+              {viewScreenshotApp.paymentScreenshot ? (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-semibold text-gray-300 block">
+                    Uploaded Payment Screenshot:
+                  </span>
+                  <div className="max-h-80 overflow-y-auto rounded-xl border border-white/10 bg-black p-2 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={viewScreenshotApp.paymentScreenshot}
+                      alt="Payment Proof Screenshot"
+                      className="max-w-full h-auto rounded-lg object-contain"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic text-center py-4">No screenshot image attached.</p>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setViewScreenshotApp(null)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+              {viewScreenshotApp.paymentStatus === "Pending Approval" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = viewScreenshotApp;
+                    setViewScreenshotApp(null);
+                    handleApprovePayment(target);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-600 hover:from-emerald-400 hover:to-cyan-500 text-black text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Approve & Issue Certificate</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

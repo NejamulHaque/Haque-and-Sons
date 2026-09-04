@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   Building,
+  User,
+  ShieldCheck,
 } from "lucide-react";
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
 import { SpotlightCard } from "@/components/SpotlightCard";
@@ -44,18 +46,12 @@ export default function InternshipsPage() {
   const [activeDomainId, setActiveDomainId] = useState<string>("full-stack-web");
   const [expandedDomainId, setExpandedDomainId] = useState<string | null>(null);
 
-  // Live Certificate Sandbox state
-  const [sandboxName, setSandboxName] = useState("Alex Johnson");
-  const [sandboxCollege, setSandboxCollege] = useState("Indian Institute of Technology");
-  const [sandboxDomain, setSandboxDomain] = useState("Full-Stack Web Development");
-  const [sandboxGrade, setSandboxGrade] = useState("Distinction");
-
   const handleOpenApply = (domainId?: string) => {
     const target = domainId || "full-stack-web";
     if (session?.user) {
-      router.push(`/profile?domain=${target}`);
+      router.push(`/profile?domain=${encodeURIComponent(target)}`);
     } else {
-      router.push(`/auth/signin?domain=${target}`);
+      router.push(`/auth/signup?domain=${encodeURIComponent(target)}`);
     }
   };
 
@@ -74,13 +70,17 @@ export default function InternshipsPage() {
   });
 
   const previewCertificateData: CertificateData = {
-    id: "HS-INT-2026-SAMPLE",
-    studentName: sandboxName || "Student Name",
-    domain: sandboxDomain,
-    college: sandboxCollege || "College / University",
-    duration: "4-Week",
-    grade: sandboxGrade,
-    issueDate: new Date().toISOString(),
+    id: "HS-INT-2026-TMU-001",
+    studentName: "Nejamul Haque",
+    studentEmail: "nejamulhaque.works@gmail.com",
+    domain: "Full-Stack Web Development",
+    mode: "Offline Studio Track",
+    internshipType: "Industry Capstone & Production Architecture",
+    college: "Teerthanker Mahaveer University",
+    duration: "12 Weeks",
+    grade: "Distinction (Top 1%)",
+    issueDate: "2026-09-04T00:00:00.000Z",
+    signatoryTitle: "Nejamul Haque, Founder & Lead Engineer",
     status: "Valid",
   };
 
@@ -91,7 +91,50 @@ export default function InternshipsPage() {
       <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[160px] pointer-events-none" />
 
       {/* Hero Section */}
-      <section className="relative px-6 max-w-7xl mx-auto text-center pt-8 pb-16">
+      <section className="relative px-6 max-w-7xl mx-auto text-center pt-4 pb-16">
+        {/* Top Student Portal Quick Access Bar */}
+        <div className="max-w-4xl mx-auto mb-8 p-3 rounded-2xl bg-gray-950/80 border border-white/10 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+          {session?.user ? (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-gray-300">
+                Logged in as <strong className="text-white">{session.user.name || session.user.email}</strong>
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span>Are you an enrolled intern? Sign in to access your active sprint & profile.</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            {session?.user ? (
+              <Link
+                href="/profile"
+                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>My Internship Dashboard</span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth/signin"
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold transition-all"
+                >
+                  Student Sign In
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md"
+                >
+                  Create Account
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -302,84 +345,25 @@ export default function InternshipsPage() {
         </div>
       </section>
 
-      {/* Interactive Certificate Sandbox */}
-      <section className="px-6 max-w-7xl mx-auto py-16 border-t border-white/10">
-        <div className="text-center max-w-3xl mx-auto mb-12">
+      {/* Official Certificate Credential Showcase */}
+      <section className="px-6 max-w-7xl mx-auto py-20 border-t border-white/10 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="text-center max-w-3xl mx-auto mb-10 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4">
             <Award className="w-3.5 h-3.5" />
-            <span>Interactive Certificate Sandbox</span>
+            <span>Verified Industry Credential</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Preview Your Official Certificate
+            Official Certificate of Completion
           </h2>
-          <p className="mt-3 text-gray-400 text-sm sm:text-base">
-            Type your name, select your domain, and see a live preview of the verifiable credential you will earn upon capstone completion.
+          <p className="mt-3 text-gray-400 text-sm sm:text-base leading-relaxed">
+            Every graduate earns an immutable, cryptographic certificate verified on our public ledger and shareable on LinkedIn. Sample credential awarded to <strong className="text-white">Nejamul Haque</strong> of <strong className="text-cyan-300">Teerthanker Mahaveer University</strong>.
           </p>
-
-          {/* Interactive Controls */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-4 gap-3 bg-gray-950/80 p-3 rounded-2xl border border-white/10 text-left">
-            <div>
-              <label className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">
-                Your Full Name
-              </label>
-              <input
-                type="text"
-                value={sandboxName}
-                onChange={(e) => setSandboxName(e.target.value)}
-                placeholder="Student Name"
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">
-                College / University
-              </label>
-              <input
-                type="text"
-                value={sandboxCollege}
-                onChange={(e) => setSandboxCollege(e.target.value)}
-                placeholder="College Name"
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">
-                Domain Track
-              </label>
-              <select
-                value={sandboxDomain}
-                onChange={(e) => setSandboxDomain(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
-              >
-                {INTERNSHIP_DOMAINS.map((d) => (
-                  <option key={d.id} value={d.name} className="bg-gray-950 text-white">
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[10px] text-gray-400 uppercase font-semibold block mb-1">
-                Grade Distinction
-              </label>
-              <select
-                value={sandboxGrade}
-                onChange={(e) => setSandboxGrade(e.target.value)}
-                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
-              >
-                <option value="Distinction" className="bg-gray-950 text-white">Distinction (Top 5%)</option>
-                <option value="Outstanding" className="bg-gray-950 text-white">Outstanding</option>
-                <option value="Excellent" className="bg-gray-950 text-white">Excellent</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         {/* The Live Certificate Canvas */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto relative z-10 shadow-[0_0_80px_rgba(6,182,212,0.15)] rounded-3xl p-1 bg-gradient-to-b from-cyan-500/20 via-white/5 to-purple-500/20">
           <CertificateRenderer certificate={previewCertificateData} showActions={false} />
         </div>
       </section>

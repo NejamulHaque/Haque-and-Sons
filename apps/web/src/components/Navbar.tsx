@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Command } from "lucide-react";
+import { Menu, X, Sun, Moon, Command, User, LogIn, UserPlus } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
+import { useSession } from "@/lib/auth-client";
+import Link from "next/link";
 
 const NAV_ITEMS = [
   { label: "Home", sectionId: "home" },
@@ -17,6 +19,7 @@ const NAV_ITEMS = [
 ];
 
 export function Navbar() {
+  const { data: session } = useSession();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
@@ -165,10 +168,37 @@ export function Navbar() {
             {darkMode ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
+          {/* Student Auth & Dashboard */}
+          {session?.user ? (
+            <Link
+              href="/profile"
+              className="ml-2 px-3.5 py-1.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Dashboard</span>
+            </Link>
+          ) : (
+            <div className="ml-2 flex items-center gap-1.5">
+              <Link
+                href="/auth/signin"
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-white/10 transition-colors"
+                style={{ color: textColor }}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="px-3.5 py-1.5 text-xs font-bold text-black bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
+
           {/* CTA */}
           <button
             onClick={() => scrollToSection("contact")}
-            className="ml-3 px-5 py-2.5 text-sm font-semibold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 rounded-full transition-all hover:scale-105 active:scale-95 cursor-pointer border-none shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+            className="ml-2 px-5 py-2.5 text-sm font-semibold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 rounded-full transition-all hover:scale-105 active:scale-95 cursor-pointer border-none shadow-[0_0_20px_rgba(6,182,212,0.35)]"
           >
             Let&apos;s Build
           </button>
@@ -227,6 +257,37 @@ export function Navbar() {
                   {item.label}
                 </button>
               ))}
+
+              {/* Mobile Auth Links */}
+              <div className="pt-3 mt-2 border-t border-white/10 flex flex-col gap-2">
+                {session?.user ? (
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="px-4 py-2.5 text-center text-xs font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 rounded-xl"
+                  >
+                    My Internship Dashboard
+                  </Link>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      href="/auth/signin"
+                      onClick={() => setMobileOpen(false)}
+                      className="px-4 py-2.5 text-center text-xs font-bold text-white bg-white/5 border border-white/10 rounded-xl"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      onClick={() => setMobileOpen(false)}
+                      className="px-4 py-2.5 text-center text-xs font-bold text-black bg-cyan-400 rounded-xl"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={() => scrollToSection("contact")}
                 className="mt-2 px-4 py-3 text-center text-black bg-cyan-400 font-semibold rounded-xl cursor-pointer border-none"

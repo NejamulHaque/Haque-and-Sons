@@ -13,23 +13,16 @@ export function AdminHeader({ onRefresh, isRefreshing }: { onRefresh?: () => voi
   const router = useRouter();
 
   const handleSignOut = async () => {
+    if (loggingOut) return;
     setLoggingOut(true);
     try {
-      await signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            router.push("/admin/signin");
-            router.refresh();
-          },
-        },
-      });
-      router.push("/admin/signin");
-      router.refresh();
+      const signOutPromise = signOut();
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 600));
+      await Promise.race([signOutPromise, timeoutPromise]);
     } catch (error) {
       console.error("Sign out error:", error);
-      router.push("/admin/signin");
     } finally {
-      setLoggingOut(false);
+      window.location.href = "/admin/signin";
     }
   };
 

@@ -85,6 +85,15 @@ async function getStats(): Promise<{
       resumeLink: a.resumeLink,
       statement: a.statement,
       status: a.status,
+      githubRepo: a.githubRepo,
+      liveUrl: a.liveUrl,
+      googleFormSubmitted: a.googleFormSubmitted,
+      feedbackRating: a.feedbackRating,
+      feedbackText: a.feedbackText,
+      paymentScreenshot: a.paymentScreenshot,
+      paymentUtr: a.paymentUtr,
+      paymentStatus: a.paymentStatus,
+      certificateId: a.certificateId,
       createdAt: a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt),
     }));
 

@@ -1,25 +1,42 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { signIn, signUp } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, User, ArrowRight, GraduationCap, AlertCircle, CheckCircle2, Sparkles, Building } from "lucide-react";
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  GraduationCap,
+  AlertCircle,
+  ShieldCheck,
+  CheckCircle2,
+} from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import Link from "next/link";
 import Image from "next/image";
 
-function StudentAuthContent() {
+function StudentSignInContent() {
   const searchParams = useSearchParams();
-  const domainParam = searchParams.get("domain");
+  const domainParam = searchParams.get("domain") || "";
+  const modeParam = searchParams.get("mode") || "Online";
+  const typeParam = searchParams.get("type") || "Free";
+  const durationParam = searchParams.get("duration") || "4 Weeks";
   const redirectParam = searchParams.get("redirect") || "/profile";
 
-  const [mode, setMode] = useState<"signin" | "signup">(domainParam ? "signup" : "signin");
-  const [name, setName] = useState("");
+  const { data: session } = useSession();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+
+  // If already logged in, route straight to profile
+  if (session?.user) {
+    const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
+    router.push(dest);
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,14 +45,16 @@ function StudentAuthContent() {
 
     try {
       const res = await signIn.email({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (res.error) {
-        setError(res.error.message || "Invalid email or password. Please try again.");
+        setError(res.error.message || "Invalid email or password. Please verify your credentials.");
       } else {
-        const dest = domainParam ? `/profile?domain=${domainParam}` : redirectParam;
+        const dest = domainParam
+          ? `/profile?domain=${encodeURIComponent(domainParam)}`
+          : redirectParam;
         router.push(dest);
         router.refresh();
       }
@@ -46,70 +65,27 @@ function StudentAuthContent() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await signUp.email({
-        email,
-        password,
-        name: name || "Student",
-      });
-
-      if (res.error) {
-        if (
-          res.error.message?.toLowerCase().includes("exists") ||
-          res.error.status === 422 ||
-          res.error.status === 400
-        ) {
-          setError("An account with this email already exists. Please Sign In.");
-        } else {
-          setError(res.error.message || "Failed to create account.");
-        }
-      } else {
-        // Auto initialize profile record
-        try {
-          await fetch("/api/profile/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fullName: name,
-              email,
-              domain: domainParam || "Full-Stack Web Development",
-            }),
-          });
-        } catch {
-          // ignore
-        }
-
-        const dest = domainParam ? `/profile?domain=${domainParam}` : redirectParam;
-        router.push(dest);
-        router.refresh();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration request failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const signupUrl = `/auth/signup${
+    domainParam
+      ? `?domain=${encodeURIComponent(domainParam)}&mode=${encodeURIComponent(modeParam)}&type=${encodeURIComponent(typeParam)}&duration=${encodeURIComponent(durationParam)}`
+      : ""
+  }`;
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Glow ambient */}
+      {/* Background glow effects */}
       <div className="fixed top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Header Logo */}
+        {/* Brand Header */}
         <div className="text-center space-y-2">
           <Link href="/internships" className="inline-flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 p-1 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)] group-hover:scale-105 transition-all">
+            <div className="relative w-11 h-11 rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 p-1 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] group-hover:scale-105 transition-all">
               <Image src="/logo.svg" alt="Haque & Sons" fill className="p-1 object-cover" unoptimized />
             </div>
             <div className="text-left">
-              <span className="font-extrabold text-white text-base tracking-tight block">
+              <span className="font-extrabold text-white text-lg tracking-tight block">
                 Haque & Sons
               </span>
               <span className="text-[10px] text-cyan-400 font-mono block">
@@ -121,46 +97,24 @@ function StudentAuthContent() {
 
         {/* Selected domain banner */}
         {domainParam && (
-          <div className="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-center space-y-0.5">
-            <span className="text-[10px] uppercase font-bold text-cyan-400 tracking-wider block">
-              Enrolling in Track
-            </span>
+          <div className="p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 text-center space-y-0.5 shadow-lg">
+            <div className="flex items-center justify-center gap-1.5 text-[10px] uppercase font-bold text-cyan-400 tracking-wider">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Target Track</span>
+            </div>
             <span className="text-xs font-bold text-white capitalize block">
-              {domainParam.replace(/-/g, " ")}
+              {domainParam.replace(/-/g, " ")} • {modeParam} ({durationParam})
             </span>
           </div>
         )}
 
-        {/* Auth Card */}
-        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-gray-950/80 backdrop-blur-xl">
-          {/* Tabs */}
-          <div className="flex bg-black/60 p-1 rounded-xl border border-white/10 mb-6">
-            <button
-              onClick={() => {
-                setMode("signin");
-                setError("");
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                mode === "signin"
-                  ? "bg-cyan-500 text-black shadow-sm"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => {
-                setMode("signup");
-                setError("");
-              }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                mode === "signup"
-                  ? "bg-cyan-500 text-black shadow-sm"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Create Account
-            </button>
+        {/* Login Card */}
+        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-gray-950/80 backdrop-blur-xl shadow-2xl">
+          <div className="mb-6 space-y-1">
+            <h2 className="text-xl font-bold text-white">Student Sign In</h2>
+            <p className="text-xs text-gray-400">
+              Enter your credentials to access your active sprint milestones, project submission, and verified certificates.
+            </p>
           </div>
 
           {error && (
@@ -170,144 +124,98 @@ function StudentAuthContent() {
             </div>
           )}
 
-          {mode === "signin" ? (
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@college.edu"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                  />
-                </div>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div>
+              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="student@college.edu"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                />
               </div>
+            </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
-                  />
-                </div>
+            <div>
+              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                />
               </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4"
+            >
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Sign In to Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Switch to Sign Up */}
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-xs text-gray-400">
+              New to Haque & Sons Internship Program?{" "}
+              <Link
+                href={signupUrl}
+                className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors"
               >
-                {loading ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Sign In to Student Portal</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Rahul Sharma"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@college.edu"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min. 6 characters"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
-              >
-                {loading ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>Create Account & Continue</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+                Create Student Account
+              </Link>
+            </p>
+          </div>
         </SpotlightCard>
 
-        {/* Footer info */}
-        <div className="text-center text-xs text-gray-400">
-          <Link href="/internships" className="hover:text-cyan-400 transition-colors">
-            ← Back to Internship Domains
-          </Link>
+        {/* Security & Zero-Trust Notice */}
+        <div className="flex items-center justify-center gap-4 text-[11px] text-gray-500 font-mono">
+          <span className="flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            Better Auth Protected
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+            256-bit Encrypted
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-export default function StudentAuthPage() {
+export default function StudentSignInPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading portal...</div>}>
-      <StudentAuthContent />
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          Loading student sign in...
+        </div>
+      }
+    >
+      <StudentSignInContent />
     </Suspense>
   );
 }

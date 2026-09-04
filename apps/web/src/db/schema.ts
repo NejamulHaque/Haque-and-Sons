@@ -86,6 +86,11 @@ export const internshipApplications = pgTable("internship_applications", {
   githubRepo: text("github_repo"),
   liveUrl: text("live_url"),
   googleFormSubmitted: boolean("google_form_submitted").default(false).notNull(),
+  feedbackRating: text("feedback_rating"),
+  feedbackText: text("feedback_text"),
+  paymentScreenshot: text("payment_screenshot"),
+  paymentUtr: text("payment_utr"),
+  paymentStatus: text("payment_status").default("None").notNull(), // None | Pending Approval | Approved | Rejected
   certificateId: text("certificate_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

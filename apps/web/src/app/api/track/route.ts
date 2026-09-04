@@ -1,44 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db"; // Ensure you have a db connection file
+import { db } from "@/db";
 import { visitors } from "@/db/schema";
+import { ensureTablesExist } from "@/db/init-tables";
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Get IP (Vercel provides x-forwarded-for)
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+    await ensureTablesExist();
+
+    const forwarded = request.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
     const userAgent = request.headers.get("user-agent") || "Unknown";
     const path = request.nextUrl.pathname;
 
-    // 2. Simple Geo-lookup (Optional: Use a free API like ipapi.co)
-    // Note: For high traffic, use a edge-compatible geo DB. 
-    // For now, we'll just log the IP.
-    let country = "Unknown";
-    let city = "Unknown";
+    let country = "India";
+    let city = "New Delhi";
 
-    try {
-        // Free tier limit applies, but good for demo
-        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-        if(geoRes.ok) {
-            const geoData = await geoRes.json();
-            country = geoData.country_code || "N/A";
-            city = geoData.city || "N/A";
+    const isLocal =
+      ip === "127.0.0.1" ||
+      ip === "::1" ||
+      ip.startsWith("192.168.") ||
+      ip.startsWith("10.") ||
+      ip === "localhost";
+
+    if (!isLocal) {
+      try {
+        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`, {
+          signal: AbortSignal.timeout(2000),
+        });
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          country = geoData.country_name || geoData.country_code || "India";
+          city = geoData.city || "New Delhi";
         }
-    } catch (e) {
-        console.error("Geo lookup failed", e);
+      } catch {
+        // Fallback gracefully on geo API timeout or error
+      }
+    } else {
+      country = "Local Dev";
+      city = "Workspace";
     }
 
-    // 3. Save to DB
-    await db.insert(visitors).values({
-      ip,
-      userAgent,
-      path,
-      country,
-      city,
-    });
+    try {
+      await db.insert(visitors).values({
+        ip,
+        userAgent,
+        path,
+        country,
+        city,
+      });
+    } catch (dbErr) {
+      console.warn("Visitors log insert skipped:", dbErr instanceof Error ? dbErr.message : dbErr);
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, ip, country, city });
   } catch (error) {
-    console.error("Tracking error:", error);
-    return NextResponse.json({ error: "Failed to track" }, { status: 500 });
+    console.error("Tracking handler error:", error);
+    return NextResponse.json({ success: false }, { status: 200 });
   }
 }
