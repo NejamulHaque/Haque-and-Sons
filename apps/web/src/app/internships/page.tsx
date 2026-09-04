@@ -17,8 +17,10 @@ import {
 } from "lucide-react";
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
 import { SpotlightCard } from "@/components/SpotlightCard";
-import { InternshipApplicationModal } from "@/components/InternshipApplicationModal";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
+import { InternshipApplicationModal } from "@/components/InternshipApplicationModal";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const CATEGORIES = [
@@ -31,6 +33,9 @@ const CATEGORIES = [
 ] as const;
 
 export default function InternshipsPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
   const [selectedCategory, setSelectedCategory] = useState<string>("All Tracks");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -46,8 +51,12 @@ export default function InternshipsPage() {
   const [sandboxGrade, setSandboxGrade] = useState("Distinction");
 
   const handleOpenApply = (domainId?: string) => {
-    if (domainId) setActiveDomainId(domainId);
-    setIsModalOpen(true);
+    const target = domainId || "full-stack-web";
+    if (session?.user) {
+      router.push(`/profile?domain=${target}`);
+    } else {
+      router.push(`/auth/signin?domain=${target}`);
+    }
   };
 
   const filteredDomains = INTERNSHIP_DOMAINS.filter((domain) => {

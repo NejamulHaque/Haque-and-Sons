@@ -48,6 +48,13 @@ export async function ensureTablesExist() {
       );
     `);
 
+    await db.execute(sql`
+      ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "github_repo" text;
+      ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "live_url" text;
+      ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "google_form_submitted" boolean DEFAULT false;
+      ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "certificate_id" text;
+    `);
+
     tablesInitialized = true;
   } catch (err) {
     console.error("Error ensuring tables exist:", err);

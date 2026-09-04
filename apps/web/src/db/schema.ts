@@ -83,6 +83,10 @@ export const internshipApplications = pgTable("internship_applications", {
   resumeLink: text("resume_link"),
   statement: text("statement"),
   status: text("status").default("Pending").notNull(), // Pending | Under Review | Accepted | Completed | Rejected
+  githubRepo: text("github_repo"),
+  liveUrl: text("live_url"),
+  googleFormSubmitted: boolean("google_form_submitted").default(false).notNull(),
+  certificateId: text("certificate_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
