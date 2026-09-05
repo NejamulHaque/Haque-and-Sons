@@ -2,6 +2,10 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { neonConfig } from "@neondatabase/serverless";
+
+// Direct host endpoint resolution to prevent Neon driver translating regional hosts into invalid api.c-4 domains
+neonConfig.fetchEndpoint = (host: string) => `https://${host}/sql`;
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "default_super_secret_haque_and_sons_key_2026",
