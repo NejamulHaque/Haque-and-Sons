@@ -331,6 +331,8 @@ export function AdminDashboardClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          applicationId: app.id,
+          id: app.id,
           email: app.email,
           studentName: app.fullName,
           college: app.college,
@@ -345,8 +347,14 @@ export function AdminDashboardClient({
 
       const data = await res.json();
       if (res.ok) {
-        setOfferSentToast(`✓ Official Offer Letter dispatched to ${app.email}!`);
+        setOfferSentToast(`🎉 Candidate #${app.id} approved! Selection email & Offer Letter dispatched to ${app.email}.`);
         setTimeout(() => setOfferSentToast(null), 6000);
+        setApplications((prev) =>
+          prev.map((a) => (a.id === app.id ? { ...a, status: "Approved" } : a))
+        );
+        if (viewDetailApp?.id === app.id) {
+          setViewDetailApp((prev) => (prev ? { ...prev, status: "Approved" } : null));
+        }
       } else {
         alert(data.error || "Failed to dispatch offer letter email.");
       }
@@ -1283,16 +1291,28 @@ export function AdminDashboardClient({
                                 <Mail className="w-3.5 h-3.5" />
                               </button>
 
-                              {/* Send Offer Letter */}
-                              <button
-                                onClick={() => handleSendOfferLetter(app)}
-                                disabled={sendingOfferEmailId === app.id}
-                                title="Email Official Offer Letter to Student"
-                                className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>{sendingOfferEmailId === app.id ? "Sending..." : "Offer"}</span>
-                              </button>
+                              {/* Send Offer Letter / Approve */}
+                              {app.status === "Pending" || app.status === "Under Review" ? (
+                                <button
+                                  onClick={() => handleSendOfferLetter(app)}
+                                  disabled={sendingOfferEmailId === app.id}
+                                  title="Approve Application & Dispatch Selection Email"
+                                  className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-sm"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                                  <span>{sendingOfferEmailId === app.id ? "Approving..." : "Approve & Email"}</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleSendOfferLetter(app)}
+                                  disabled={sendingOfferEmailId === app.id}
+                                  title="Resend Official Offer Letter / Selection Email"
+                                  className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span>{sendingOfferEmailId === app.id ? "Sending..." : "Offer"}</span>
+                                </button>
+                              )}
 
                               {/* Approve Payment or Issue Certificate */}
                               {app.paymentStatus === "Pending Approval" ? (
@@ -2155,10 +2175,20 @@ export function AdminDashboardClient({
                     handleSendOfferLetter(target);
                   }}
                   disabled={sendingOfferEmailId === viewDetailApp.id}
-                  className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md ${
+                    viewDetailApp.status === "Pending" || viewDetailApp.status === "Under Review"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white"
+                      : "bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300"
+                  }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{sendingOfferEmailId === viewDetailApp.id ? "Sending..." : "Send Offer Letter"}</span>
+                  <span>
+                    {sendingOfferEmailId === viewDetailApp.id
+                      ? "Dispatching..."
+                      : viewDetailApp.status === "Pending" || viewDetailApp.status === "Under Review"
+                      ? "Approve & Send Selection Email"
+                      : "Resend Selection / Offer Email"}
+                  </span>
                 </button>
               </div>
 

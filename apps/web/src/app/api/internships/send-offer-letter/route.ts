@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { db } from "@/db";
+import { internshipApplications } from "@/db/schema";
+import { ensureTablesExist } from "@/db/init-tables";
+import { eq, desc } from "drizzle-orm";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const ADMIN_NOTIFICATION_EMAIL = "haquendsons@gmail.com";
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureTablesExist();
+
     const body = await req.json();
     const {
+      applicationId,
+      id,
       email,
       studentName,
       college = "University / College",
@@ -26,7 +34,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const refNumber = offerId || `HS-OFFER-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const cleanEmail = email.trim().toLowerCase();
+    const targetAppId = applicationId || id;
+
+    // Update application status to "Approved" in Neon DB
+    try {
+      if (targetAppId) {
+        await db
+          .update(internshipApplications)
+          .set({ status: "Approved" })
+          .where(eq(internshipApplications.id, Number(targetAppId)));
+      } else {
+        const existing = await db
+          .select()
+          .from(internshipApplications)
+          .where(eq(internshipApplications.email, cleanEmail))
+          .orderBy(desc(internshipApplications.createdAt))
+          .limit(1);
+
+        if (existing.length > 0) {
+          await db
+            .update(internshipApplications)
+            .set({ status: "Approved" })
+            .where(eq(internshipApplications.id, existing[0].id));
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Could not update application status to Approved:", dbErr);
+    }
+
+    const refNumber = offerId || `HS-OFFER-2026-${targetAppId || Math.floor(1000 + Math.random() * 9000)}`;
     const formattedDate = new Date().toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
@@ -39,11 +76,11 @@ export async function POST(req: NextRequest) {
       : "Full Project Certification & Mentorship Grant (Fully Sponsored)";
 
     if (resend) {
-      // Send Official Offer Letter HTML to the Student
+      // Send Official Offer Letter & Selection HTML to the Student
       await resend.emails.send({
         from: "Haque & Sons Internships <onboarding@resend.dev>",
-        to: email.trim().toLowerCase(),
-        subject: `🎓 Official Offer of Internship: ${studentName} — ${domain} Track | Haque & Sons`,
+        to: cleanEmail,
+        subject: `🎉 Congratulations ${studentName}! You're Selected for ${domain} Internship | Haque & Sons`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -52,11 +89,13 @@ export async function POST(req: NextRequest) {
             <style>
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; }
               .container { max-width: 680px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-              .header-ribbon { height: 6px; background: linear-gradient(90deg, #0f172a 0%, #0284c7 50%, #0f172a 100%); }
+              .header-ribbon { height: 6px; background: linear-gradient(90deg, #0f172a 0%, #0284c7 50%, #10b981 100%); }
               .header { padding: 32px 36px 20px 36px; border-bottom: 2px solid #f1f5f9; }
               .logo-title { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; text-transform: uppercase; margin: 0; }
               .logo-sub { font-size: 11px; color: #0284c7; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-              .meta-box { margin-top: 16px; padding: 10px 14px; background-color: #f8fafc; border-radius: 8px; font-size: 12px; color: #475569; display: flex; justify-content: space-between; border: 1px solid #e2e8f0; }
+              .selection-banner { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; padding: 18px 24px; border-radius: 8px; margin: 20px 0; text-align: center; }
+              .selection-banner h2 { margin: 0; font-size: 18px; font-weight: 800; }
+              .selection-banner p { margin: 6px 0 0 0; font-size: 12.5px; opacity: 0.95; }
               .content { padding: 28px 36px; color: #334155; font-size: 13.5px; line-height: 1.65; }
               .recipient-box { margin-bottom: 20px; }
               .recipient-name { font-size: 16px; font-weight: 700; color: #0f172a; margin: 2px 0; }
@@ -74,7 +113,8 @@ export async function POST(req: NextRequest) {
               .sig-name { font-family: 'Georgia', serif; font-style: italic; font-size: 20px; color: #0369a1; font-weight: bold; margin: 6px 0; }
               .sig-title { font-size: 12px; font-weight: 700; color: #0f172a; }
               .sig-org { font-size: 11px; color: #64748b; }
-              .cta-btn { display: inline-block; background: #0284c7; color: #ffffff !important; font-weight: 700; font-size: 13px; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px; }
+              .cta-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 20px; text-align: center; margin: 24px 0; }
+              .cta-btn { display: inline-block; background: #0284c7; color: #ffffff !important; font-weight: 700; font-size: 13.5px; text-decoration: none; padding: 12px 28px; border-radius: 8px; margin-top: 12px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
               .footer { background-color: #f8fafc; padding: 20px 36px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #94a3b8; }
             </style>
           </head>
@@ -98,6 +138,11 @@ export async function POST(req: NextRequest) {
               </div>
 
               <div class="content">
+                <div class="selection-banner">
+                  <h2>🎉 YOU HAVE BEEN SELECTED!</h2>
+                  <p>Your application has been officially evaluated and approved by our engineering committee.</p>
+                </div>
+
                 <div class="recipient-box">
                   <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">To,</div>
                   <div class="recipient-name">${studentName}</div>
@@ -106,14 +151,22 @@ export async function POST(req: NextRequest) {
                 </div>
 
                 <div class="subject-line">
-                  SUBJECT: OFFICIAL OFFER OF INTERNSHIP & APPOINTMENT — ${domain.toUpperCase()}
+                  SUBJECT: OFFICIAL OFFER OF INTERNSHIP & SELECTION CONFIRMATION — ${domain.toUpperCase()}
                 </div>
 
                 <p>Dear <strong>${studentName}</strong>,</p>
 
                 <p>
-                  On behalf of <strong>Haque & Sons</strong>, we are pleased to extend this formal offer of internship for the position of <strong>${domain} Intern</strong> with our engineering group.
+                  On behalf of <strong>Haque & Sons</strong>, we are pleased to confirm your selection and extend this formal offer of internship for the position of <strong>${domain} Intern</strong> (${mode} • ${duration}).
                 </p>
+
+                <div class="cta-box">
+                  <strong style="color: #15803d; font-size: 14px;">📄 Your 2-Page Official Offer Letter is Ready!</strong>
+                  <p style="color: #475569; font-size: 12.5px; margin: 6px 0 0 0;">
+                    Your formal Letter of Intent & Appointment document has been unlocked in your Candidate Dashboard. Please visit your profile to download your official signed PDF copy.
+                  </p>
+                  <a href="https://haqueandsons.vercel.app/profile" class="cta-btn">👉 Download Offer Letter From Your Profile</a>
+                </div>
 
                 <table class="matrix-table">
                   <tr>
@@ -122,7 +175,7 @@ export async function POST(req: NextRequest) {
                   </tr>
                   <tr>
                     <td class="matrix-label">Engagement Mode</td>
-                    <td class="matrix-value">${mode} (Virtual / Remote Sprint)</td>
+                    <td class="matrix-value">${mode} (Virtual / Remote Agile Sprint)</td>
                   </tr>
                   <tr>
                     <td class="matrix-label">Duration & Term</td>
@@ -139,20 +192,12 @@ export async function POST(req: NextRequest) {
                 </table>
 
                 <div class="responsibilities">
-                  <strong style="color: #0f172a;">Internship Scope & Deliverables:</strong>
+                  <strong style="color: #0f172a;">Internship Scope & Next Steps:</strong>
                   <ul>
-                    <li>Architect, build, and deploy a production-ready capstone software application.</li>
-                    <li>Participate in sprint milestones, code reviews, and architectural checkpoints.</li>
-                    <li>Complete the mandatory exit feedback form to unlock your verified digital certificate & Letter of Recommendation.</li>
+                    <li>Log into your student profile at <a href="https://haqueandsons.vercel.app/profile" style="color: #0284c7;">haqueandsons.vercel.app/profile</a> to download your Offer Letter.</li>
+                    <li>Follow the 4-week Sprint Syllabus and build your capstone project repository.</li>
+                    <li>Submit your project links and complete exit verification to receive your verified digital certificate & Letter of Recommendation.</li>
                   </ul>
-                </div>
-
-                <p>
-                  To manage your sprint deliverables, track milestones, and access your verified certificates, please visit your dedicated Student Dashboard.
-                </p>
-
-                <div style="text-align: center; margin: 24px 0;">
-                  <a href="https://haqueandsons.vercel.app/profile" class="cta-btn">Access Student Dashboard & Sprint</a>
                 </div>
 
                 <div class="signature-section">
@@ -164,7 +209,7 @@ export async function POST(req: NextRequest) {
                   </div>
                   <div class="sig-col" style="text-align: right;">
                     <div style="font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 700;">Issuance Status</div>
-                    <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 6px;">✓ VERIFIED APPOINTMENT</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 6px;">✓ SELECTION APPROVED</div>
                     <div style="font-size: 11px; color: #64748b; margin-top: 4px;">CIN / Reg: UDYAM-DL-03-0089421</div>
                   </div>
                 </div>
@@ -185,12 +230,13 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from: "Haque & Sons Internships <onboarding@resend.dev>",
           to: ADMIN_NOTIFICATION_EMAIL,
-          subject: `📄 Offer Letter Dispatched: ${studentName} (${domain})`,
+          subject: `📄 Selection & Offer Letter Dispatched: ${studentName} (${domain})`,
           html: `
             <div style="font-family: sans-serif; padding: 20px; background: #000; color: #fff;">
-              <h3 style="color: #06b6d4;">📄 Offer Letter Successfully Sent</h3>
+              <h3 style="color: #06b6d4;">🎉 Candidate Approved & Offer Letter Sent</h3>
               <p>Official offer letter (Ref: <strong>${refNumber}</strong>) was dispatched to <strong>${studentName}</strong> (<a href="mailto:${email}" style="color: #38bdf8;">${email}</a>).</p>
               <p><strong>Domain:</strong> ${domain} | <strong>Mode:</strong> ${mode} | <strong>Duration:</strong> ${duration}</p>
+              <p>Status has been updated to <strong>Approved</strong> in the database.</p>
             </div>
           `,
         });
@@ -201,7 +247,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Official Offer Letter successfully emailed to ${email}.`,
+      message: `Candidate approved & selection offer letter successfully emailed to ${email}.`,
       refNumber,
     });
   } catch (error) {

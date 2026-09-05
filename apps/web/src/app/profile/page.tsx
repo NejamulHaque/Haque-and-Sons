@@ -457,6 +457,51 @@ function ProfileContent() {
   const isApproved = paymentStatus === "Approved" || certificate !== null;
   const isPendingReview = paymentStatus === "Pending Approval" && !isApproved;
 
+  const isApplicationApproved = Boolean(
+    application &&
+    application.status &&
+    application.status !== "Pending" &&
+    application.status !== "Rejected" &&
+    application.status !== "Under Review"
+  ) || certificate !== null;
+  const isApplicationRejected = application?.status === "Rejected";
+  const isApplicationPending = !isApplicationApproved && !isApplicationRejected;
+
+  const refreshProfileData = async () => {
+    if (!session?.user?.email) return;
+    try {
+      const res = await fetch(`/api/profile?email=${encodeURIComponent(session.user.email)}`);
+      const data = await res.json();
+      if (data.success) {
+        setApplication(data.application);
+        if (data.application) {
+          setFullName(data.application.fullName || session.user?.name || "");
+          setPhone(data.application.phone || "");
+          setCollege(data.application.college || "");
+          setDegree(data.application.degree || "B.Tech Computer Science");
+          setGraduationYear(data.application.graduationYear || "2026");
+          setDomain(data.application.domain || "Full-Stack Web Development");
+          setMode(data.application.mode || "Online");
+          setInternshipType(data.application.internshipType || "Free (Project Certification)");
+          setDuration(data.application.duration || "4 Weeks");
+          setGithubUrl(data.application.githubUrl || "");
+          setLinkedinUrl(data.application.linkedinUrl || "");
+          setPortfolioUrl(data.application.portfolioUrl || "");
+          setGithubRepo(data.application.githubRepo || "");
+          setLiveUrl(data.application.liveUrl || "");
+          setPaymentStatus(data.application.paymentStatus || "None");
+          setPaymentUtr(data.application.paymentUtr || "");
+          setPaymentScreenshot(data.application.paymentScreenshot || "");
+        }
+        if (data.certificate) {
+          setCertificate(data.certificate);
+        }
+      }
+    } catch (err) {
+      console.error("Refresh error:", err);
+    }
+  };
+
   const activeModeKey = mode === "Offline" ? "Offline" : mode === "Hybrid" ? "Hybrid" : "Online";
   const activeFee = MODE_FEES[activeModeKey] || MODE_FEES.Online;
 
@@ -513,6 +558,17 @@ function ProfileContent() {
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                       {fullName || session?.user?.name || "Student Candidate"}
                     </h1>
+                    {isApplicationApproved ? (
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        <span>Selected & Enrolled</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-yellow-400 animate-pulse" />
+                        <span>Under Review</span>
+                      </span>
+                    )}
                     <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
                       Verified Candidate
                     </span>
@@ -564,10 +620,23 @@ function ProfileContent() {
 
                 <button
                   onClick={() => setIsOfferLetterOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 cursor-pointer"
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    isApplicationApproved
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+                      : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
+                  }`}
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Offer Letter</span>
+                  {isApplicationApproved ? (
+                    <>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Offer Letter</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-3.5 h-3.5 text-yellow-400" />
+                      <span>Offer Letter (Under Review)</span>
+                    </>
+                  )}
                 </button>
 
                 <button
@@ -782,29 +851,175 @@ function ProfileContent() {
                   <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-black to-cyan-950/20 space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                       <div>
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                          <FileText className="w-5 h-5 text-cyan-400" />
-                          <span>Official 2-Page Letter of Intent & Appointment</span>
-                        </h3>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-cyan-400" />
+                            <span>Stage 01: Letter of Intent & Appointment</span>
+                          </h3>
+                          {isApplicationApproved ? (
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold uppercase">
+                              ✓ Approved & Issued
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase flex items-center gap-1">
+                              <Clock className="w-3 h-3 animate-pulse text-yellow-400" />
+                              <span>Pending Admin Selection</span>
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          Issued under Haque & Sons Practicum Division • Reference: <strong className="text-white font-mono">{offerLetterData.id}</strong>
+                          Issued under Haque & Sons Practicum Division • Reference:{" "}
+                          <strong className="text-white font-mono">{offerLetterData.id}</strong>
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setIsOfferLetterOpen(true)}
-                          className="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Maximize2 className="w-3.5 h-3.5" />
-                          <span>Expand Fullscreen</span>
-                        </button>
+                        {isApplicationApproved ? (
+                          <button
+                            onClick={() => setIsOfferLetterOpen(true)}
+                            className="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5" />
+                            <span>Expand Fullscreen</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={refreshProfileData}
+                            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>Refresh Status</span>
+                          </button>
+                        )}
                       </div>
                     </div>
 
-                    <div className="bg-gray-950/80 rounded-2xl border border-white/10 p-4">
-                      <OfferLetterRenderer data={offerLetterData} showActions={true} />
-                    </div>
+                    {isApplicationApproved ? (
+                      <div className="bg-gray-950/80 rounded-2xl border border-white/10 p-4">
+                        <OfferLetterRenderer data={offerLetterData} showActions={true} />
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Pending Admin Evaluation Hero Card */}
+                        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-yellow-950/20 via-black to-cyan-950/20 border border-yellow-500/30 shadow-2xl relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
+                          <div className="relative z-10 space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                                  <Clock className="w-6 h-6 animate-pulse" />
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase tracking-wider">
+                                    Stage 01 • Application Under Review
+                                  </div>
+                                  <h4 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+                                    Awaiting Lead Admin Review & Selection Dispatch
+                                  </h4>
+                                  <p className="text-xs text-gray-300 max-w-2xl leading-relaxed">
+                                    Hi <strong className="text-white">{fullName || "Student"}</strong>, your application for the <strong className="text-cyan-300">{domain}</strong> track has been registered in the Haque & Sons studio ledger.
+                                    Our evaluation team reviews each applicant&apos;s academic background and profile before issuing the formal 2-page Offer Letter.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 4-Step Progress Ribbon */}
+                            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                              <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center gap-2.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Step 01</span>
+                                  <span className="text-xs font-semibold text-white">Application Submitted</span>
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-yellow-950/30 border border-yellow-500/40 flex items-center gap-2.5 shadow-[0_0_15px_rgba(234,179,8,0.15)]">
+                                <div className="w-4 h-4 rounded-full border-2 border-yellow-400 border-t-transparent animate-spin shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider block">Step 02 • Active</span>
+                                  <span className="text-xs font-semibold text-yellow-200">Admin Evaluation</span>
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10 flex items-center gap-2.5 opacity-60">
+                                <Mail className="w-4 h-4 text-gray-400 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Step 03</span>
+                                  <span className="text-xs font-semibold text-gray-300">Selection Email</span>
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10 flex items-center gap-2.5 opacity-60">
+                                <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Step 04</span>
+                                  <span className="text-xs font-semibold text-gray-300">Offer Letter Unlocked</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Candidate Summary Box */}
+                            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">Domain Track:</span>
+                                <span className="text-cyan-400 font-semibold">{domain}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">Track Mode:</span>
+                                <span className="text-white font-semibold">{mode} Track</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">Duration:</span>
+                                <span className="text-white font-semibold">{duration}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">College / University:</span>
+                                <span className="text-gray-300 font-semibold truncate block">{college || "Not specified"}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">Degree & Batch:</span>
+                                <span className="text-gray-300 font-semibold">{degree} ({graduationYear})</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-gray-500 block">Registered Email:</span>
+                                <span className="text-gray-300 font-mono truncate block">{session?.user?.email || application?.email || "N/A"}</span>
+                              </div>
+                            </div>
+
+                            {/* What happens next callout */}
+                            <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                                  <span>What happens when you are selected?</span>
+                                </h5>
+                                <p className="text-[11px] text-gray-300 leading-relaxed">
+                                  Once the administrator approves your application, an official selection email will be sent to <strong className="text-white">{session?.user?.email}</strong> with your confirmation, and your formal 2-page Offer Letter of Appointment will unlock right here for immediate download and print.
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  onClick={() => setIsEditProfileOpen(true)}
+                                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <User className="w-3.5 h-3.5 text-cyan-400" />
+                                  <span>Edit Info</span>
+                                </button>
+                                <button
+                                  onClick={() => goToSlide(1)}
+                                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <span>Preview Syllabus</span>
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </SpotlightCard>
                 )}
 
@@ -1498,10 +1713,16 @@ function ProfileContent() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-                    <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">01 Active</span>
-                      <h4 className="text-xs font-bold text-white mt-1">Enrolled & Offer Issued</h4>
-                      <p className="text-[11px] text-emerald-400/80 mt-0.5">Letter of Intent signed & issued.</p>
+                    <div className={`p-4 rounded-2xl border ${isApplicationApproved ? "bg-emerald-950/30 border-emerald-500/40" : "bg-yellow-950/30 border-yellow-500/40"}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isApplicationApproved ? "bg-emerald-500/20 text-emerald-300" : "bg-yellow-500/20 text-yellow-300"}`}>
+                        {isApplicationApproved ? "01 Active" : "01 Review"}
+                      </span>
+                      <h4 className="text-xs font-bold text-white mt-1">
+                        {isApplicationApproved ? "Enrolled & Offer Issued" : "Pending Admin Review"}
+                      </h4>
+                      <p className={`text-[11px] mt-0.5 ${isApplicationApproved ? "text-emerald-400/80" : "text-yellow-400/80"}`}>
+                        {isApplicationApproved ? "Letter of Intent signed & issued." : "Awaiting admin selection approval."}
+                      </p>
                     </div>
 
                     <div className={`p-4 rounded-2xl border ${githubRepo || application?.githubRepo ? "bg-cyan-950/30 border-cyan-500/40" : "bg-white/[0.02] border-white/10"}`}>
@@ -1525,16 +1746,38 @@ function ProfileContent() {
                 </div>
 
                 {/* Offer Letter Preview button */}
-                <div className="p-6 rounded-3xl bg-gray-950/90 border border-white/10 flex items-center justify-between gap-4">
+                <div className="p-6 rounded-3xl bg-gray-950/90 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h4 className="text-base font-bold text-white">Official Offer Letter & Terms</h4>
-                    <p className="text-xs text-gray-400">View, print, or download your 2-page letter of intent.</p>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-base font-bold text-white">Official Offer Letter & Terms</h4>
+                      {!isApplicationApproved && (
+                        <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold">
+                          Pending Approval
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {isApplicationApproved
+                        ? "View, print, or download your 2-page letter of intent."
+                        : "Unlocks immediately once approved by the administrator."}
+                    </p>
                   </div>
                   <button
                     onClick={() => setIsOfferLetterOpen(true)}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-md cursor-pointer"
+                    className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 ${
+                      isApplicationApproved
+                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                        : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
+                    }`}
                   >
-                    View Offer Letter
+                    {isApplicationApproved ? (
+                      <span>View Offer Letter</span>
+                    ) : (
+                      <>
+                        <Clock className="w-3.5 h-3.5 text-yellow-400" />
+                        <span>Check Offer Status</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1744,13 +1987,13 @@ function ProfileContent() {
           <div className="relative w-full max-w-4xl bg-gray-950 border border-cyan-500/40 rounded-3xl shadow-[0_0_80px_rgba(6,182,212,0.25)] my-2 sm:my-4 pb-28">
             <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span className={`w-2.5 h-2.5 rounded-full ${isApplicationApproved ? "bg-cyan-400" : "bg-yellow-400"} animate-pulse`} />
                 <div>
                   <span className="text-xs font-bold text-white block">
                     Official 2-Page Internship Offer Letter
                   </span>
                   <span className="text-[10px] text-cyan-400 font-mono">
-                    Ref: {offerLetterData.id} • Signatory: Nejamul Haque
+                    {isApplicationApproved ? `Ref: ${offerLetterData.id} • Signatory: Nejamul Haque` : `Status: Awaiting Admin Review & Approval`}
                   </span>
                 </div>
               </div>
@@ -1766,11 +2009,43 @@ function ProfileContent() {
             </div>
 
             <div className="p-3 sm:p-6">
-              <OfferLetterRenderer
-                data={offerLetterData}
-                showActions={true}
-                onClose={() => setIsOfferLetterOpen(false)}
-              />
+              {isApplicationApproved ? (
+                <OfferLetterRenderer
+                  data={offerLetterData}
+                  showActions={true}
+                  onClose={() => setIsOfferLetterOpen(false)}
+                />
+              ) : (
+                <div className="p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto">
+                  <div className="w-16 h-16 rounded-3xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                    <Clock className="w-8 h-8 animate-pulse" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-extrabold text-white">Offer Letter Under Review</h3>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Your application for the <strong className="text-cyan-300">{domain}</strong> track is currently undergoing technical review.
+                      Once approved by the admin, you will receive an official selection email and your full 2-page Offer Letter will unlock right here for PDF download.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsOfferLetterOpen(false);
+                        setIsEditProfileOpen(true);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-semibold cursor-pointer"
+                    >
+                      Edit Application Details
+                    </button>
+                    <button
+                      onClick={refreshProfileData}
+                      className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold shadow-md cursor-pointer"
+                    >
+                      Refresh Status
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
