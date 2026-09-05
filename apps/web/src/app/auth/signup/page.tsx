@@ -19,6 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
+import { ACADEMIC_DEGREES, getBranchesForDegree, formatFullDegree, GRADUATION_YEARS } from "@/lib/academic-fields";
 
 function StudentSignUpContent() {
   const searchParams = useSearchParams();
@@ -33,6 +34,9 @@ function StudentSignUpContent() {
 
   const [name, setName] = useState("");
   const [college, setCollege] = useState("");
+  const [degree, setDegree] = useState("B.Tech");
+  const [branch, setBranch] = useState("Computer Science & Engineering (CSE)");
+  const [graduationYear, setGraduationYear] = useState("2026");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -43,6 +47,14 @@ function StudentSignUpContent() {
   const [selectedDuration, setSelectedDuration] = useState(durationParam || "4 Weeks");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleDegreeChange = (newDegree: string) => {
+    setDegree(newDegree);
+    const branches = getBranchesForDegree(newDegree);
+    if (branches.length > 0) {
+      setBranch(branches[0]);
+    }
+  };
 
   // If already logged in, route to profile
   if (session?.user) {
@@ -84,8 +96,9 @@ function StudentSignUpContent() {
           setError(res.error.message || "Failed to create student account.");
         }
       } else {
-        // Auto initialize student profile in Postgres DB with chosen domain and mode
+        // Auto initialize student profile in Postgres DB with chosen domain, degree and mode
         try {
+          const formattedDegree = formatFullDegree(degree, branch);
           await fetch("/api/profile/update", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -93,6 +106,8 @@ function StudentSignUpContent() {
               fullName: name.trim(),
               email: email.trim().toLowerCase(),
               college: college.trim() || "College / University",
+              degree: formattedDegree,
+              graduationYear,
               domain: selectedDomain,
               mode: selectedMode,
               internshipType: typeParam.includes("Paid") ? "Paid (Stipend)" : "Free (Project Certification)",
@@ -214,54 +229,121 @@ function StudentSignUpContent() {
               </div>
             </div>
 
-            <div>
-              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                Full Name *
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Rahul Sharma"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                  Full Name *
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Rahul Sharma"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="student@college.edu"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                College / University *
-              </label>
-              <div className="relative">
-                <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  required
-                  value={college}
-                  onChange={(e) => setCollege(e.target.value)}
-                  placeholder="e.g. Delhi University / IIT Delhi"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                />
+            {/* Academic Field & Branch Selection Box */}
+            <div className="p-4 rounded-2xl bg-white/[0.02] border border-cyan-500/20 space-y-3.5">
+              <div className="flex items-center gap-2 text-cyan-300">
+                <GraduationCap className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-bold uppercase tracking-wider font-mono">
+                  Academic Field &amp; Specialization
+                </span>
               </div>
-            </div>
 
-            <div>
-              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                College / Personal Email Address *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@college.edu"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Degree / Field *
+                  </label>
+                  <select
+                    value={degree}
+                    onChange={(e) => handleDegreeChange(e.target.value)}
+                    className="w-full bg-black/80 border border-white/15 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all font-medium cursor-pointer"
+                  >
+                    {ACADEMIC_DEGREES.map((deg) => (
+                      <option key={deg.id} value={deg.id} className="bg-gray-950 text-white">
+                        {deg.shortLabel} — {deg.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Branch / Specialization *
+                  </label>
+                  <select
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                    className="w-full bg-black/80 border border-white/15 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all font-medium cursor-pointer"
+                  >
+                    {getBranchesForDegree(degree).map((br) => (
+                      <option key={br} value={br} className="bg-gray-950 text-white">
+                        {br}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    College / University *
+                  </label>
+                  <div className="relative">
+                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      required
+                      value={college}
+                      onChange={(e) => setCollege(e.target.value)}
+                      placeholder="e.g. Delhi University / IIT Delhi"
+                      className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-10 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Graduation Batch *
+                  </label>
+                  <select
+                    value={graduationYear}
+                    onChange={(e) => setGraduationYear(e.target.value)}
+                    className="w-full bg-black/80 border border-white/15 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-all font-medium cursor-pointer"
+                  >
+                    {GRADUATION_YEARS.map((yr) => (
+                      <option key={yr} value={yr} className="bg-gray-950 text-white">
+                        Batch {yr}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 

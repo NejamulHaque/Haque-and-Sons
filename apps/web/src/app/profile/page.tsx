@@ -46,6 +46,7 @@ import { LetterOfRecommendationRenderer, type LORData } from "@/components/Lette
 import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
 import { IrusCopilotWidget } from "@/components/IrusCopilotWidget";
 import { INTERNSHIP_DOMAINS, type InternshipDomain } from "@/lib/domains";
+import { ACADEMIC_DEGREES, GRADUATION_YEARS } from "@/lib/academic-fields";
 
 const UPI_ID = "nejamulhaque@upi";
 const UPI_PAYEE_NAME = "Nejamul Haque";
@@ -2176,13 +2177,14 @@ function ProfileContent() {
 
                 <div>
                   <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Degree / Branch
+                    Degree &amp; Branch *
                   </label>
                   <input
                     type="text"
+                    required
                     value={degree}
                     onChange={(e) => setDegree(e.target.value)}
-                    placeholder="B.Tech Computer Science"
+                    placeholder="B.Tech Computer Science & Engineering"
                     className="w-full bg-black/60 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
                   />
                 </div>
@@ -2191,15 +2193,19 @@ function ProfileContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Graduation Year
+                    Graduation Year *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={graduationYear}
                     onChange={(e) => setGraduationYear(e.target.value)}
-                    placeholder="2026"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium"
-                  />
+                    className="w-full bg-black/80 border border-white/15 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-medium cursor-pointer"
+                  >
+                    {GRADUATION_YEARS.map((yr) => (
+                      <option key={yr} value={yr} className="bg-gray-950 text-white">
+                        Batch {yr}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
