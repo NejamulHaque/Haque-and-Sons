@@ -4,9 +4,7 @@ import { internshipApplications, certificates } from "@/db/schema";
 import { ensureTablesExist } from "@/db/init-tables";
 import { eq, desc } from "drizzle-orm";
 import crypto from "crypto";
-import { Resend } from "resend";
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -96,38 +94,32 @@ export async function POST(req: NextRequest) {
       .returning();
 
     // 3. Email certificate notification to the student
-    if (resend) {
-      try {
-        await resend.emails.send({
-          from: "Haque & Sons Certifications <onboarding@resend.dev>",
-          to: app.email,
-          subject: `🎓 Payment Approved & Certificate Issued: ${app.fullName} | Haque & Sons`,
-          html: `
-            <div style="font-family: sans-serif; background: #000; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #06b6d4; margin-top: 0;">🎉 Certificate Verification Approved!</h2>
-              <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
-              <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">
-                Your UPI payment and exit feedback have been reviewed and approved by <strong>Nejamul Haque</strong>. Your official verifiable certificate is now unlocked and ready for download.
-              </p>
+    await sendEmail({
+      fromName: "Haque & Sons Certifications",
+      to: app.email,
+      subject: `🎓 Payment Approved & Certificate Issued: ${app.fullName} | Haque & Sons`,
+      html: `
+        <div style="font-family: sans-serif; background: #000; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #06b6d4; margin-top: 0;">🎉 Certificate Verification Approved!</h2>
+          <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
+          <p style="color: #9ca3af; font-size: 14px; line-height: 1.6;">
+            Your UPI payment and exit feedback have been reviewed and approved by <strong>Nejamul Haque</strong>. Your official verifiable certificate is now unlocked and ready for download.
+          </p>
 
-              <div style="background: #111; padding: 16px; border-radius: 8px; margin: 20px 0; border: 1px solid #333; text-align: center;">
-                <span style="color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase;">Credential ID</span>
-                <h3 style="color: #06b6d4; font-family: monospace; font-size: 20px; margin: 6px 0;">${cert.id}</h3>
-                <p style="color: #10b981; font-size: 12px; margin: 4px 0;">Grade: Distinction (Top 5%)</p>
-              </div>
+          <div style="background: #111; padding: 16px; border-radius: 8px; margin: 20px 0; border: 1px solid #333; text-align: center;">
+            <span style="color: #a855f7; font-size: 12px; font-weight: bold; text-transform: uppercase;">Credential ID</span>
+            <h3 style="color: #06b6d4; font-family: monospace; font-size: 20px; margin: 6px 0;">${cert.id}</h3>
+            <p style="color: #10b981; font-size: 12px; margin: 4px 0;">Grade: Distinction (Top 5%)</p>
+          </div>
 
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="https://haqueandsons.vercel.app/profile" style="display: inline-block; background: #06b6d4; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px;">
-                  Download Certificate & Add to LinkedIn
-                </a>
-              </div>
-            </div>
-          `,
-        });
-      } catch (err) {
-        console.warn("Certificate issued email delivery failed:", err);
-      }
-    }
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="https://haqueandsons.vercel.app/profile" style="display: inline-block; background: #06b6d4; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px;">
+              Download Certificate & Add to LinkedIn
+            </a>
+          </div>
+        </div>
+      `,
+    });
 
     return NextResponse.json({
       success: true,

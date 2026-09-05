@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,9 +9,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    // Send email to nejamulhaque.works@gmail.com
-    await resend.emails.send({
-      from: "Haque & Sons <onboarding@resend.dev>",
+    // Send email to admin
+    await sendEmail({
+      fromName: "Haque & Sons",
       to: "nejamulhaque.works@gmail.com",
       subject: `New Contact Form: ${name}`,
       html: `

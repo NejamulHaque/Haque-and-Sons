@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 import { db } from "@/db";
 import { internshipApplications } from "@/db/schema";
 import { ensureTablesExist } from "@/db/init-tables";
 import { eq, desc } from "drizzle-orm";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const ADMIN_NOTIFICATION_EMAIL = "haquendsons@gmail.com";
 
 export async function POST(req: NextRequest) {
@@ -75,13 +74,12 @@ export async function POST(req: NextRequest) {
       ? "Performance & Milestone-Linked Stipend (Up to ₹15,000/month upon milestone evaluation)"
       : "Full Project Certification & Mentorship Grant (Fully Sponsored)";
 
-    if (resend) {
-      // Send Official Offer Letter & Selection HTML to the Student
-      await resend.emails.send({
-        from: "Haque & Sons Internships <onboarding@resend.dev>",
-        to: cleanEmail,
-        subject: `🎉 Congratulations ${studentName}! You're Selected for ${domain} Internship | Haque & Sons`,
-        html: `
+    // Send Official Offer Letter & Selection HTML to the Student
+    await sendEmail({
+      fromName: "Haque & Sons Internships",
+      to: cleanEmail,
+      subject: `🎉 Congratulations ${studentName}! You're Selected for ${domain} Internship | Haque & Sons`,
+      html: `
           <!DOCTYPE html>
           <html>
           <head>
@@ -223,27 +221,22 @@ export async function POST(req: NextRequest) {
           </body>
           </html>
         `,
-      });
+    });
 
-      // Also copy Admin at haquendsons@gmail.com
-      try {
-        await resend.emails.send({
-          from: "Haque & Sons Internships <onboarding@resend.dev>",
-          to: ADMIN_NOTIFICATION_EMAIL,
-          subject: `📄 Selection & Offer Letter Dispatched: ${studentName} (${domain})`,
-          html: `
-            <div style="font-family: sans-serif; padding: 20px; background: #000; color: #fff;">
-              <h3 style="color: #06b6d4;">🎉 Candidate Approved & Offer Letter Sent</h3>
-              <p>Official offer letter (Ref: <strong>${refNumber}</strong>) was dispatched to <strong>${studentName}</strong> (<a href="mailto:${email}" style="color: #38bdf8;">${email}</a>).</p>
-              <p><strong>Domain:</strong> ${domain} | <strong>Mode:</strong> ${mode} | <strong>Duration:</strong> ${duration}</p>
-              <p>Status has been updated to <strong>Approved</strong> in the database.</p>
-            </div>
-          `,
-        });
-      } catch (adminErr) {
-        console.warn("Admin notification copy failed:", adminErr);
-      }
-    }
+    // Also copy Admin
+    await sendEmail({
+      fromName: "Haque & Sons Internships",
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: `📄 Selection & Offer Letter Dispatched: ${studentName} (${domain})`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; background: #000; color: #fff;">
+          <h3 style="color: #06b6d4;">🎉 Candidate Approved & Offer Letter Sent</h3>
+          <p>Official offer letter (Ref: <strong>${refNumber}</strong>) was dispatched to <strong>${studentName}</strong> (<a href="mailto:${email}" style="color: #38bdf8;">${email}</a>).</p>
+          <p><strong>Domain:</strong> ${domain} | <strong>Mode:</strong> ${mode} | <strong>Duration:</strong> ${duration}</p>
+          <p>Status has been updated to <strong>Approved</strong> in the database.</p>
+        </div>
+      `,
+    });
 
     return NextResponse.json({
       success: true,

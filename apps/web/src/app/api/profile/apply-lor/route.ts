@@ -3,10 +3,9 @@ import { db } from "@/db";
 import { internshipApplications } from "@/db/schema";
 import { ensureTablesExist } from "@/db/init-tables";
 import { eq, desc } from "drizzle-orm";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 import { dispatchWebhook } from "@/lib/webhooks";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const ADMIN_NOTIFICATION_EMAIL = "haquendsons@gmail.com";
 
 export async function POST(req: NextRequest) {
@@ -64,38 +63,32 @@ export async function POST(req: NextRequest) {
     });
 
     // Send notification email to admin
-    if (resend) {
-      try {
-        await resend.emails.send({
-          from: "Haque & Sons LOR System <onboarding@resend.dev>",
-          to: ADMIN_NOTIFICATION_EMAIL,
-          subject: `⭐ Letter of Recommendation (LOR) Requested: ${app.fullName} (${app.domain})`,
-          html: `
-            <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #f59e0b; margin-top: 0;">⭐ New Letter of Recommendation (LOR) Request</h2>
-              <p style="color: #94a3b8; font-size: 14px;">An engineering intern has requested an official institutional Letter of Recommendation.</p>
-              
-              <div style="background: #111827; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #374151; font-size: 13px;">
-                <p style="margin: 6px 0;"><strong>Candidate:</strong> ${app.fullName}</p>
-                <p style="margin: 6px 0;"><strong>Email:</strong> ${cleanEmail}</p>
-                <p style="margin: 6px 0;"><strong>College:</strong> ${app.college}</p>
-                <p style="margin: 6px 0;"><strong>Domain Track:</strong> ${app.domain} (${app.duration})</p>
-                ${remarks ? `<p style="margin: 6px 0;"><strong>Candidate Note / Highlights:</strong> ${remarks}</p>` : ""}
-                ${app.githubRepo ? `<p style="margin: 6px 0;"><strong>Capstone Project:</strong> <a href="${app.githubRepo}" style="color: #38bdf8;">${app.githubRepo}</a></p>` : ""}
-              </div>
+    await sendEmail({
+      fromName: "Haque & Sons LOR System",
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: `⭐ Letter of Recommendation (LOR) Requested: ${app.fullName} (${app.domain})`,
+      html: `
+        <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #f59e0b; margin-top: 0;">⭐ New Letter of Recommendation (LOR) Request</h2>
+          <p style="color: #94a3b8; font-size: 14px;">An engineering intern has requested an official institutional Letter of Recommendation.</p>
+          
+          <div style="background: #111827; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #374151; font-size: 13px;">
+            <p style="margin: 6px 0;"><strong>Candidate:</strong> ${app.fullName}</p>
+            <p style="margin: 6px 0;"><strong>Email:</strong> ${cleanEmail}</p>
+            <p style="margin: 6px 0;"><strong>College:</strong> ${app.college}</p>
+            <p style="margin: 6px 0;"><strong>Domain Track:</strong> ${app.domain} (${app.duration})</p>
+            ${remarks ? `<p style="margin: 6px 0;"><strong>Candidate Note / Highlights:</strong> ${remarks}</p>` : ""}
+            ${app.githubRepo ? `<p style="margin: 6px 0;"><strong>Capstone Project:</strong> <a href="${app.githubRepo}" style="color: #38bdf8;">${app.githubRepo}</a></p>` : ""}
+          </div>
 
-              <div style="text-align: center; margin-top: 24px;">
-                <a href="https://haqueandsons.vercel.app/admin" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
-                  Review & Approve LOR in Admin Command OS
-                </a>
-              </div>
-            </div>
-          `,
-        });
-      } catch (err) {
-        console.warn("Failed to send admin LOR alert email:", err);
-      }
-    }
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="https://haqueandsons.vercel.app/admin" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
+              Review & Approve LOR in Admin Command OS
+            </a>
+          </div>
+        </div>
+      `,
+    });
 
     return NextResponse.json({
       success: true,
