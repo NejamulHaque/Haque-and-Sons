@@ -6,6 +6,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { ShareButtons } from "@/components/ShareButtons";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { AuthModal } from "@/components/AuthModal";
 import Script from "next/script";
 import { Tracker } from "@/components/Tracker";
 
@@ -159,6 +160,7 @@ export default function RootLayout({
           <ShareButtons />
           <CommandPalette />
           <Tracker />
+          <AuthModal />
         </SmoothScroll>
 
         <Script id="sw-dev-cleanup" strategy="beforeInteractive">

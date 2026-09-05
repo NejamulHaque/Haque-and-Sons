@@ -7,6 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
+import { openAuthModal } from "@/components/AuthModal";
 
 const NAV_ITEMS = [
   { label: "Home", sectionId: "home" },
@@ -200,26 +201,28 @@ export function Navbar() {
           {session?.user ? (
             <Link
               href="/profile"
-              className="ml-2 px-3.5 py-1.5 rounded-full bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-300 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+              className="ml-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all flex items-center gap-1.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-105"
             >
               <User className="w-3.5 h-3.5" />
-              <span>Dashboard</span>
+              <span>Internship Dashboard</span>
             </Link>
           ) : (
             <div className="ml-2 flex items-center gap-1.5">
-              <Link
-                href="/auth/signin"
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-white/10 transition-colors"
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: "signin" })}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-xl hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
                 style={{ color: textColor }}
               >
                 Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="px-3.5 py-1.5 text-xs font-bold text-black bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal({ mode: "signup" })}
+                className="px-4 py-1.5 text-xs font-bold text-black bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:scale-105 active:scale-95 cursor-pointer"
               >
                 Sign Up
-              </Link>
+              </button>
             </div>
           )}
 
@@ -301,20 +304,26 @@ export function Navbar() {
                   </Link>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      href="/auth/signin"
-                      onClick={() => setMobileOpen(false)}
-                      className="px-4 py-2.5 text-center text-xs font-bold text-white bg-white/5 border border-white/10 rounded-xl"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        openAuthModal({ mode: "signin" });
+                      }}
+                      className="px-4 py-2.5 text-center text-xs font-bold text-white bg-white/5 border border-white/10 rounded-xl cursor-pointer"
                     >
                       Sign In
-                    </Link>
-                    <Link
-                      href="/auth/signup"
-                      onClick={() => setMobileOpen(false)}
-                      className="px-4 py-2.5 text-center text-xs font-bold text-black bg-cyan-400 rounded-xl"
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        openAuthModal({ mode: "signup" });
+                      }}
+                      className="px-4 py-2.5 text-center text-xs font-bold text-black bg-cyan-400 rounded-xl cursor-pointer"
                     >
                       Sign Up
-                    </Link>
+                    </button>
                   </div>
                 )}
               </div>

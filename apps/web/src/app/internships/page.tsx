@@ -21,6 +21,7 @@ import { INTERNSHIP_DOMAINS } from "@/lib/domains";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
 import { InternshipApplicationModal } from "@/components/InternshipApplicationModal";
+import { openAuthModal } from "@/components/AuthModal";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -51,7 +52,7 @@ export default function InternshipsPage() {
     if (session?.user) {
       router.push(`/profile?domain=${encodeURIComponent(target)}`);
     } else {
-      router.push(`/auth/signup?domain=${encodeURIComponent(target)}`);
+      openAuthModal({ mode: "signup", domain: target });
     }
   };
 
@@ -119,18 +120,20 @@ export default function InternshipsPage() {
               </Link>
             ) : (
               <>
-                <Link
-                  href="/auth/signin"
-                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold transition-all"
+                <button
+                  type="button"
+                  onClick={() => openAuthModal({ mode: "signin" })}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer"
                 >
                   Student Sign In
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal({ mode: "signup" })}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
                 >
                   Create Account
-                </Link>
+                </button>
               </>
             )}
           </div>
