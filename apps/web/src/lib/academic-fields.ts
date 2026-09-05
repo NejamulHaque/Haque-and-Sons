@@ -120,16 +120,85 @@ export const ACADEMIC_DEGREES: DegreeOption[] = [
   },
 ];
 
-export const GRADUATION_YEARS = [
-  "2024",
-  "2025",
-  "2026",
-  "2027",
-  "2028",
-  "2029",
-  "2030",
-  "Graduate / Alumni",
+// Comprehensive graduation years up to 2050 + past years
+export const GRADUATION_YEARS: string[] = [
+  ...Array.from({ length: 2050 - 2024 + 1 }, (_, i) => String(2024 + i)),
+  "2023",
+  "2022",
+  "2021",
+  "2020",
+  "2019",
+  "2018",
+  "Earlier Graduate / Alumni",
 ];
+
+export interface PasswordStrengthResult {
+  score: number; // 0 to 100
+  label: "Very Weak" | "Weak" | "Fair" | "Good" | "Strong";
+  color: string;
+  isStrong: boolean;
+  checks: {
+    minLength: boolean; // >= 8 chars
+    hasUppercase: boolean; // [A-Z]
+    hasLowercase: boolean; // [a-z]
+    hasNumber: boolean; // [0-9]
+    hasSpecial: boolean; // [!@#$%^&*(),.?":{}|<>]
+  };
+}
+
+export function checkPasswordStrength(password: string): PasswordStrengthResult {
+  const checks = {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
+  };
+
+  const passedCount = Object.values(checks).filter(Boolean).length;
+
+  let score = 0;
+  if (password.length > 0) {
+    score = (passedCount / 5) * 80;
+    if (password.length >= 12) score += 20;
+    else if (password.length >= 10) score += 10;
+  }
+  score = Math.min(100, Math.round(score));
+
+  let label: PasswordStrengthResult["label"] = "Very Weak";
+  let color = "bg-red-500";
+
+  if (passedCount <= 1) {
+    label = "Very Weak";
+    color = "bg-red-500";
+  } else if (passedCount === 2) {
+    label = "Weak";
+    color = "bg-orange-500";
+  } else if (passedCount === 3) {
+    label = "Fair";
+    color = "bg-amber-400";
+  } else if (passedCount === 4) {
+    label = "Good";
+    color = "bg-blue-400";
+  } else if (passedCount === 5) {
+    label = "Strong";
+    color = "bg-emerald-400";
+  }
+
+  return {
+    score,
+    label,
+    color,
+    isStrong: checks.minLength && checks.hasUppercase && checks.hasLowercase && checks.hasNumber,
+    checks,
+  };
+}
+
+export function isValidEmail(email: string): boolean {
+  if (!email || email.length > 254) return false;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email.trim());
+}
 
 export function getBranchesForDegree(degreeId: string): string[] {
   const match = ACADEMIC_DEGREES.find(
@@ -147,3 +216,4 @@ export function formatFullDegree(degree: string, branch: string): string {
   if (branch.startsWith(degree)) return branch;
   return `${degree} (${branch})`;
 }
+

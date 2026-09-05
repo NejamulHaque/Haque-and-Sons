@@ -13,13 +13,22 @@ import {
   Building,
   ShieldCheck,
   CheckCircle2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import Link from "next/link";
 import Image from "next/image";
 
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
-import { ACADEMIC_DEGREES, getBranchesForDegree, formatFullDegree, GRADUATION_YEARS } from "@/lib/academic-fields";
+import {
+  ACADEMIC_DEGREES,
+  getBranchesForDegree,
+  formatFullDegree,
+  GRADUATION_YEARS,
+  checkPasswordStrength,
+  isValidEmail,
+} from "@/lib/academic-fields";
 
 function StudentSignUpContent() {
   const searchParams = useSearchParams();
@@ -40,6 +49,11 @@ function StudentSignUpContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const passwordStrength = checkPasswordStrength(password);
+
   const [selectedDomain, setSelectedDomain] = useState(
     domainParam ? domainParam.replace(/-/g, " ") : "Full-Stack Web Development"
   );
@@ -66,8 +80,18 @@ function StudentSignUpContent() {
     e.preventDefault();
     setError("");
 
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address (e.g. candidate@college.edu).");
+      return;
+    }
+
     if (password.length < 8) {
       setError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (!passwordStrength.checks.hasUppercase || !passwordStrength.checks.hasLowercase || !passwordStrength.checks.hasNumber) {
+      setError("Password must contain at least one uppercase letter, one lowercase letter, and one number.");
       return;
     }
 
@@ -128,6 +152,7 @@ function StudentSignUpContent() {
       setLoading(false);
     }
   };
+
 
   const signinUrl = `/auth/signin${
     selectedDomain
@@ -330,7 +355,7 @@ function StudentSignUpContent() {
 
                 <div>
                   <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Graduation Batch *
+                    Graduation Batch (Up to 2050) *
                   </label>
                   <select
                     value={graduationYear}
@@ -347,40 +372,123 @@ function StudentSignUpContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Password *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min 8 chars"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
-                  />
+            {/* Password Fields with Live Security Meter */}
+            <div className="space-y-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Min 8 chars"
+                      className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-9 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                    Confirm Password *
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      minLength={8}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter"
+                      className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-9 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                  Confirm Password *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
-                  />
+              {/* Live Password Strength Meter & Checklist */}
+              {password.length > 0 && (
+                <div className="p-3 rounded-xl bg-black/40 border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-gray-400 font-mono">Password Security:</span>
+                    <span
+                      className={`font-bold font-mono ${
+                        passwordStrength.score >= 80
+                          ? "text-emerald-400"
+                          : passwordStrength.score >= 60
+                          ? "text-cyan-400"
+                          : passwordStrength.score >= 40
+                          ? "text-amber-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {passwordStrength.label} ({passwordStrength.score}%)
+                    </span>
+                  </div>
+
+                  <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${Math.max(10, passwordStrength.score)}%` }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] text-gray-400 font-mono pt-1">
+                    <span
+                      className={`flex items-center gap-1 ${
+                        passwordStrength.checks.minLength ? "text-emerald-400 font-semibold" : "text-gray-500"
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3 h-3" /> 8+ Characters
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 ${
+                        passwordStrength.checks.hasUppercase && passwordStrength.checks.hasLowercase
+                          ? "text-emerald-400 font-semibold"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3 h-3" /> Upper &amp; Lowercase
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 ${
+                        passwordStrength.checks.hasNumber ? "text-emerald-400 font-semibold" : "text-gray-500"
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3 h-3" /> Number (0-9)
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 ${
+                        passwordStrength.checks.hasSpecial ? "text-emerald-400 font-semibold" : "text-gray-500"
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3 h-3" /> Special Symbol (!@#$)
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <button

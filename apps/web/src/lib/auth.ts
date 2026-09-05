@@ -15,6 +15,23 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days session lifetime
+    updateAge: 60 * 60 * 24, // 1 day update age
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes cache
+    },
+  },
+  rateLimit: {
+    window: 60,
+    max: 30,
+  },
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
   },
   trustedOrigins: [
     "http://localhost:3000",

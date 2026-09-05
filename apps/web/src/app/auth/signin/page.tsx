@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -11,10 +11,13 @@ import {
   AlertCircle,
   ShieldCheck,
   CheckCircle2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import Link from "next/link";
 import Image from "next/image";
+import { isValidEmail } from "@/lib/academic-fields";
 
 function StudentSignInContent() {
   const searchParams = useSearchParams();
@@ -29,8 +32,27 @@ function StudentSignInContent() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Brute force protection
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutRemaining]);
 
   // If already logged in, route straight to profile
   if (session?.user) {
@@ -40,8 +62,19 @@ function StudentSignInContent() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (lockoutRemaining > 0) {
+      setError(`Temporary security lockout active. Please wait ${lockoutRemaining}s.`);
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address (e.g. candidate@college.edu).");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await signIn.email({
@@ -50,8 +83,21 @@ function StudentSignInContent() {
       });
 
       if (res.error) {
-        setError(res.error.message || "Invalid email or password. Please verify your credentials.");
+        const nextAttempts = failedAttempts + 1;
+        setFailedAttempts(nextAttempts);
+
+        if (nextAttempts >= 5) {
+          setLockoutRemaining(30);
+          setError("Maximum failed attempts reached. For security, sign in is locked for 30 seconds.");
+        } else {
+          setError(
+            res.error.message ||
+              `Invalid credentials. (${5 - nextAttempts} attempts remaining before temporary lockout)`
+          );
+        }
       } else {
+        setFailedAttempts(0);
+        setLockoutRemaining(0);
         const dest = domainParam
           ? `/profile?domain=${encodeURIComponent(domainParam)}`
           : redirectParam;
@@ -64,6 +110,7 @@ function StudentSignInContent() {
       setLoading(false);
     }
   };
+
 
   const signupUrl = `/auth/signup${
     domainParam
@@ -149,23 +196,33 @@ function StudentSignInContent() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4"
+              disabled={loading || lockoutRemaining > 0}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : lockoutRemaining > 0 ? (
+                <span>Security Lockout ({lockoutRemaining}s)</span>
               ) : (
                 <>
                   <span>Sign In to Dashboard</span>

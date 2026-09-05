@@ -22,8 +22,16 @@ import {
   Cpu,
 } from "lucide-react";
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
-import { ACADEMIC_DEGREES, getBranchesForDegree, formatFullDegree, GRADUATION_YEARS } from "@/lib/academic-fields";
+import {
+  ACADEMIC_DEGREES,
+  getBranchesForDegree,
+  formatFullDegree,
+  GRADUATION_YEARS,
+  checkPasswordStrength,
+  isValidEmail,
+} from "@/lib/academic-fields";
 import Image from "next/image";
+
 
 interface AuthModalProps {
   isOpen?: boolean;
@@ -52,6 +60,11 @@ export function AuthModal({
   // Sign In fields
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+
+  // Sign In Security: Rate limit / Brute force lockout
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
 
   // Sign Up fields
   const [signUpName, setSignUpName] = useState("");
@@ -62,6 +75,11 @@ export function AuthModal({
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
+
+  // Password strength computation
+  const passwordStrength = checkPasswordStrength(signUpPassword);
 
   const handleDegreeChange = (newDegree: string) => {
     setSignUpDegree(newDegree);
@@ -71,13 +89,27 @@ export function AuthModal({
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const isControlled = propsIsOpen !== undefined;
   const isOpen = isControlled ? propsIsOpen : internalIsOpen;
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+    const interval = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lockoutRemaining]);
 
   // Listen to global open event
   useEffect(() => {
@@ -122,6 +154,17 @@ export function AuthModal({
 
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (lockoutRemaining > 0) {
+      setError(`Temporary security lockout active. Please wait ${lockoutRemaining}s.`);
+      return;
+    }
+
+    if (!isValidEmail(signInEmail)) {
+      setError("Please enter a valid email address (e.g. student@college.edu).");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -132,9 +175,22 @@ export function AuthModal({
       });
 
       if (res.error) {
-        setError(res.error.message || "Invalid email or password. Please verify your credentials.");
+        const nextAttempts = failedAttempts + 1;
+        setFailedAttempts(nextAttempts);
+
+        if (nextAttempts >= 5) {
+          setLockoutRemaining(30);
+          setError("Maximum failed attempts reached. For security, sign in is locked for 30 seconds.");
+        } else {
+          setError(
+            res.error.message ||
+              `Invalid credentials. (${5 - nextAttempts} attempts remaining before temporary lockout)`
+          );
+        }
         setLoading(false);
       } else {
+        setFailedAttempts(0);
+        setLockoutRemaining(0);
         setSuccessMsg("Signed in successfully! Transitioning to your Internship Dashboard...");
         setTimeout(() => {
           handleClose();
@@ -153,20 +209,29 @@ export function AuthModal({
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    if (!isValidEmail(signUpEmail)) {
+      setError("Please enter a valid email address format (e.g. name@college.edu).");
+      return;
+    }
 
     if (signUpPassword.length < 8) {
       setError("Password must be at least 8 characters long.");
-      setLoading(false);
+      return;
+    }
+
+    if (!passwordStrength.checks.hasUppercase || !passwordStrength.checks.hasLowercase || !passwordStrength.checks.hasNumber) {
+      setError("Password must contain at least one uppercase letter, one lowercase letter, and one number.");
       return;
     }
 
     if (signUpPassword !== signUpConfirmPassword) {
       setError("Passwords do not match. Please re-enter.");
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     try {
       const res = await signUp.email({
@@ -224,6 +289,7 @@ export function AuthModal({
       setLoading(false);
     }
   };
+
 
   return (
     <AnimatePresence>
@@ -387,7 +453,7 @@ export function AuthModal({
                       <div className="relative">
                         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
-                          type={showPassword ? "text" : "password"}
+                          type={showSignInPassword ? "text" : "password"}
                           required
                           value={signInPassword}
                           onChange={(e) => setSignInPassword(e.target.value)}
@@ -396,10 +462,11 @@ export function AuthModal({
                         />
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                          onClick={() => setShowSignInPassword(!showSignInPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                          title={showSignInPassword ? "Hide password" : "Show password"}
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
@@ -407,11 +474,13 @@ export function AuthModal({
                     <div className="pt-2">
                       <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-cyan-500 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_25px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 uppercase tracking-wider"
+                        disabled={loading || lockoutRemaining > 0}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-cyan-500 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_25px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wider"
                       >
                         {loading ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : lockoutRemaining > 0 ? (
+                          <span>Security Lockout ({lockoutRemaining}s)</span>
                         ) : (
                           <>
                             <span>Sign In to Internship Dashboard</span>
@@ -546,7 +615,7 @@ export function AuthModal({
 
                         <div>
                           <label className="text-[10px] font-semibold text-gray-300 block mb-1">
-                            Graduation Batch *
+                            Graduation Batch (Up to 2050) *
                           </label>
                           <select
                             value={signUpGraduationYear}
@@ -614,43 +683,123 @@ export function AuthModal({
                       </div>
                     </div>
 
-                    {/* Password Fields */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          Password (min 8 chars) *
-                        </label>
-                        <div className="relative">
-                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            minLength={8}
-                            value={signUpPassword}
-                            onChange={(e) => setSignUpPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-10 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                          />
+                    {/* Password Fields with Live Security Meter */}
+                    <div className="space-y-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                            Password *
+                          </label>
+                          <div className="relative">
+                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                              type={showSignUpPassword ? "text" : "password"}
+                              required
+                              minLength={8}
+                              value={signUpPassword}
+                              onChange={(e) => setSignUpPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-10 pr-9 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                              title={showSignUpPassword ? "Hide password" : "Show password"}
+                            >
+                              {showSignUpPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                            Confirm Password *
+                          </label>
+                          <div className="relative">
+                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                              type={showSignUpConfirmPassword ? "text" : "password"}
+                              required
+                              minLength={8}
+                              value={signUpConfirmPassword}
+                              onChange={(e) => setSignUpConfirmPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-10 pr-9 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowSignUpConfirmPassword(!showSignUpConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                              title={showSignUpConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                              {showSignUpConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          Confirm Password *
-                        </label>
-                        <div className="relative">
-                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            minLength={8}
-                            value={signUpConfirmPassword}
-                            onChange={(e) => setSignUpConfirmPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-black/60 border border-white/10 rounded-xl py-2 pl-10 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
-                          />
+                      {/* Live Password Strength Meter & Checklist */}
+                      {signUpPassword.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-1.5">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-gray-400 font-mono">Password Security:</span>
+                            <span
+                              className={`font-bold font-mono ${
+                                passwordStrength.score >= 80
+                                  ? "text-emerald-400"
+                                  : passwordStrength.score >= 60
+                                  ? "text-cyan-400"
+                                  : passwordStrength.score >= 40
+                                  ? "text-amber-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {passwordStrength.label} ({passwordStrength.score}%)
+                            </span>
+                          </div>
+
+                          <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                              style={{ width: `${Math.max(10, passwordStrength.score)}%` }}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-[10px] text-gray-400 font-mono pt-1">
+                            <span
+                              className={`flex items-center gap-1 ${
+                                passwordStrength.checks.minLength ? "text-emerald-400 font-semibold" : "text-gray-500"
+                              }`}
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> 8+ Characters
+                            </span>
+                            <span
+                              className={`flex items-center gap-1 ${
+                                passwordStrength.checks.hasUppercase && passwordStrength.checks.hasLowercase
+                                  ? "text-emerald-400 font-semibold"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Upper &amp; Lowercase
+                            </span>
+                            <span
+                              className={`flex items-center gap-1 ${
+                                passwordStrength.checks.hasNumber ? "text-emerald-400 font-semibold" : "text-gray-500"
+                              }`}
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Number (0-9)
+                            </span>
+                            <span
+                              className={`flex items-center gap-1 ${
+                                passwordStrength.checks.hasSpecial ? "text-emerald-400 font-semibold" : "text-gray-500"
+                              }`}
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Special Symbol (!@#$)
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     <div className="pt-2">
