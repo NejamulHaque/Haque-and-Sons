@@ -296,7 +296,7 @@ html.light ::selection {
 ========================================================================= */
 @media print {
   @page {
-    margin: 0 !important;
+    margin: 0;
   }
   
   html, body {

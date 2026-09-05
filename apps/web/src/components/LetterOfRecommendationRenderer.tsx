@@ -75,7 +75,7 @@ export function LetterOfRecommendationRenderer({
           <style>
             @page {
               size: A4 portrait;
-              margin: 0 !important;
+              margin: 0;
             }
 
             *, *::before, *::after {

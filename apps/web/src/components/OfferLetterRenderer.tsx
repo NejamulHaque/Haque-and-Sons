@@ -65,7 +65,7 @@ export function OfferLetterRenderer({
           <style>
             @page {
               size: A4 portrait;
-              margin: 0 !important;
+              margin: 0;
             }
             *, *::before, *::after {
               box-sizing: border-box;
