@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LogOut, ExternalLink, RefreshCw } from "lucide-react";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession, performSecureSignOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,15 +15,7 @@ export function AdminHeader({ onRefresh, isRefreshing }: { onRefresh?: () => voi
   const handleSignOut = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
-    try {
-      const signOutPromise = signOut();
-      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 600));
-      await Promise.race([signOutPromise, timeoutPromise]);
-    } catch (error) {
-      console.error("Sign out error:", error);
-    } finally {
-      window.location.href = "/admin/signin";
-    }
+    await performSecureSignOut("/admin/signin");
   };
 
   return (

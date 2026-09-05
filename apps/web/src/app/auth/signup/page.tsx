@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signUp, useSession } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -38,7 +38,7 @@ function StudentSignUpContent() {
   const durationParam = searchParams.get("duration") || "4 Weeks";
   const redirectParam = searchParams.get("redirect") || "/profile";
 
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -71,10 +71,12 @@ function StudentSignUpContent() {
   };
 
   // If already logged in, route to profile
-  if (session?.user) {
-    const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
-    router.push(dest);
-  }
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
+      router.push(dest);
+    }
+  }, [session, isPending, domainParam, redirectParam, router]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

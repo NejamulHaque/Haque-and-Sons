@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession, signOut, performSecureSignOut } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -411,15 +411,7 @@ function ProfileContent() {
   const handleSignOut = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
-    try {
-      const signOutPromise = signOut();
-      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 600));
-      await Promise.race([signOutPromise, timeoutPromise]);
-    } catch (e) {
-      console.warn("Signout error:", e);
-    } finally {
-      window.location.href = "/auth/signin";
-    }
+    await performSecureSignOut("/auth/signin");
   };
 
   if (isPending || profileLoading) {

@@ -27,7 +27,7 @@ function StudentSignInContent() {
   const durationParam = searchParams.get("duration") || "4 Weeks";
   const redirectParam = searchParams.get("redirect") || "/profile";
 
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -54,11 +54,13 @@ function StudentSignInContent() {
     return () => clearInterval(interval);
   }, [lockoutRemaining]);
 
-  // If already logged in, route straight to profile
-  if (session?.user) {
-    const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
-    router.push(dest);
-  }
+  // If already logged in and not in the process of resolving, route straight to profile
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
+      router.push(dest);
+    }
+  }, [session, isPending, domainParam, redirectParam, router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
