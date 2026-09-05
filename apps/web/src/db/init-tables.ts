@@ -19,25 +19,16 @@ export async function ensureTablesExist(): Promise<void> {
 
   globalThis.__db_init_promise = (async () => {
     try {
-      // 1. Fast probe: check if primary tables already exist
+      // 1. Fast probe: check if primary tables and latest columns already exist
       try {
         await db.execute(sql`SELECT 1 FROM "user" LIMIT 1;`);
-        await db.execute(sql`SELECT 1 FROM "internship_applications" LIMIT 1;`);
+        await db.execute(
+          sql`SELECT "lor_status", "lor_ref_number", "certificate_id", "payment_status" FROM "internship_applications" LIMIT 1;`
+        );
         globalThis.__db_tables_initialized = true;
         return;
-      } catch (probeErr: any) {
-        const errMsg = probeErr?.message?.toLowerCase() || "";
-        // If the error indicates tables actually don't exist (42P01: relation does not exist), create them
-        const isTableMissing =
-          errMsg.includes("does not exist") ||
-          errMsg.includes("relation") ||
-          errMsg.includes("42p01") ||
-          errMsg.includes("undefined_table");
-
-        if (!isTableMissing) {
-          // Cold start or transient connection, quietly return and allow queries to retry
-          return;
-        }
+      } catch {
+        // Table or column is missing, proceed to create tables and execute migrations below
       }
 
 
