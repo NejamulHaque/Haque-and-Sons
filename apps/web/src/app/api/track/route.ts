@@ -5,7 +5,8 @@ import { ensureTablesExist } from "@/db/init-tables";
 
 export async function GET(request: NextRequest) {
   try {
-    await ensureTablesExist();
+    // Non-blocking initialization check
+    ensureTablesExist().catch(() => {});
 
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
@@ -48,13 +49,12 @@ export async function GET(request: NextRequest) {
         country,
         city,
       });
-    } catch (dbErr) {
-      console.warn("Visitors log insert skipped:", dbErr instanceof Error ? dbErr.message : dbErr);
+    } catch {
+      // Gracefully ignore logging errors during local dev/cold starts
     }
 
     return NextResponse.json({ success: true, ip, country, city });
-  } catch (error) {
-    console.error("Tracking handler error:", error);
+  } catch {
     return NextResponse.json({ success: false }, { status: 200 });
   }
 }

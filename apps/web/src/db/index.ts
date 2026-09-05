@@ -2,19 +2,39 @@ import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 
-// Resilient fetch wrapper with exponential backoff for Neon cold starts and network hiccups
+// Resilient fetch wrapper with exponential backoff for Neon serverless cold starts & transient network drops
 const retryFetch: typeof fetch = async (url, options) => {
-  const maxRetries = 3;
+  const maxRetries = 4;
   let lastError: any = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await fetch(url, options);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s max query timeout
+
+      // Merge signals if options already provided one
+      const existingSignal = options?.signal;
+      if (existingSignal) {
+        if (existingSignal.aborted) {
+          controller.abort();
+        } else {
+          existingSignal.addEventListener('abort', () => controller.abort(), { once: true });
+        }
+      }
+
+      const res = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return res;
     } catch (err: any) {
       lastError = err;
       if (attempt < maxRetries) {
-        // Wait 300ms, 600ms before retrying to allow compute wakeup
-        await new Promise((res) => setTimeout(res, attempt * 300));
+        // Exponential backoff with jitter: 200ms, 450ms, 1000ms, 2200ms
+        const delay = Math.min(200 * Math.pow(2.2, attempt - 1) + Math.random() * 80, 3000);
+        await new Promise((res) => setTimeout(res, delay));
       }
     }
   }
@@ -23,12 +43,13 @@ const retryFetch: typeof fetch = async (url, options) => {
 
 neonConfig.fetchFunction = retryFetch;
 
+
 const rawUrl = process.env.DATABASE_URL || "postgresql://user:password@localhost:5432/haque_studio";
-// For neon-http serverless queries, connect directly to the direct endpoint (strip -pooler)
-// to prevent PgBouncer connection drops over HTTP
+// For neon-http serverless queries, direct endpoint without -pooler is most reliable
 const connectionString = rawUrl.includes("-pooler")
   ? rawUrl.replace("-pooler", "")
   : rawUrl;
 
 export const sql = neon(connectionString);
 export const db = drizzle(sql, { schema });
+

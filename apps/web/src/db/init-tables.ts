@@ -1,31 +1,47 @@
 import { db } from "./index";
 import { sql } from "drizzle-orm";
 
-let isInitialized = false;
-let initPromise: Promise<void> | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var __db_tables_initialized: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __db_init_promise: Promise<void> | null | undefined;
+}
 
-export async function ensureTablesExist() {
-  if (isInitialized) {
+export async function ensureTablesExist(): Promise<void> {
+  if (globalThis.__db_tables_initialized) {
     return;
   }
 
-  if (initPromise) {
-    return initPromise;
+  if (globalThis.__db_init_promise) {
+    return globalThis.__db_init_promise;
   }
 
-  initPromise = (async () => {
+  globalThis.__db_init_promise = (async () => {
     try {
-      // Fast check: If the "user" and "internship_applications" tables already exist, skip heavy DDL
+      // 1. Fast probe: check if primary tables already exist
       try {
         await db.execute(sql`SELECT 1 FROM "user" LIMIT 1;`);
         await db.execute(sql`SELECT 1 FROM "internship_applications" LIMIT 1;`);
-        isInitialized = true;
+        globalThis.__db_tables_initialized = true;
         return;
-      } catch {
-        // Tables do not exist yet, proceed with full creation
+      } catch (probeErr: any) {
+        const errMsg = probeErr?.message?.toLowerCase() || "";
+        // If the error indicates tables actually don't exist (42P01: relation does not exist), create them
+        const isTableMissing =
+          errMsg.includes("does not exist") ||
+          errMsg.includes("relation") ||
+          errMsg.includes("42p01") ||
+          errMsg.includes("undefined_table");
+
+        if (!isTableMissing) {
+          // It was likely a transient network error or permission issue, do not spam DDL
+          console.warn("Database probe notice:", probeErr?.message || probeErr);
+          return;
+        }
       }
 
-      // Better Auth Core Tables
+      // 2. Better Auth Core Tables
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS "user" (
           "id" text PRIMARY KEY,
@@ -81,7 +97,7 @@ export async function ensureTablesExist() {
         );
       `);
 
-      // Visitors telemetry table
+      // 3. Visitors telemetry table
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS "visitors" (
           "id" serial PRIMARY KEY,
@@ -94,7 +110,7 @@ export async function ensureTablesExist() {
         );
       `);
 
-      // Internship & Certificate tables
+      // 4. Internship & Certificate tables
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS "internship_applications" (
           "id" serial PRIMARY KEY,
@@ -145,7 +161,7 @@ export async function ensureTablesExist() {
         );
       `);
 
-      // Migration: Add new columns if table was created previously with older schema
+      // 5. Migration: Add new columns if table was created previously with older schema
       const migrationQueries = [
         sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "github_repo" text;`,
         sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "live_url" text;`,
@@ -166,12 +182,13 @@ export async function ensureTablesExist() {
         }
       }
 
-      isInitialized = true;
-    } catch (err) {
-      console.error("Error ensuring tables exist:", err);
-      initPromise = null; // Allow retry on subsequent calls if network failed
+      globalThis.__db_tables_initialized = true;
+    } catch (err: any) {
+      console.warn("Notice: Table check deferred:", err?.message || err);
+    } finally {
+      globalThis.__db_init_promise = null;
     }
   })();
 
-  return initPromise;
+  return globalThis.__db_init_promise;
 }

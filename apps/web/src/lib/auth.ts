@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
+  secret: process.env.BETTER_AUTH_SECRET || "default_super_secret_haque_and_sons_key_2026",
   baseURL:
     process.env.BETTER_AUTH_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
@@ -19,5 +20,6 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://haqueandsons.vercel.app",
+    "https://haqueandsons.in",
   ],
 });
