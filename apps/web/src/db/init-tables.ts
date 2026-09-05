@@ -139,6 +139,13 @@ export async function ensureTablesExist(): Promise<void> {
           "payment_utr" text,
           "payment_status" text DEFAULT 'None' NOT NULL,
           "certificate_id" text,
+          "lor_status" text DEFAULT 'None' NOT NULL,
+          "lor_ref_number" text,
+          "lor_applied_at" timestamp,
+          "lor_approved_at" timestamp,
+          "lor_remarks" text,
+          "lor_rejection_reason" text,
+          "lor_grade" text DEFAULT 'Distinction (Top 1%)',
           "created_at" timestamp DEFAULT now() NOT NULL
         );
       `);
@@ -172,6 +179,13 @@ export async function ensureTablesExist(): Promise<void> {
         sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "payment_utr" text;`,
         sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "payment_status" text DEFAULT 'None';`,
         sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "certificate_id" text;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_status" text DEFAULT 'None';`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_ref_number" text;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_applied_at" timestamp;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_approved_at" timestamp;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_remarks" text;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_rejection_reason" text;`,
+        sql`ALTER TABLE "internship_applications" ADD COLUMN IF NOT EXISTS "lor_grade" text DEFAULT 'Distinction (Top 1%)';`,
       ];
 
       for (const query of migrationQueries) {

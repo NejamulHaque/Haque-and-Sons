@@ -94,6 +94,13 @@ async function getStats(): Promise<{
       paymentUtr: a.paymentUtr,
       paymentStatus: a.paymentStatus,
       certificateId: a.certificateId,
+      lorStatus: a.lorStatus || "None",
+      lorRefNumber: a.lorRefNumber,
+      lorAppliedAt: a.lorAppliedAt ? (a.lorAppliedAt instanceof Date ? a.lorAppliedAt.toISOString() : String(a.lorAppliedAt)) : null,
+      lorApprovedAt: a.lorApprovedAt ? (a.lorApprovedAt instanceof Date ? a.lorApprovedAt.toISOString() : String(a.lorApprovedAt)) : null,
+      lorRemarks: a.lorRemarks,
+      lorRejectionReason: a.lorRejectionReason,
+      lorGrade: a.lorGrade || "Distinction (Top 1%)",
       createdAt: a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt),
     }));
 

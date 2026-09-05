@@ -37,10 +37,12 @@ import {
   FolderArchive,
   RefreshCw,
   Code2,
+  Star,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CURRENCIES, type CurrencyCode } from "@/components/ProjectCalculator";
 import { INTERNSHIP_DOMAINS } from "@/lib/domains";
+import { LetterOfRecommendationRenderer, type LORData } from "@/components/LetterOfRecommendationRenderer";
 import Link from "next/link";
 
 export interface VisitorLog {
@@ -85,6 +87,13 @@ export interface InternshipAppRow {
   paymentUtr?: string | null;
   paymentStatus?: string | null;
   certificateId?: string | null;
+  lorStatus?: string | null;
+  lorRefNumber?: string | null;
+  lorAppliedAt?: Date | string | null;
+  lorApprovedAt?: Date | string | null;
+  lorRemarks?: string | null;
+  lorRejectionReason?: string | null;
+  lorGrade?: string | null;
   createdAt: Date | string;
 }
 
@@ -248,6 +257,17 @@ export function AdminDashboardClient({
   const [viewScreenshotApp, setViewScreenshotApp] = useState<InternshipAppRow | null>(null);
   const [approvingPaymentId, setApprovingPaymentId] = useState<number | null>(null);
 
+  // LOR Management States
+  const [appLorFilter, setAppLorFilter] = useState("All");
+  const [approvingLorApp, setApprovingLorApp] = useState<InternshipAppRow | null>(null);
+  const [rejectingLorApp, setRejectingLorApp] = useState<InternshipAppRow | null>(null);
+  const [previewingLorApp, setPreviewingLorApp] = useState<InternshipAppRow | null>(null);
+  const [lorGradeInput, setLorGradeInput] = useState("Distinction (Top 1%)");
+  const [lorRemarksInput, setLorRemarksInput] = useState("");
+  const [lorRejectionReasonInput, setLorRejectionReasonInput] = useState("");
+  const [isProcessingLor, setIsProcessingLor] = useState(false);
+  const [lorToast, setLorToast] = useState<string | null>(null);
+
   const activeCurrency = CURRENCIES[currency];
 
   const formatCurrency = (usdAmount: number) => {
@@ -399,6 +419,90 @@ export function AdminDashboardClient({
       alert("Network error approving payment.");
     } finally {
       setApprovingPaymentId(null);
+    }
+  };
+
+  const openApproveLorModal = (app: InternshipAppRow) => {
+    setApprovingLorApp(app);
+    setLorGradeInput(app.lorGrade || "Distinction (Top 1%)");
+    setLorRemarksInput(app.lorRemarks || "");
+  };
+
+  const openRejectLorModal = (app: InternshipAppRow) => {
+    setRejectingLorApp(app);
+    setLorRejectionReasonInput(app.lorRejectionReason || "Practicum deliverables or repository contributions require further progress before executive endorsement.");
+  };
+
+  const openPreviewLorModal = (app: InternshipAppRow) => {
+    setPreviewingLorApp(app);
+  };
+
+  const handleApproveLorSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!approvingLorApp) return;
+    setIsProcessingLor(true);
+    try {
+      const res = await fetch("/api/admin/approve-lor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationId: approvingLorApp.id,
+          remarks: lorRemarksInput,
+          grade: lorGradeInput,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setLorToast(`⭐ LOR ${data.application.lorRefNumber} successfully approved and dispatched for ${approvingLorApp.fullName}!`);
+        setTimeout(() => setLorToast(null), 7000);
+        setApplications((prev) =>
+          prev.map((a) => (a.id === approvingLorApp.id ? data.application : a))
+        );
+        if (viewDetailApp?.id === approvingLorApp.id) {
+          setViewDetailApp(data.application);
+        }
+        setApprovingLorApp(null);
+      } else {
+        alert(data.error || "Failed to approve LOR.");
+      }
+    } catch {
+      alert("Network error while approving LOR.");
+    } finally {
+      setIsProcessingLor(false);
+    }
+  };
+
+  const handleRejectLorSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!rejectingLorApp) return;
+    setIsProcessingLor(true);
+    try {
+      const res = await fetch("/api/admin/reject-lor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationId: rejectingLorApp.id,
+          reason: lorRejectionReasonInput,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setLorToast(`Notice: LOR request for ${rejectingLorApp.fullName} marked as rejected.`);
+        setTimeout(() => setLorToast(null), 6000);
+        setApplications((prev) =>
+          prev.map((a) => (a.id === rejectingLorApp.id ? data.application : a))
+        );
+        if (viewDetailApp?.id === rejectingLorApp.id) {
+          setViewDetailApp(data.application);
+        }
+        setRejectingLorApp(null);
+      } else {
+        alert(data.error || "Failed to reject LOR.");
+      }
+    } catch {
+      alert("Network error while rejecting LOR.");
+    } finally {
+      setIsProcessingLor(false);
     }
   };
 
@@ -748,6 +852,12 @@ export function AdminDashboardClient({
         if (appPaymentFilter === "Pending Approval" && app.paymentStatus !== "Pending Approval") return false;
         if (appPaymentFilter === "Unpaid" && (app.paymentStatus === "Approved" || app.paymentStatus === "Pending Approval")) return false;
       }
+      if (appLorFilter !== "All") {
+        if (appLorFilter === "Pending" && app.lorStatus !== "Pending") return false;
+        if (appLorFilter === "Approved" && app.lorStatus !== "Approved") return false;
+        if (appLorFilter === "Rejected" && app.lorStatus !== "Rejected") return false;
+        if (appLorFilter === "None" && app.lorStatus && app.lorStatus !== "None") return false;
+      }
       if (appSearchQuery.trim()) {
         const q = appSearchQuery.toLowerCase();
         const matchName = (app.fullName || "").toLowerCase().includes(q);
@@ -757,13 +867,14 @@ export function AdminDashboardClient({
         const matchPhone = (app.phone || "").toLowerCase().includes(q);
         const matchUtr = (app.paymentUtr || "").toLowerCase().includes(q);
         const matchCert = (app.certificateId || "").toLowerCase().includes(q);
-        if (!matchName && !matchEmail && !matchCollege && !matchDomain && !matchPhone && !matchUtr && !matchCert) {
+        const matchLor = (app.lorRefNumber || "").toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchCollege && !matchDomain && !matchPhone && !matchUtr && !matchCert && !matchLor) {
           return false;
         }
       }
       return true;
     });
-  }, [applications, appStatusFilter, appDomainFilter, appModeFilter, appPaymentFilter, appSearchQuery]);
+  }, [applications, appStatusFilter, appDomainFilter, appModeFilter, appPaymentFilter, appLorFilter, appSearchQuery]);
 
   const filteredLogs = useMemo(() => {
     if (!searchQuery.trim()) return recentVisits;
@@ -1006,6 +1117,88 @@ export function AdminDashboardClient({
               </div>
             </div>
 
+            {/* Quick Filter Status Bar */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+              <button
+                onClick={() => {
+                  setAppStatusFilter("All");
+                  setAppPaymentFilter("All");
+                  setAppLorFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 ${
+                  appStatusFilter === "All" && appPaymentFilter === "All" && appLorFilter === "All"
+                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                All Enrolled ({applications.length})
+              </button>
+
+              <button
+                onClick={() => {
+                  setAppStatusFilter("Pending");
+                  setAppPaymentFilter("All");
+                  setAppLorFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  appStatusFilter === "Pending"
+                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                <Clock className="w-3 h-3 text-yellow-400" />
+                <span>Pending Offers ({applications.filter((a) => a.status === "Pending" || a.status === "Under Review").length})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setAppPaymentFilter("Pending Approval");
+                  setAppStatusFilter("All");
+                  setAppLorFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  appPaymentFilter === "Pending Approval"
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                <AlertCircle className="w-3 h-3 text-emerald-400" />
+                <span>Payment Verification ({applications.filter((a) => a.paymentStatus === "Pending Approval").length})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setAppLorFilter("Pending");
+                  setAppStatusFilter("All");
+                  setAppPaymentFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  appLorFilter === "Pending"
+                    ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                <span>⭐ LOR Requests ({applications.filter((a) => a.lorStatus === "Pending").length})</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setAppLorFilter("Approved");
+                  setAppStatusFilter("All");
+                  setAppPaymentFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  appLorFilter === "Approved"
+                    ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                <ShieldCheck className="w-3 h-3 text-purple-400" />
+                <span>Approved LORs ({applications.filter((a) => a.lorStatus === "Approved").length})</span>
+              </button>
+            </div>
+
             {/* Filter controls & Deep Search */}
             <div className="bg-black/60 border border-white/10 rounded-2xl p-4 space-y-3">
               <div className="flex flex-col md:flex-row gap-3">
@@ -1015,7 +1208,7 @@ export function AdminDashboardClient({
                     type="text"
                     value={appSearchQuery}
                     onChange={(e) => setAppSearchQuery(e.target.value)}
-                    placeholder="Search by name, email, phone, college, domain, UTR, cert ID..."
+                    placeholder="Search by name, email, phone, college, domain, UTR, cert ID, LOR Ref..."
                     className="w-full bg-black/80 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
                   />
                   {appSearchQuery && (
@@ -1030,7 +1223,7 @@ export function AdminDashboardClient({
               </div>
 
               {/* Multi-dropdown filters row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
                 {/* Domain Filter */}
                 <div>
                   <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
@@ -1084,6 +1277,24 @@ export function AdminDashboardClient({
                   </select>
                 </div>
 
+                {/* LOR Filter */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    LOR Request:
+                  </label>
+                  <select
+                    value={appLorFilter}
+                    onChange={(e) => setAppLorFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="All">All LOR States</option>
+                    <option value="Pending">Pending Review ({applications.filter((a) => a.lorStatus === "Pending").length})</option>
+                    <option value="Approved">Approved / Issued</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="None">Not Applied</option>
+                  </select>
+                </div>
+
                 {/* Application Lifecycle Status */}
                 <div>
                   <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
@@ -1105,7 +1316,7 @@ export function AdminDashboardClient({
                 </div>
               </div>
 
-              {(appSearchQuery || appDomainFilter !== "All" || appModeFilter !== "All" || appPaymentFilter !== "All" || appStatusFilter !== "All") && (
+              {(appSearchQuery || appDomainFilter !== "All" || appModeFilter !== "All" || appPaymentFilter !== "All" || appLorFilter !== "All" || appStatusFilter !== "All") && (
                 <div className="pt-2 flex items-center justify-between border-t border-white/5 text-xs">
                   <span className="text-gray-400">
                     Showing <strong className="text-cyan-300">{filteredApplications.length}</strong> of {applications.length} interns
@@ -1116,6 +1327,7 @@ export function AdminDashboardClient({
                       setAppDomainFilter("All");
                       setAppModeFilter("All");
                       setAppPaymentFilter("All");
+                      setAppLorFilter("All");
                       setAppStatusFilter("All");
                     }}
                     className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 cursor-pointer"
@@ -1134,6 +1346,13 @@ export function AdminDashboardClient({
               </div>
             )}
 
+            {lorToast && (
+              <div className="p-3.5 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-200 text-xs flex items-center gap-2 shadow-lg">
+                <Star className="w-4 h-4 text-amber-400 shrink-0 fill-amber-400" />
+                <span>{lorToast}</span>
+              </div>
+            )}
+
             {/* Applications Table */}
             <div className="bg-gray-900/40 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
               <div className="overflow-x-auto">
@@ -1145,6 +1364,7 @@ export function AdminDashboardClient({
                       <th className="px-4 py-3.5 font-semibold">Domain Track</th>
                       <th className="px-4 py-3.5 font-semibold">Mode & Fee</th>
                       <th className="px-4 py-3.5 font-semibold">Payment & Review</th>
+                      <th className="px-4 py-3.5 font-semibold">LOR Endorsement</th>
                       <th className="px-4 py-3.5 font-semibold">Lifecycle</th>
                       <th className="px-4 py-3.5 font-semibold text-right">Actions</th>
                     </tr>
@@ -1229,6 +1449,66 @@ export function AdminDashboardClient({
                             )}
                           </td>
 
+                          {/* LOR Column */}
+                          <td className="px-4 py-3.5">
+                            {app.lorStatus === "Pending" ? (
+                              <div className="space-y-1">
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold font-mono inline-flex items-center gap-1 animate-pulse">
+                                  <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                  <span>LOR Requested</span>
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => openApproveLorModal(app)}
+                                    className="px-1.5 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[9px] font-bold border border-amber-500/40 cursor-pointer"
+                                  >
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => openRejectLorModal(app)}
+                                    className="px-1.5 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 text-[9px] font-bold border border-red-500/40 cursor-pointer"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            ) : app.lorStatus === "Approved" ? (
+                              <div className="space-y-0.5">
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold inline-flex items-center gap-1">
+                                  <Star className="w-2.5 h-2.5 fill-emerald-400 text-emerald-400" />
+                                  <span>LOR Issued</span>
+                                </span>
+                                <button
+                                  onClick={() => openPreviewLorModal(app)}
+                                  className="text-[10px] text-cyan-400 hover:underline block font-mono"
+                                >
+                                  {app.lorRefNumber || "Preview LOR"}
+                                </button>
+                              </div>
+                            ) : app.lorStatus === "Rejected" ? (
+                              <div className="space-y-0.5">
+                                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold inline-flex items-center gap-1">
+                                  <X className="w-2.5 h-2.5" />
+                                  <span>Rejected</span>
+                                </span>
+                                <button
+                                  onClick={() => openApproveLorModal(app)}
+                                  className="text-[9.5px] text-gray-400 hover:text-white underline block cursor-pointer"
+                                >
+                                  Re-evaluate
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => openApproveLorModal(app)}
+                                className="text-[10px] text-gray-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                <Plus className="w-2.5 h-2.5" />
+                                <span>Issue LOR</span>
+                              </button>
+                            )}
+                          </td>
+
                           {/* Lifecycle Status Select */}
                           <td className="px-4 py-3.5">
                             <select
@@ -1290,6 +1570,25 @@ export function AdminDashboardClient({
                               >
                                 <Mail className="w-3.5 h-3.5" />
                               </button>
+
+                              {/* LOR Quick Action */}
+                              {app.lorStatus === "Pending" ? (
+                                <button
+                                  onClick={() => openApproveLorModal(app)}
+                                  title="Approve LOR Request"
+                                  className="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 animate-pulse transition-all cursor-pointer"
+                                >
+                                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                                </button>
+                              ) : app.lorStatus === "Approved" ? (
+                                <button
+                                  onClick={() => openPreviewLorModal(app)}
+                                  title="Preview Approved LOR"
+                                  className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-all cursor-pointer"
+                                >
+                                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                                </button>
+                              ) : null}
 
                               {/* Send Offer Letter / Approve */}
                               {app.status === "Pending" || app.status === "Under Review" ? (
@@ -2135,6 +2434,89 @@ export function AdminDashboardClient({
               )}
             </div>
 
+            {/* Letter of Recommendation (LOR) Section */}
+            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[11px] uppercase font-bold text-amber-400 tracking-wider flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> Executive Letter of Recommendation (LOR)
+                </h4>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    viewDetailApp.lorStatus === "Approved"
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      : viewDetailApp.lorStatus === "Pending"
+                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse"
+                      : viewDetailApp.lorStatus === "Rejected"
+                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                      : "bg-white/5 text-gray-400"
+                  }`}
+                >
+                  {viewDetailApp.lorStatus === "Approved"
+                    ? "Approved & Issued"
+                    : viewDetailApp.lorStatus === "Pending"
+                    ? "Requested (Pending Review)"
+                    : viewDetailApp.lorStatus === "Rejected"
+                    ? "Request Rejected"
+                    : "Not Applied"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-300">
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 font-mono">
+                  <span className="text-gray-500 text-[10px] uppercase block">LOR Ref Number:</span>
+                  <span className="text-amber-300 font-bold">{viewDetailApp.lorRefNumber || "HS-LOR-(Pending Approval)"}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 font-mono">
+                  <span className="text-gray-500 text-[10px] uppercase block">LOR Grade:</span>
+                  <span className="text-white font-bold">{viewDetailApp.lorGrade || "Distinction (Top 1%)"}</span>
+                </div>
+              </div>
+
+              {viewDetailApp.lorRemarks && (
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 text-gray-300">
+                  <span className="text-gray-500 text-[10px] uppercase font-bold block mb-0.5">Candidate Application Note:</span>
+                  <p className="text-xs">{viewDetailApp.lorRemarks}</p>
+                </div>
+              )}
+
+              {viewDetailApp.lorRejectionReason && (
+                <div className="p-2.5 rounded-xl bg-rose-950/30 border border-rose-500/30 text-rose-300">
+                  <span className="text-rose-400 text-[10px] uppercase font-bold block mb-0.5">Rejection Feedback:</span>
+                  <p className="text-xs">{viewDetailApp.lorRejectionReason}</p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => openApproveLorModal(viewDetailApp)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Star className="w-3.5 h-3.5 fill-black" />
+                  <span>{viewDetailApp.lorStatus === "Approved" ? "Update LOR / Grade" : "Approve & Issue LOR"}</span>
+                </button>
+
+                {viewDetailApp.lorStatus === "Pending" && (
+                  <button
+                    type="button"
+                    onClick={() => openRejectLorModal(viewDetailApp)}
+                    className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-semibold cursor-pointer"
+                  >
+                    Reject LOR
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => openPreviewLorModal(viewDetailApp)}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Preview LOR Document</span>
+                </button>
+              </div>
+            </div>
+
             {/* Modal Bottom Quick Action Bar */}
             <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -2768,6 +3150,214 @@ export function AdminDashboardClient({
                   <span>Approve & Issue Certificate</span>
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: APPROVE LOR & SET GRADE MODAL */}
+      {approvingLorApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-[#0a0f1d] border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                  <Star className="w-5 h-5 fill-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Approve Letter of Recommendation
+                  </h3>
+                  <span className="text-[11px] text-amber-300 font-mono">
+                    Candidate: {approvingLorApp.fullName} ({approvingLorApp.email})
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setApprovingLorApp(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleApproveLorSubmit} className="space-y-4 text-xs">
+              <div className="p-3 rounded-xl bg-black/50 border border-white/10 space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">College:</span>
+                  <span className="text-white font-medium">{approvingLorApp.college}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Track:</span>
+                  <span className="text-cyan-300 font-semibold">{approvingLorApp.domain} ({approvingLorApp.duration})</span>
+                </div>
+                {approvingLorApp.lorRemarks && (
+                  <div className="pt-2 border-t border-white/5">
+                    <span className="text-gray-400 text-[10px] uppercase font-bold block mb-0.5">Candidate Note / Highlights:</span>
+                    <p className="text-gray-200">{approvingLorApp.lorRemarks}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">Appraisal Rating / Grade *</label>
+                <select
+                  value={lorGradeInput}
+                  onChange={(e) => setLorGradeInput(e.target.value)}
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+                >
+                  <option value="Distinction (Top 1%)">Distinction (Top 1% - Exceptional)</option>
+                  <option value="Distinction (Top 5%)">Distinction (Top 5% - Outstanding)</option>
+                  <option value="Exemplary (Grade A+)">&apos;Exemplary&apos; (Grade A+ - Industry Ready)</option>
+                  <option value="High Honors (Grade A)">High Honors (Grade A)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">Executive Commendation / Notes (Optional)</label>
+                <textarea
+                  rows={3}
+                  value={lorRemarksInput}
+                  onChange={(e) => setLorRemarksInput(e.target.value)}
+                  placeholder="Additional specific project achievements to attach to this institutional record..."
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400 resize-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 text-amber-300/90 text-[11px] leading-relaxed">
+                Approving will generate an institutional reference number (<code>HS-LOR-...</code>), unlock the PDF viewer in the student&apos;s profile, and send a notification email.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setApprovingLorApp(null)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isProcessingLor}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Star className="w-3.5 h-3.5 fill-slate-950" />
+                  <span>{isProcessingLor ? "Approving & Dispatching..." : "Approve & Issue LOR"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: REJECT LOR MODAL */}
+      {rejectingLorApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-[#0a0f1d] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center">
+                  <X className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Reject LOR Request
+                  </h3>
+                  <span className="text-[11px] text-rose-300 font-mono">
+                    Candidate: {rejectingLorApp.fullName}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setRejectingLorApp(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleRejectLorSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">Feedback / Rejection Reason *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={lorRejectionReasonInput}
+                  onChange={(e) => setLorRejectionReasonInput(e.target.value)}
+                  placeholder="Explain what deliverables need to be resolved before LOR endorsement can be granted..."
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-400 resize-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 text-rose-300/90 text-[11px] leading-relaxed">
+                This feedback will be visible in the candidate&apos;s dashboard, allowing them to complete missing milestones and submit a re-application.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRejectingLorApp(null)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isProcessingLor}
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <span>{isProcessingLor ? "Processing..." : "Confirm Rejection"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 8: ADMIN FULL-SCREEN LOR PREVIEW MODAL */}
+      {previewingLorApp && (
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
+          <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
+            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Admin Preview: Executive Letter of Recommendation (LOR)
+                  </span>
+                  <span className="text-[10px] text-amber-400 font-mono">
+                    Candidate: {previewingLorApp.fullName} • Ref: {previewingLorApp.lorRefNumber || "HS-LOR-(Preview)"}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPreviewingLorApp(null)}
+                className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+              >
+                <X className="w-4 h-4" />
+                <span>Close Preview</span>
+              </button>
+            </div>
+
+            <div className="p-3 sm:p-6">
+              <LetterOfRecommendationRenderer
+                lorData={{
+                  id: previewingLorApp.lorRefNumber || `HS-LOR-${new Date().getFullYear()}-${previewingLorApp.id}`,
+                  studentName: previewingLorApp.fullName,
+                  studentEmail: previewingLorApp.email,
+                  college: previewingLorApp.college,
+                  degree: previewingLorApp.degree,
+                  domain: previewingLorApp.domain,
+                  duration: previewingLorApp.duration,
+                  mode: previewingLorApp.mode,
+                  grade: previewingLorApp.lorGrade || "Distinction (Top 1%)",
+                  issueDate: previewingLorApp.lorApprovedAt || new Date().toISOString(),
+                  signatoryTitle: "Nejamul Haque, Founder & Lead Engineer",
+                }}
+                showActions={true}
+              />
             </div>
           </div>
         </div>

@@ -127,6 +127,11 @@ function ProfileContent() {
   // Offer Letter & LOR modals
   const [isOfferLetterOpen, setIsOfferLetterOpen] = useState(false);
   const [isLorModalOpen, setIsLorModalOpen] = useState(false);
+  const [isApplyLorModalOpen, setIsApplyLorModalOpen] = useState(false);
+  const [lorRemarksInput, setLorRemarksInput] = useState("");
+  const [isSubmittingLor, setIsSubmittingLor] = useState(false);
+  const [lorSubmitSuccess, setLorSubmitSuccess] = useState<string | null>(null);
+  const [lorSubmitError, setLorSubmitError] = useState<string | null>(null);
 
   // Interactive LMS Sprint Checklist state
   const [sprintTasks, setSprintTasks] = useState<Record<string, boolean>>({});
@@ -441,8 +446,13 @@ function ProfileContent() {
     startDate: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
   };
 
+  const isLorApproved = application?.lorStatus === "Approved";
+  const isLorPending = application?.lorStatus === "Pending";
+  const isLorRejected = application?.lorStatus === "Rejected";
+  const isLorNotApplied = !application?.lorStatus || application?.lorStatus === "None";
+
   const lorData: LORData = {
-    id: certificate?.id || `HS-INT-2026-${(fullName || "STUDENT").replace(/\s+/g, "").slice(0, 4).toUpperCase()}-001`,
+    id: application?.lorRefNumber || certificate?.id || `HS-LOR-2026-${(fullName || "STUDENT").replace(/\s+/g, "").slice(0, 4).toUpperCase()}-001`,
     studentName: fullName || session?.user?.name || "Student Intern",
     studentEmail: session?.user?.email || application?.email || "",
     college: college || "Partner University",
@@ -450,9 +460,39 @@ function ProfileContent() {
     domain: domain || "Full-Stack Web Development",
     duration: duration || "4 Weeks",
     mode: mode || "Online",
-    grade: certificate?.grade || "Distinction (Top 1%)",
-    issueDate: certificate?.issueDate || new Date().toISOString(),
+    grade: application?.lorGrade || certificate?.grade || "Distinction (Top 1%)",
+    issueDate: application?.lorApprovedAt || certificate?.issueDate || new Date().toISOString(),
     signatoryTitle: "Nejamul Haque, Founder & Lead Engineer",
+  };
+
+  const handleApplyLor = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!session?.user?.email) return;
+    setIsSubmittingLor(true);
+    setLorSubmitError(null);
+    setLorSubmitSuccess(null);
+    try {
+      const res = await fetch("/api/profile/apply-lor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: session.user.email,
+          remarks: lorRemarksInput,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setApplication(data.application);
+        setLorSubmitSuccess("Your Letter of Recommendation (LOR) application has been submitted to Admin for technical evaluation!");
+        setIsApplyLorModalOpen(false);
+      } else {
+        setLorSubmitError(data.error || "Failed to submit LOR application.");
+      }
+    } catch {
+      setLorSubmitError("Network error while submitting LOR application.");
+    } finally {
+      setIsSubmittingLor(false);
+    }
   };
 
   const isApproved = paymentStatus === "Approved" || certificate !== null;
@@ -640,13 +680,39 @@ function ProfileContent() {
                   )}
                 </button>
 
-                <button
-                  onClick={() => setIsLorModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                  <span>LOR</span>
-                </button>
+                {isLorApproved ? (
+                  <button
+                    onClick={() => setIsLorModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                    <span>Official LOR</span>
+                  </button>
+                ) : isLorPending ? (
+                  <button
+                    onClick={() => setIsLorModalOpen(true)}
+                    className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                    <span>LOR (Under Review)</span>
+                  </button>
+                ) : isLorRejected ? (
+                  <button
+                    onClick={() => setIsApplyLorModalOpen(true)}
+                    className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                    <span>LOR (Re-Apply)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsApplyLorModalOpen(true)}
+                    className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-gray-300 hover:text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Star className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Apply for LOR</span>
+                  </button>
+                )}
 
                 <button
                   onClick={handleSignOut}
@@ -1596,6 +1662,155 @@ function ProfileContent() {
                 {/* SLIDE 4: VERIFIED CERTIFICATE & LOR SUITE */}
                 {currentSlide === 4 && (
                   <div className="space-y-6">
+                    {lorSubmitSuccess && (
+                      <div className="p-4 rounded-2xl bg-amber-950/50 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2 shadow-lg">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-amber-400 shrink-0 fill-amber-400" />
+                          <span>{lorSubmitSuccess}</span>
+                        </div>
+                        <button onClick={() => setLorSubmitSuccess(null)} className="text-amber-400 hover:text-white">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* LOR STATUS & ACTION HERO CARD */}
+                    {isLorApproved ? (
+                      <SpotlightCard className="p-6 border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-black to-slate-950/80 shadow-[0_0_50px_rgba(245,158,11,0.15)]">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/30 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0 shadow-lg">
+                              <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                                  Official Letter of Recommendation (LOR) Issued
+                                </h3>
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
+                                  Verified by Nejamul Haque
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-300 font-mono">
+                                Ref: <span className="text-amber-300 font-bold">{lorData.id}</span> &bull; Grade: <span className="text-emerald-300 font-bold">{lorData.grade}</span>
+                              </p>
+                              <p className="text-[11px] text-gray-400 leading-relaxed">
+                                Institutional letterhead endorsement with 5-Pillar Competency Appraisal Matrix & ISO 9001:2015 verification.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            <button
+                              onClick={() => setIsLorModalOpen(true)}
+                              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-2 cursor-pointer"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Download LOR (PDF)</span>
+                            </button>
+                            <button
+                              onClick={() => setIsLorModalOpen(true)}
+                              className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                            >
+                              <Maximize2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </SpotlightCard>
+                    ) : isLorPending ? (
+                      <SpotlightCard className="p-6 border-amber-500/30 bg-amber-950/20">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                              <Clock className="w-6 h-6 animate-pulse" />
+                            </div>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="text-base font-bold text-white">
+                                  Letter of Recommendation (LOR) Under Review
+                                </h3>
+                                <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 text-[10px] font-mono font-semibold">
+                                  Evaluation in Progress
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-300 leading-relaxed">
+                                Your application for an Executive Letter of Recommendation is undergoing technical review by <strong>Nejamul Haque</strong> based on your capstone codebase and sprint milestones.
+                              </p>
+                              {application?.lorRemarks && (
+                                <p className="text-[11px] text-gray-400 italic">
+                                  Candidate note: &ldquo;{application.lorRemarks}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setIsLorModalOpen(true)}
+                            className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>Check Status</span>
+                          </button>
+                        </div>
+                      </SpotlightCard>
+                    ) : isLorRejected ? (
+                      <SpotlightCard className="p-6 border-rose-500/30 bg-rose-950/20">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+                              <AlertCircle className="w-6 h-6" />
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="text-base font-bold text-white">
+                                LOR Request Not Approved
+                              </h3>
+                              <p className="text-xs text-rose-300 leading-relaxed">
+                                <strong>Feedback:</strong> {application?.lorRejectionReason || "Practicum deliverables require further code completion before endorsement."}
+                              </p>
+                              <p className="text-[11px] text-gray-400">
+                                You can update your capstone repository and submit a re-application for review.
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setIsApplyLorModalOpen(true)}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Re-Apply for LOR</span>
+                          </button>
+                        </div>
+                      </SpotlightCard>
+                    ) : (
+                      <SpotlightCard className="p-6 border-amber-500/30 bg-gradient-to-r from-amber-950/20 via-black to-slate-900/60">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                              <Star className="w-6 h-6" />
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="text-base font-bold text-white">
+                                Apply for Executive Letter of Recommendation (LOR)
+                              </h3>
+                              <p className="text-xs text-gray-300 leading-relaxed">
+                                Stand out with an institutional endorsement from <strong>Nejamul Haque (Founder & Lead Engineer)</strong> featuring MSME UDYAM registration and 5-Pillar Competency evaluation.
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setIsApplyLorModalOpen(true)}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-extrabold transition-all shadow-lg flex items-center gap-2 cursor-pointer shrink-0"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-slate-950" />
+                            <span>Apply for Official LOR</span>
+                          </button>
+                        </div>
+                      </SpotlightCard>
+                    )}
+
+                    {/* CERTIFICATE SECTION */}
                     {isApproved && certificate ? (
                       <div className="space-y-6">
                         <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1611,13 +1826,9 @@ function ProfileContent() {
                             </div>
                           </div>
 
-                          <button
-                            onClick={() => setIsLorModalOpen(true)}
-                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
-                          >
-                            <Star className="w-3.5 h-3.5 fill-slate-950" />
-                            <span>Download LOR (PDF)</span>
-                          </button>
+                          <span className="text-emerald-300 font-mono text-xs font-bold">
+                            Grade: {certificate.grade || "Distinction"}
+                          </span>
                         </div>
 
                         <CertificateRenderer certificate={certificate} showActions={true} />
@@ -2058,13 +2269,13 @@ function ProfileContent() {
           <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
             <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className={`w-2.5 h-2.5 rounded-full ${isLorApproved ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
                 <div>
                   <span className="text-xs font-bold text-white block">
                     Official Executive Letter of Recommendation (LOR)
                   </span>
                   <span className="text-[10px] text-amber-400 font-mono">
-                    Ref: {lorData.id} • Signatory: Nejamul Haque
+                    {isLorApproved ? `Ref: ${lorData.id} • Signatory: Nejamul Haque` : `Status: ${isLorPending ? "Under Technical Review" : isLorRejected ? "Revision Required" : "Application Pending"}`}
                   </span>
                 </div>
               </div>
@@ -2080,11 +2291,190 @@ function ProfileContent() {
             </div>
 
             <div className="p-3 sm:p-6">
-              <LetterOfRecommendationRenderer
-                lorData={lorData}
-                showActions={true}
-              />
+              {isLorApproved ? (
+                <LetterOfRecommendationRenderer
+                  lorData={lorData}
+                  showActions={true}
+                />
+              ) : isLorPending ? (
+                <div className="p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                    <Clock className="w-8 h-8 animate-pulse" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-extrabold text-white">LOR Request Under Evaluation</h3>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Your request for an official Letter of Recommendation is being evaluated by Founder &amp; Lead Engineer <strong>Nejamul Haque</strong> based on your capstone codebase and sprint milestones.
+                    </p>
+                    {application?.lorRemarks && (
+                      <div className="p-3 rounded-xl bg-black/50 border border-white/10 text-left text-xs text-gray-300">
+                        <span className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Your Submitted Note:</span>
+                        <p className="italic">&ldquo;{application.lorRemarks}&rdquo;</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => setIsLorModalOpen(false)}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-semibold cursor-pointer"
+                    >
+                      Close Window
+                    </button>
+                    <button
+                      onClick={refreshProfileData}
+                      className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold shadow-md cursor-pointer"
+                    >
+                      Refresh Status
+                    </button>
+                  </div>
+                </div>
+              ) : isLorRejected ? (
+                <div className="p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto">
+                  <div className="w-16 h-16 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(244,63,94,0.2)]">
+                    <AlertCircle className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-extrabold text-white">LOR Request Not Approved</h3>
+                    <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 text-xs text-rose-300 text-left">
+                      <span className="text-[10px] uppercase font-bold text-rose-400 block mb-1">Feedback from Admin:</span>
+                      <p>{application?.lorRejectionReason || "Practicum deliverables or repository contributions require further completion."}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsLorModalOpen(false);
+                        setIsApplyLorModalOpen(true);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 hover:from-rose-400 hover:to-amber-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                    >
+                      Re-Apply for LOR
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 sm:p-12 text-center space-y-6 max-w-xl mx-auto">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+                    <Star className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-extrabold text-white">Executive Recommendation Endorsement</h3>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Apply for an official Letter of Recommendation featuring institutional accreditation, 5-Pillar Competency scorecard, and authorized executive sign-off.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        setIsLorModalOpen(false);
+                        setIsApplyLorModalOpen(true);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold shadow-md cursor-pointer"
+                    >
+                      Open LOR Application Form
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* APPLY FOR LOR MODAL */}
+      {isApplyLorModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/85 backdrop-blur-xl p-3 sm:p-6 flex justify-center items-center">
+          <div className="relative w-full max-w-lg bg-[#090d16] border border-amber-500/40 rounded-3xl shadow-[0_0_60px_rgba(245,158,11,0.25)] my-6 overflow-hidden">
+            <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600" />
+
+            <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Star className="w-5 h-5 fill-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    Apply for Letter of Recommendation (LOR)
+                  </h3>
+                  <p className="text-[10px] text-gray-400 font-mono">
+                    Official Executive Endorsement by Nejamul Haque (Founder)
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsApplyLorModalOpen(false)}
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleApplyLor} className="p-5 sm:p-6 space-y-4 text-xs">
+              {lorSubmitError && (
+                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-200 text-xs">
+                  {lorSubmitError}
+                </div>
+              )}
+
+              <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Applicant:</span>
+                  <span className="text-white font-bold">{fullName || session?.user?.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">College:</span>
+                  <span className="text-gray-200">{college}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Domain Track:</span>
+                  <span className="text-cyan-300 font-semibold">{domain} ({duration})</span>
+                </div>
+                {githubRepo && (
+                  <div className="flex justify-between pt-1 border-t border-white/5">
+                    <span className="text-gray-400">Capstone Repo:</span>
+                    <span className="text-cyan-400 font-mono text-[11px] truncate max-w-[200px]">{githubRepo}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">
+                  Key Achievements &amp; Capstone Highlights (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={lorRemarksInput}
+                  onChange={(e) => setLorRemarksInput(e.target.value)}
+                  placeholder="Mention your key architectural contributions, features engineered, or specific target institutions/companies..."
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-amber-400 resize-none text-xs"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 text-amber-300/90 text-[11px] leading-relaxed">
+                Your submission will be queued for technical review. Once approved, your verifiable A4 PDF will unlock with an official institutional reference number.
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsApplyLorModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingLor}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Star className="w-3.5 h-3.5 fill-slate-950" />
+                  <span>{isSubmittingLor ? "Submitting Application..." : "Submit LOR Application"}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

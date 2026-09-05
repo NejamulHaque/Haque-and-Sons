@@ -4,7 +4,15 @@
  */
 
 interface WebhookPayload {
-  event: "application.created" | "payment.submitted" | "payment.approved" | "certificate.issued" | "project.submitted";
+  event:
+    | "application.created"
+    | "payment.submitted"
+    | "payment.approved"
+    | "certificate.issued"
+    | "project.submitted"
+    | "lor.applied"
+    | "lor.approved"
+    | "lor.rejected";
   title: string;
   description: string;
   data: Record<string, any>;
