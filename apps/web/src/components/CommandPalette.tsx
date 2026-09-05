@@ -266,20 +266,8 @@ export function CommandPalette() {
 
   return (
     <>
-      {/* Floating Quick Action Badge */}
-      <motion.button
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        onClick={handleOpen}
-        className="fixed bottom-6 right-6 z-40 hidden md:flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/80 hover:bg-black text-xs font-medium text-gray-300 border border-white/10 hover:border-cyan-500/50 shadow-xl backdrop-blur-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.25)] transition-all cursor-pointer"
-        aria-label="Open Command Menu"
-      >
-        <Command className="w-3.5 h-3.5 text-cyan-400" />
-        <span>Command Menu</span>
-        <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white/10 text-gray-400">⌘K</kbd>
-      </motion.button>
-
       <AnimatePresence>
+
         {isOpen && (
           <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 sm:px-6">
             {/* Backdrop */}

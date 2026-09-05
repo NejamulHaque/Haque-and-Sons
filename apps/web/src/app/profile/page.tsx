@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   GraduationCap,
   Award,
@@ -14,22 +15,15 @@ import {
   ExternalLink,
   FileText,
   AlertCircle,
-  Building,
   Mail,
-  Phone,
   ArrowRight,
   Code2,
-  Globe,
   Download,
   Check,
   Send,
-  HelpCircle,
   MessageSquare,
   X,
   ShieldCheck,
-  CreditCard,
-  QrCode,
-  Copy,
   Upload,
   Star,
   RefreshCw,
@@ -37,6 +31,13 @@ import {
   Terminal,
   Cpu,
   Zap,
+  Sliders,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Minimize2,
+  Copy,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
@@ -45,7 +46,6 @@ import { LetterOfRecommendationRenderer, type LORData } from "@/components/Lette
 import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
 import { IrusCopilotWidget } from "@/components/IrusCopilotWidget";
 import { INTERNSHIP_DOMAINS, type InternshipDomain } from "@/lib/domains";
-import Link from "next/link";
 
 const UPI_ID = "nejamulhaque@upi";
 const UPI_PAYEE_NAME = "Nejamul Haque";
@@ -57,12 +57,27 @@ const MODE_FEES: Record<string, { amount: number; title: string; subtitle: strin
   Offline: { amount: 249, title: "Offline Track", subtitle: "Studio Campus Workstation", icon: "🏢" },
 };
 
+const SLIDES_CONFIG = [
+  { id: 0, title: "Offer Letter", badge: "Stage 01", icon: FileText, desc: "Letter of Intent & Terms" },
+  { id: 1, title: "Sprint Syllabus", badge: "Stage 02", icon: Terminal, desc: "4-Week Milestone Kanban" },
+  { id: 2, title: "Capstone Studio", badge: "Stage 03", icon: Code2, desc: "GitHub & Deployment Review" },
+  { id: 3, title: "Exit & Clearance", badge: "Stage 04", icon: Award, desc: "Feedback & UPI Verification" },
+  { id: 4, title: "Certificate & LOR", badge: "Stage 05", icon: ShieldCheck, desc: "Official Credentials & Ledger" },
+];
+
 function ProfileContent() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const domainParam = searchParams.get("domain");
 
+  // View Mode: 'slides' for interactive presentations, 'overview' for grid dashboard
+  const [viewMode, setViewMode] = useState<"slides" | "overview">("slides");
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(1);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Tab for overview mode
   const [activeTab, setActiveTab] = useState<"internship" | "academic" | "community">("internship");
 
   // Profile data states
@@ -114,6 +129,44 @@ function ProfileContent() {
   // Interactive LMS Sprint Checklist state
   const [sprintTasks, setSprintTasks] = useState<Record<string, boolean>>({});
 
+  // Slide navigation handlers
+  const goToSlide = useCallback((newIndex: number) => {
+    setSlideDirection(newIndex > currentSlide ? 1 : -1);
+    setCurrentSlide(Math.max(0, Math.min(SLIDES_CONFIG.length - 1, newIndex)));
+  }, [currentSlide]);
+
+  const nextSlide = useCallback(() => {
+    if (currentSlide < SLIDES_CONFIG.length - 1) {
+      setSlideDirection(1);
+      setCurrentSlide((prev) => prev + 1);
+    }
+  }, [currentSlide]);
+
+  const prevSlide = useCallback(() => {
+    if (currentSlide > 0) {
+      setSlideDirection(-1);
+      setCurrentSlide((prev) => prev - 1);
+    }
+  }, [currentSlide]);
+
+  // Keyboard navigation for slides
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (viewMode !== "slides" || isOfferLetterOpen || isLorModalOpen) return;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement)?.tagName)) return;
+
+      if (e.key === "ArrowRight") {
+        nextSlide();
+      } else if (e.key === "ArrowLeft") {
+        prevSlide();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [viewMode, isOfferLetterOpen, isLorModalOpen, nextSlide, prevSlide]);
+
+  // Load sprint tasks from localStorage
   useEffect(() => {
     if (session?.user?.email) {
       try {
@@ -236,7 +289,7 @@ function ProfileContent() {
       const data = await res.json();
       if (res.ok) {
         setApplication(data.application);
-        setSaveSuccessMsg("Academic profile saved successfully! Your offer letter has been updated.");
+        setSaveSuccessMsg("Academic profile saved successfully! Your credentials have been refreshed.");
         setTimeout(() => setSaveSuccessMsg(null), 4000);
       }
     } catch {
@@ -331,7 +384,7 @@ function ProfileContent() {
         setPaymentStatus("Pending Approval");
         setIsEditingPayment(false);
         setPaymentSuccessMsg(
-          "Payment proof and feedback submitted successfully! Admin (Nejamul Haque) will verify and approve your official certificate."
+          "Payment proof and feedback submitted successfully! Admin (Nejamul Haque) will verify and issue your official certificate."
         );
         if (data.application) {
           setApplication(data.application);
@@ -367,7 +420,7 @@ function ProfileContent() {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-gray-400 font-mono">Loading Student Portal...</p>
+          <p className="text-xs text-gray-400 font-mono">Loading Studio Candidate Profile...</p>
         </div>
       </div>
     );
@@ -406,7 +459,6 @@ function ProfileContent() {
   const activeModeKey = mode === "Offline" ? "Offline" : mode === "Hybrid" ? "Hybrid" : "Online";
   const activeFee = MODE_FEES[activeModeKey] || MODE_FEES.Online;
 
-  // Active domain metadata lookup from INTERNSHIP_DOMAINS
   const currentDomainObj: InternshipDomain =
     INTERNSHIP_DOMAINS.find(
       (d) =>
@@ -419,1238 +471,1226 @@ function ProfileContent() {
     `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_PAYEE_NAME)}&am=${activeFee.amount}&cu=INR&tn=Haque%20and%20Sons%20${encodeURIComponent(activeModeKey)}%20Certificate%20Processing`
   )}`;
 
+  const totalSprintTasks = currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0);
+  const completedSprintTasks = currentDomainObj.curriculum.reduce(
+    (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
+    0
+  );
+  const sprintPercentage = totalSprintTasks > 0 ? Math.round((completedSprintTasks / totalSprintTasks) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white pt-24 pb-24 px-4 sm:px-6 relative overflow-hidden">
-      {/* Dynamic Cyber Glow Meshes */}
+    <div className={`min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white ${isFocusMode ? "pt-8 pb-12" : "pt-24 pb-24"} px-4 sm:px-6 relative overflow-hidden transition-all duration-300`}>
+      {/* Glow Meshes */}
       <div className="fixed top-10 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-10 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed top-1/2 right-10 w-[350px] h-[350px] bg-blue-500/5 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto space-y-8 relative z-10">
+      <div className="max-w-6xl mx-auto space-y-6 relative z-10">
         {/* =========================================================================
-            1. CYBER STUDENT IDENTITY & SESSION HEADER
+            1. CANDIDATE PROFILE HEADER & CONTROL MASTHEAD
         ========================================================================= */}
-        <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
-          {/* Subtle Top Glowing Cyber Line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-purple-500" />
+        {!isFocusMode && (
+          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-purple-500" />
 
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* User Details & Cyber Avatar */}
-            <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-              <div className="relative shrink-0">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] flex items-center justify-center">
-                  <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
-                    {fullName ? fullName.charAt(0).toUpperCase() : "S"}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              {/* User Avatar & Candidate Info */}
+              <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+                <div className="relative shrink-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] flex items-center justify-center">
+                    <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
+                      {fullName ? fullName.charAt(0).toUpperCase() : "S"}
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Online Active">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                   </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Online Active">
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      {fullName || session?.user?.name || "Student Candidate"}
+                    </h1>
+                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
+                      Verified Candidate
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>Neon SQL Synced</span>
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-400 font-mono flex items-center gap-2 flex-wrap">
+                    <span>{session?.user?.email}</span>
+                    <span className="text-gray-600">•</span>
+                    <span className="text-cyan-400 font-semibold">{college || "College not set"}</span>
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
+                      <Cpu className="w-3 h-3 text-purple-400" />
+                      <span>{domain}</span>
+                    </span>
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-yellow-400" />
+                      <span>{mode} Track ({duration})</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                    {fullName || session?.user?.name || "Student Intern"}
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
-                    Verified Candidate
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" />
-                    <span>Neon SQL Synced</span>
-                  </span>
-                </div>
+              {/* Quick Actions & Mode Switcher */}
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  onClick={() => setIsOfferLetterOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-2 cursor-pointer"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Offer Letter</span>
+                </button>
 
-                <p className="text-xs text-gray-400 font-mono flex items-center gap-2 flex-wrap">
-                  <span>{session?.user?.email}</span>
-                  <span className="text-gray-600">•</span>
-                  <span className="text-cyan-400 font-semibold">{college || "College not set"}</span>
-                </p>
+                <button
+                  onClick={() => setIsLorModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 cursor-pointer"
+                >
+                  <Star className="w-4 h-4 fill-slate-950 text-slate-950" />
+                  <span>LOR</span>
+                </button>
 
-                {/* Quick Track Chips */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3 text-purple-400" />
-                    <span>{domain}</span>
-                  </span>
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                    <Zap className="w-3 h-3 text-yellow-400" />
-                    <span>{mode} Track ({duration})</span>
-                  </span>
-                </div>
+                <button
+                  onClick={handleSignOut}
+                  disabled={loggingOut}
+                  className="px-3.5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  {loggingOut ? (
+                    <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <LogOut className="w-3.5 h-3.5" />
+                  )}
+                  <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
+                </button>
               </div>
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <button
-                onClick={() => setIsOfferLetterOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-2 cursor-pointer"
-              >
-                <FileText className="w-4 h-4" />
-                <span>View & Download Offer Letter</span>
-              </button>
-
-              <button
-                onClick={() => setIsLorModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 cursor-pointer"
-              >
-                <Star className="w-4 h-4 fill-slate-950 text-slate-950" />
-                <span>View & Download LOR</span>
-              </button>
-
-              <button
-                onClick={handleSignOut}
-                disabled={loggingOut}
-                className="px-3.5 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-              >
-                {loggingOut ? (
-                  <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <LogOut className="w-3.5 h-3.5" />
-                )}
-                <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
-              </button>
             </div>
           </div>
-        </div>
+        )}
 
         {/* =========================================================================
-            2. DASHBOARD NAVIGATION TABS
+            2. VIEW MODE TOGGLE & SLIDE CONTROLLER BAR
         ========================================================================= */}
-        <div className="flex flex-wrap items-center gap-2 bg-gray-950/80 border border-white/10 p-1.5 rounded-2xl backdrop-blur-xl shadow-lg">
-          <button
-            onClick={() => setActiveTab("internship")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === "internship"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <GraduationCap className="w-4 h-4" />
-            <span>Internship Command OS & Capstone</span>
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2.5 rounded-2xl bg-gray-950/90 border border-white/10 backdrop-blur-xl shadow-xl">
+          {/* View Mode Pills */}
+          <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-xl border border-white/5">
+            <button
+              onClick={() => setViewMode("slides")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === "slides"
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.35)]"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Interactive Slides</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab("academic")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === "academic"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <User className="w-4 h-4" />
-            <span>Academic & Profile Details</span>
-          </button>
+            <button
+              onClick={() => setViewMode("overview")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === "overview"
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.35)]"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Full Overview</span>
+            </button>
+          </div>
 
-          <button
-            onClick={() => setActiveTab("community")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === "community"
-                ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Community & Mentorship</span>
-          </button>
-        </div>
-
-        {/* =========================================================================
-            TAB 1: INTERNSHIP COMMAND OS & CAPSTONE ROADMAP
-        ========================================================================= */}
-        {activeTab === "internship" && (
-          <div className="space-y-8">
-            {/* 4-STAGE INTERNSHIP PIPELINE PROGRESS STEPPER */}
-            <div className="p-6 rounded-3xl bg-gray-950/90 border border-cyan-500/20 backdrop-blur-xl shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase font-bold tracking-widest text-cyan-400 font-mono flex items-center gap-2">
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>Internship Lifecycle Progression</span>
-                </span>
-                <span className="text-[10px] text-gray-400 font-mono">
-                  Ref ID: <strong className="text-white">{offerLetterData.id}</strong>
-                </span>
+          {/* Slide Deck Navigation Controls (When in Slides View) */}
+          {viewMode === "slides" && (
+            <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+              {/* Slide Indicator Pills */}
+              <div className="hidden md:flex items-center gap-1">
+                {SLIDES_CONFIG.map((s, idx) => (
+                  <button
+                    key={s.id}
+                    onClick={() => goToSlide(idx)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      currentSlide === idx
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                        : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                    }`}
+                  >
+                    <span>{idx + 1}.</span>
+                    <span>{s.title}</span>
+                  </button>
+                ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-                {/* Step 1: Enrolled & Offer Letter */}
-                <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 relative overflow-hidden">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center font-mono">
-                      01
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
-                      Active
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white">Enrolled & Offer Issued</h4>
-                  <p className="text-[11px] text-emerald-400/80 mt-1">
-                    Letter of Intent issued & signed by Nejamul Haque.
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={prevSlide}
+                  disabled={currentSlide === 0}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  title="Previous Slide (← Arrow)"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-                {/* Step 2: Capstone Project Execution */}
-                <div className={`p-4 rounded-2xl border relative overflow-hidden ${
-                  githubRepo || application?.githubRepo
-                    ? "bg-cyan-950/30 border-cyan-500/40"
-                    : "bg-white/[0.02] border-white/10"
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold flex items-center justify-center font-mono">
-                      02
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      githubRepo || application?.githubRepo
-                        ? "bg-cyan-500/20 text-cyan-300"
-                        : "bg-white/10 text-gray-400"
-                    }`}>
-                      {githubRepo || application?.githubRepo ? "Submitted" : "In Progress"}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white">Capstone Project</h4>
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Build capstone, deploy & submit GitHub / Email .ZIP.
-                  </p>
-                </div>
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-cyan-400">
+                  {currentSlide + 1} / {SLIDES_CONFIG.length}
+                </span>
 
-                {/* Step 3: Google Exit Form & UPI Verification */}
-                <div className={`p-4 rounded-2xl border relative overflow-hidden ${
-                  isApproved
-                    ? "bg-emerald-950/30 border-emerald-500/40"
-                    : isPendingReview
-                    ? "bg-yellow-950/30 border-yellow-500/40"
-                    : "bg-purple-950/30 border-purple-500/40"
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold flex items-center justify-center font-mono">
-                      03
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      isApproved
-                        ? "bg-emerald-500/20 text-emerald-300"
-                        : isPendingReview
-                        ? "bg-yellow-500/20 text-yellow-300"
-                        : "bg-purple-500/20 text-purple-300"
-                    }`}>
-                      {isApproved ? "Approved" : isPendingReview ? "In Review" : "Action Req"}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white">Exit Form & UPI Fee</h4>
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Google exit form + UPI proof to {UPI_ID}.
-                  </p>
-                </div>
+                <button
+                  onClick={nextSlide}
+                  disabled={currentSlide === SLIDES_CONFIG.length - 1}
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  title="Next Slide (→ Arrow)"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
 
-                {/* Step 4: Official Certificate Released */}
-                <div className={`p-4 rounded-2xl border relative overflow-hidden ${
-                  isApproved
-                    ? "bg-emerald-950/30 border-emerald-500/40"
-                    : "bg-white/[0.02] border-white/10"
-                }`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-bold flex items-center justify-center font-mono">
-                      04
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      isApproved ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-gray-500"
-                    }`}>
-                      {isApproved ? "Unlocked" : "Locked"}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white">Verified Certificate</h4>
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Cryptographic QR certificate & public ledger link.
-                  </p>
-                </div>
+                <button
+                  onClick={() => setIsFocusMode(!isFocusMode)}
+                  className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                    isFocusMode
+                      ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
+                      : "bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white"
+                  }`}
+                  title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
+                >
+                  {isFocusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
               </div>
             </div>
+          )}
+        </div>
 
-            {/* DOMAIN CURRICULUM, SYLLABUS & CAPSTONE SPECIFICATION */}
-            <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-black to-cyan-950/20 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-white/10">
-                <div className="space-y-2 max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-2xl">{currentDomainObj.icon}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
-                      {currentDomainObj.category}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
-                      {mode} • {duration}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                    {domain}
-                  </h2>
-                  <p className="text-xs text-gray-300 leading-relaxed">
-                    {currentDomainObj.tagline || currentDomainObj.description}
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => setIsOfferLetterOpen(true)}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-2 cursor-pointer"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download Offer Letter (PDF)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Core Tech Stack Pills */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
-                  Core Technologies & Frameworks:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {currentDomainObj.techStack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-3 py-1 rounded-xl bg-white/[0.04] border border-cyan-500/30 text-cyan-300 text-xs font-mono font-medium"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Capstone Project Specification Banner */}
-              <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-1.5">
-                <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold">
-                  <Code2 className="w-4 h-4 text-cyan-400" />
-                  <span>Assigned Capstone Project Goal:</span>
-                </div>
-                <p className="text-xs text-gray-200 leading-relaxed font-mono">
-                  {currentDomainObj.capstoneProject}
-                </p>
-              </div>
-
-              {/* 4-Week Interactive LMS Sprint Milestone Tracker */}
-              <div className="space-y-4 pt-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/20">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono flex items-center gap-1.5">
-                        <Terminal className="w-3.5 h-3.5" />
-                        <span>Interactive Sprint Kanban Tracker</span>
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">
-                        {currentDomainObj.curriculum.reduce(
-                          (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
-                          0
-                        )}{" "}
-                        /{" "}
-                        {currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)} Tasks Completed
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-gray-400">
-                      Check off weekly milestone deliverables as you build your capstone project.
-                    </p>
-                  </div>
-
+        {/* =========================================================================
+            MODE A: INTERACTIVE SLIDES EXPERIENCE
+        ========================================================================= */}
+        {viewMode === "slides" && (
+          <div className="relative min-h-[600px] overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0, x: slideDirection * 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -40 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+                className="space-y-6"
+              >
+                {/* SLIDE HEADER BANNER */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-gray-950 via-gray-900 to-black border border-white/10 flex items-center justify-between gap-4 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-32 bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
-                      <div
-                        className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${
-                            currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0) > 0
-                              ? Math.round(
-                                  (currentDomainObj.curriculum.reduce(
-                                    (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
-                                    0
-                                  ) /
-                                    currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)) *
-                                    100
-                                )
-                              : 0
-                          }%`,
-                        }}
-                      />
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                      {(() => {
+                        const Icon = SLIDES_CONFIG[currentSlide].icon;
+                        return <Icon className="w-5 h-5" />;
+                      })()}
                     </div>
-                    <span className="text-xs font-mono font-bold text-emerald-400">
-                      {currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0) > 0
-                        ? Math.round(
-                            (currentDomainObj.curriculum.reduce(
-                              (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
-                              0
-                            ) /
-                              currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)) *
-                              100
-                          )
-                        : 0}
-                      %
-                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          {SLIDES_CONFIG[currentSlide].badge}
+                        </span>
+                        <h2 className="text-base sm:text-lg font-bold text-white">
+                          {SLIDES_CONFIG[currentSlide].title}
+                        </h2>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {SLIDES_CONFIG[currentSlide].desc}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {currentSlide > 0 && (
+                      <button
+                        onClick={prevSlide}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Back</span>
+                      </button>
+                    )}
+                    {currentSlide < SLIDES_CONFIG.length - 1 ? (
+                      <button
+                        onClick={nextSlide}
+                        className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all flex items-center gap-1 shadow-md cursor-pointer"
+                      >
+                        <span>Next Slide</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => goToSlide(0)}
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Start Over</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {currentDomainObj.curriculum.map((c) => {
-                    const weekDone = c.topics.every((t) => sprintTasks[`${c.week}-${t}`]);
-                    return (
-                      <div
-                        key={c.week}
-                        className={`p-4 rounded-2xl border transition-all space-y-2.5 ${
-                          weekDone
-                            ? "bg-emerald-950/20 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
-                            : "bg-black/60 border-white/10 hover:border-cyan-500/40"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
+                {/* SLIDE 0: OFFICIAL OFFER LETTER & TERMS */}
+                {currentSlide === 0 && (
+                  <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-black to-cyan-950/20 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <FileText className="w-5 h-5 text-cyan-400" />
+                          <span>Official 2-Page Letter of Intent & Appointment</span>
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Issued under Haque & Sons Practicum Division • Reference: <strong className="text-white font-mono">{offerLetterData.id}</strong>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setIsOfferLetterOpen(true)}
+                          className="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                          <span>Expand Fullscreen</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-950/80 rounded-2xl border border-white/10 p-4">
+                      <OfferLetterRenderer data={offerLetterData} showActions={true} />
+                    </div>
+                  </SpotlightCard>
+                )}
+
+                {/* SLIDE 1: SPRINT SYLLABUS & 4-WEEK KANBAN */}
+                {currentSlide === 1 && (
+                  <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-black to-cyan-950/20 space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-white/10">
+                      <div className="space-y-2 max-w-2xl">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-2xl">{currentDomainObj.icon}</span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
+                            {currentDomainObj.category}
+                          </span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                            {mode} • {duration}
+                          </span>
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                          {domain}
+                        </h2>
+                        <p className="text-xs text-gray-300 leading-relaxed">
+                          {currentDomainObj.tagline || currentDomainObj.description}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-32 bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
+                            <div
+                              className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${sprintPercentage}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-emerald-400">
+                            {sprintPercentage}% Completed
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          {completedSprintTasks} / {totalSprintTasks} Tasks Checked
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tech Stack Chips */}
+                    <div className="space-y-2">
+                      <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                        Assigned Tech Stack:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {currentDomainObj.techStack.map((tech) => (
                           <span
-                            className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                            key={tech}
+                            className="px-3 py-1 rounded-xl bg-white/[0.04] border border-cyan-500/30 text-cyan-300 text-xs font-mono font-medium"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Assigned Capstone Goal */}
+                    <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-1.5">
+                      <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold">
+                        <Code2 className="w-4 h-4 text-cyan-400" />
+                        <span>Assigned Capstone Project Goal:</span>
+                      </div>
+                      <p className="text-xs text-gray-200 leading-relaxed font-mono">
+                        {currentDomainObj.capstoneProject}
+                      </p>
+                    </div>
+
+                    {/* 4-Week Kanban Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {currentDomainObj.curriculum.map((c) => {
+                        const weekDone = c.topics.every((t) => sprintTasks[`${c.week}-${t}`]);
+                        return (
+                          <div
+                            key={c.week}
+                            className={`p-4 rounded-2xl border transition-all space-y-2.5 ${
                               weekDone
-                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                                : "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                                ? "bg-emerald-950/20 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                                : "bg-black/60 border-white/10 hover:border-cyan-500/40"
                             }`}
                           >
-                            {c.week}
-                          </span>
-                          {weekDone ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <Clock className="w-3.5 h-3.5 text-gray-500" />
-                          )}
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                                  weekDone
+                                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                                    : "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                                }`}
+                              >
+                                {c.week}
+                              </span>
+                              {weekDone ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              ) : (
+                                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                              )}
+                            </div>
+                            <h4 className="text-xs font-bold text-white leading-tight">{c.title}</h4>
+                            <div className="pt-1">
+                              <div className="text-[11px] text-gray-400 space-y-1.5 font-mono">
+                                {c.topics.map((t) => {
+                                  const isTaskDone = !!sprintTasks[`${c.week}-${t}`];
+                                  return (
+                                    <button
+                                      key={t}
+                                      type="button"
+                                      onClick={() => toggleSprintTask(`${c.week}-${t}`)}
+                                      className="w-full flex items-start gap-2 text-left cursor-pointer group py-0.5"
+                                    >
+                                      <span
+                                        className={`w-3.5 h-3.5 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                          isTaskDone
+                                            ? "bg-emerald-500 border-emerald-400 text-white"
+                                            : "border-white/20 bg-white/5 group-hover:border-cyan-400"
+                                        }`}
+                                      >
+                                        {isTaskDone && <Check className="w-2.5 h-2.5" />}
+                                      </span>
+                                      <span
+                                        className={`leading-snug transition-all ${
+                                          isTaskDone
+                                            ? "line-through text-gray-500"
+                                            : "text-gray-300 group-hover:text-cyan-200"
+                                        }`}
+                                      >
+                                        {t}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </SpotlightCard>
+                )}
+
+                {/* SLIDE 2: CAPSTONE SUBMISSION STUDIO */}
+                {currentSlide === 2 && (
+                  <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Code2 className="w-5 h-5 text-cyan-400" />
+                        <span>Capstone Project Submission & Code Evaluation</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Submit your public GitHub repository and live deployment URL for review by Nejamul Haque.
+                      </p>
+                    </div>
+
+                    {projectSubmittedSuccess && (
+                      <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span>Capstone project submitted! Proceed to Slide 04 for exit feedback & verification.</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSubmitProject} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                          GitHub Repository URL *
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://github.com/username/capstone-project"
+                          value={githubRepo}
+                          onChange={(e) => setGithubRepo(e.target.value)}
+                          className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                          Live Deployed URL (Vercel / Render / Netlify) *
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://my-capstone.vercel.app"
+                          value={liveUrl}
+                          onChange={(e) => setLiveUrl(e.target.value)}
+                          className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 pt-2">
+                        <button
+                          type="submit"
+                          disabled={submittingProject}
+                          className="px-6 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{submittingProject ? "Saving..." : "Save & Update Capstone Links"}</span>
+                        </button>
+                      </div>
+                    </form>
+
+                    {/* Email Project ZIP Archive */}
+                    <div className="p-5 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 shrink-0 mt-0.5">
+                            <Archive className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-white flex items-center gap-2 flex-wrap">
+                              <span>Send Project .ZIP File via Email</span>
+                              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/30">
+                                haquendsons@gmail.com
+                              </span>
+                            </h4>
+                            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                              If your project has local databases, full-stack bundles, or datasets, bundle your project folder into a <strong>.zip</strong> archive and send it directly to <strong>haquendsons@gmail.com</strong>.
+                            </p>
+                          </div>
                         </div>
-                        <h4 className="text-xs font-bold text-white leading-tight">{c.title}</h4>
-                        <div className="pt-1">
-                          <div className="text-[11px] text-gray-400 space-y-1.5 font-mono">
-                            {c.topics.map((t) => {
-                              const isTaskDone = !!sprintTasks[`${c.week}-${t}`];
+
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          <a
+                            href={`mailto:haquendsons@gmail.com?subject=${encodeURIComponent(
+                              `Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})`
+                            )}&body=${encodeURIComponent(
+                              `Hi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n\n[ATTACH YOUR .ZIP ARCHIVE HERE]\n\nRegards,\n${fullName || "Student"}`
+                            )}`}
+                            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md cursor-pointer whitespace-nowrap"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Email ZIP to haquendsons@gmail.com</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const template = `To: haquendsons@gmail.com\nSubject: Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})\n\nHi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n\n[Attach your .ZIP file]`;
+                              navigator.clipboard.writeText(template);
+                              setCopiedEmailTemplate(true);
+                              setTimeout(() => setCopiedEmailTemplate(false), 2500);
+                            }}
+                            className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                            title="Copy Email Template for Webmail"
+                          >
+                            {copiedEmailTemplate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedEmailTemplate ? "Template Copied!" : "Copy Template"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </SpotlightCard>
+                )}
+
+                {/* SLIDE 3: EXIT FEEDBACK & UPI FEE CLEARANCE */}
+                {currentSlide === 3 && (
+                  <SpotlightCard className="p-6 sm:p-8 border-purple-500/30 bg-gradient-to-br from-gray-950 via-black to-purple-950/20 space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-[10px] font-bold uppercase tracking-wider mb-2">
+                          <Award className="w-3 h-3" />
+                          <span>Mandatory Verification Process</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white">
+                          Feedback Form, UPI Fee & Verification Release
+                        </h3>
+                        <p className="text-xs text-gray-300 mt-1 max-w-2xl leading-relaxed">
+                          Complete your evaluation form, make the verification processing payment to <strong>{UPI_ID}</strong>, and upload your payment proof. Once reviewed, your official digital certificate unlocks on Slide 05.
+                        </p>
+                      </div>
+
+                      {isApproved ? (
+                        <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>✦ Certificate Unlocked</span>
+                        </span>
+                      ) : isPendingReview ? (
+                        <span className="px-3.5 py-1.5 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 text-xs font-bold font-mono flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 animate-spin" />
+                          <span>⏳ Verification In Review</span>
+                        </span>
+                      ) : (
+                        <span className="px-3.5 py-1.5 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold font-mono">
+                          ✦ Form & Payment Required
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Payment review status */}
+                    {isPendingReview && !isEditingPayment && (
+                      <div className="p-6 rounded-2xl bg-yellow-950/30 border border-yellow-500/30 space-y-4">
+                        <div className="flex items-start gap-3">
+                          <Clock className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-yellow-300">
+                              Payment Proof Under Review by Nejamul Haque
+                            </h4>
+                            <p className="text-xs text-yellow-200/80 leading-relaxed">
+                              Transaction UTR: <strong className="font-mono text-white bg-black/40 px-2 py-0.5 rounded">{paymentUtr || "Submitted"}</strong>.
+                            </p>
+                            <p className="text-[11px] text-yellow-300/70">
+                              Admin will approve and release your certificate shortly.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingPayment(true)}
+                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Update Payment Proof</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {(!isApproved && (!isPendingReview || isEditingPayment)) && (
+                      <form onSubmit={handleSubmitPaymentProof} className="space-y-6">
+                        {paymentSuccessMsg && (
+                          <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 shrink-0" />
+                            <span>{paymentSuccessMsg}</span>
+                          </div>
+                        )}
+
+                        {paymentErrorMsg && (
+                          <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>{paymentErrorMsg}</span>
+                          </div>
+                        )}
+
+                        {/* Step 1: Evaluation */}
+                        <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/10">
+                            <div>
+                              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold flex items-center justify-center font-mono">1</span>
+                                <span>Google Form & Evaluation Feedback</span>
+                              </h4>
+                              <p className="text-[11px] text-gray-400 mt-1">
+                                Complete our official Google exit form or enter your rating notes.
+                              </p>
+                            </div>
+
+                            <a
+                              href={GOOGLE_FORM_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap"
+                            >
+                              <span>Open Google Form</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-300 block mb-1.5">
+                                Experience Rating *
+                              </label>
+                              <div className="flex items-center gap-1.5 bg-black/40 p-2 rounded-xl border border-white/10">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setFeedbackRating(star)}
+                                    className={`p-1 rounded-lg transition-transform hover:scale-110 cursor-pointer ${
+                                      feedbackRating >= star ? "text-yellow-400" : "text-gray-600"
+                                    }`}
+                                  >
+                                    <Star className="w-5 h-5 fill-current" />
+                                  </button>
+                                ))}
+                                <span className="text-xs font-bold text-yellow-400 ml-2 font-mono">
+                                  {feedbackRating} / 5
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <label className="text-[11px] font-semibold text-gray-300 block mb-1.5">
+                                Internship Feedback Notes
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="What did you build and learn during your internship at Haque & Sons?"
+                                value={feedbackText}
+                                onChange={(e) => setFeedbackText(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 2: UPI Payment QR */}
+                        <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-5">
+                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                            <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center justify-center font-mono">
+                              2
+                            </span>
+                            <div>
+                              <h4 className="text-sm font-bold text-white">
+                                Mode & UPI Processing Fee
+                              </h4>
+                              <p className="text-[11px] text-gray-400">
+                                Scan the dynamic QR code with any UPI app.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {Object.entries(MODE_FEES).map(([modeKey, feeInfo]) => {
+                              const isSelected = activeModeKey === modeKey;
                               return (
                                 <button
-                                  key={t}
+                                  key={modeKey}
                                   type="button"
-                                  onClick={() => toggleSprintTask(`${c.week}-${t}`)}
-                                  className="w-full flex items-start gap-2 text-left cursor-pointer group py-0.5"
+                                  onClick={() => setMode(modeKey)}
+                                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 relative overflow-hidden ${
+                                    isSelected
+                                      ? "bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400"
+                                      : "bg-white/[0.02] hover:bg-white/[0.05] border-white/10 text-gray-400"
+                                  }`}
                                 >
-                                  <span
-                                    className={`w-3.5 h-3.5 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${
-                                      isTaskDone
-                                        ? "bg-emerald-500 border-emerald-400 text-white"
-                                        : "border-white/20 bg-white/5 group-hover:border-cyan-400"
-                                    }`}
-                                  >
-                                    {isTaskDone && <Check className="w-2.5 h-2.5" />}
-                                  </span>
-                                  <span
-                                    className={`leading-snug transition-all ${
-                                      isTaskDone
-                                        ? "line-through text-gray-500"
-                                        : "text-gray-300 group-hover:text-cyan-200"
-                                    }`}
-                                  >
-                                    {t}
-                                  </span>
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="text-xl">{feeInfo.icon}</span>
+                                    <span
+                                      className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full ${
+                                        isSelected
+                                          ? "bg-cyan-500 text-black font-extrabold"
+                                          : "bg-white/10 text-gray-300"
+                                      }`}
+                                    >
+                                      ₹{feeInfo.amount}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <h5 className={`text-xs font-bold ${isSelected ? "text-white" : "text-gray-300"}`}>
+                                      {feeInfo.title}
+                                    </h5>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">{feeInfo.subtitle}</p>
+                                  </div>
                                 </button>
                               );
                             })}
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </SpotlightCard>
 
-            {/* Capstone Project Submission Section */}
-            <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-6">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Code2 className="w-5 h-5 text-cyan-400" />
-                  <span>Capstone Project Submission</span>
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  Submit your public GitHub repository and live deployment URL for review by Nejamul Haque.
-                </p>
-              </div>
-
-              {projectSubmittedSuccess && (
-                <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Capstone project submitted! Next, complete the completion feedback form below to unlock your certificate.</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmitProject} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    GitHub Repository URL *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://github.com/username/capstone-project"
-                    value={githubRepo}
-                    onChange={(e) => setGithubRepo(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Live Deployed URL (Vercel / Render / Netlify) *
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://my-capstone.vercel.app"
-                    value={liveUrl}
-                    onChange={(e) => setLiveUrl(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-
-                <div className="sm:col-span-2 pt-2">
-                  <button
-                    type="submit"
-                    disabled={submittingProject}
-                    className="px-6 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{submittingProject ? "Saving..." : "Save & Update Capstone Links"}</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Option B: Email Project ZIP Archive to haquendsons@gmail.com */}
-              <div className="p-5 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 shrink-0 mt-0.5">
-                      <Archive className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-white flex items-center gap-2 flex-wrap">
-                        <span>Send Project .ZIP File via Email</span>
-                        <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/30">
-                          haquendsons@gmail.com
-                        </span>
-                      </h4>
-                      <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                        If your capstone project has local databases, full-stack bundles, or datasets, bundle your project folder into a <strong>.zip</strong> archive and send it directly to <strong>haquendsons@gmail.com</strong>.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <a
-                      href={`mailto:haquendsons@gmail.com?subject=${encodeURIComponent(
-                        `Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})`
-                      )}&body=${encodeURIComponent(
-                        `Hi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n- Project Summary: [Please describe what you built and how to run it]\n\n[ATTACH YOUR .ZIP ARCHIVE HERE]\n\nRegards,\n${fullName || "Student"}`
-                      )}`}
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md cursor-pointer whitespace-nowrap"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      <span>Email ZIP to haquendsons@gmail.com</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const template = `To: haquendsons@gmail.com\nSubject: Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})\n\nHi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n\n[Attach your .ZIP file]`;
-                        navigator.clipboard.writeText(template);
-                        setCopiedEmailTemplate(true);
-                        setTimeout(() => setCopiedEmailTemplate(false), 2500);
-                      }}
-                      className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                      title="Copy Email Template for Webmail (Gmail/Outlook)"
-                    >
-                      {copiedEmailTemplate ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedEmailTemplate ? "Template Copied!" : "Copy Template"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </SpotlightCard>
-
-            {/* MANDATORY GOOGLE FORM FEEDBACK, UPI PAYMENT & CERTIFICATE UNLOCK CARD */}
-            <SpotlightCard className="p-6 sm:p-8 border-purple-500/30 bg-gradient-to-br from-gray-950 via-black to-purple-950/20 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-[10px] font-bold uppercase tracking-wider mb-2">
-                    <Award className="w-3 h-3" />
-                    <span>Mandatory Certificate Claim Process</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white">
-                    Feedback Form, UPI Payment Verification & Certificate Release
-                  </h3>
-                  <p className="text-xs text-gray-300 mt-1 max-w-2xl leading-relaxed">
-                    Complete your internship evaluation form, make the verification processing payment to <strong>{UPI_ID}</strong>, and upload your payment proof. Once reviewed by Nejamul Haque in the Admin Command OS, your official digital certificate unlocks below.
-                  </p>
-                </div>
-
-                {isApproved ? (
-                  <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>✦ Certificate Unlocked</span>
-                  </span>
-                ) : isPendingReview ? (
-                  <span className="px-3.5 py-1.5 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 text-xs font-bold font-mono flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 animate-spin" />
-                    <span>⏳ Verification In Review</span>
-                  </span>
-                ) : (
-                  <span className="px-3.5 py-1.5 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold font-mono">
-                    ✦ Form & Payment Required
-                  </span>
-                )}
-              </div>
-
-              {/* State 1: Certificate is Approved */}
-              {isApproved && certificate && (
-                <div className="space-y-6 pt-2">
-                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-                      <div>
-                        <strong className="block font-bold text-emerald-300">
-                          Payment &amp; Feedback Verified by Nejamul Haque
-                        </strong>
-                        <span className="text-[11px] text-emerald-400/90">
-                          Your official tamper-proof certificate (ID: {certificate.id}) has been issued and permanently verified on our public registry.
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setIsLorModalOpen(true)}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
-                    >
-                      <Star className="w-3.5 h-3.5 fill-slate-950" />
-                      <span>Download LOR (PDF)</span>
-                    </button>
-                  </div>
-
-                  <CertificateRenderer certificate={certificate} showActions={true} />
-
-                  {/* Social Proof Credential & GitHub Badge Embed Suite */}
-                  <VerifyCredentialActions
-                    certId={certificate.id}
-                    studentName={certificate.studentName}
-                    domain={certificate.domain}
-                    issueDate={certificate.issueDate}
-                  />
-                </div>
-              )}
-
-              {/* State 2: Payment is Pending Admin Approval */}
-              {isPendingReview && !isEditingPayment && (
-                <div className="p-6 rounded-2xl bg-yellow-950/30 border border-yellow-500/30 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-bold text-yellow-300">
-                        Payment Proof & Feedback Under Review by Nejamul Haque
-                      </h4>
-                      <p className="text-xs text-yellow-200/80 leading-relaxed">
-                        Your 12-digit transaction ID <strong className="font-mono text-white bg-black/40 px-2 py-0.5 rounded">{paymentUtr || "Submitted"}</strong> and payment screenshot have been forwarded to <strong>haquendsons@gmail.com</strong>.
-                      </p>
-                      <p className="text-[11px] text-yellow-300/70">
-                        Admin will verify the transaction and release your official certificate shortly. You do not need to resubmit unless you made a mistake.
-                      </p>
-                    </div>
-                  </div>
-
-                  {paymentScreenshot && (
-                    <div className="pt-2">
-                      <span className="text-[11px] font-bold text-gray-400 block mb-1 font-mono">
-                        Uploaded Screenshot Proof:
-                      </span>
-                      <div className="max-w-xs max-h-48 overflow-hidden rounded-xl border border-white/10 bg-black/60 p-1">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={paymentScreenshot}
-                          alt="Uploaded payment proof"
-                          className="w-full h-auto object-contain max-h-44 rounded-lg"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-2 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingPayment(true)}
-                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Update / Re-submit Payment Proof</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* State 3: User needs to complete 3-step verification workflow */}
-              {(!isApproved && (!isPendingReview || isEditingPayment)) && (
-                <form onSubmit={handleSubmitPaymentProof} className="space-y-6">
-                  {paymentSuccessMsg && (
-                    <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
-                      <span>{paymentSuccessMsg}</span>
-                    </div>
-                  )}
-
-                  {paymentErrorMsg && (
-                    <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>{paymentErrorMsg}</span>
-                    </div>
-                  )}
-
-                  {/* STEP 1: Feedback Form & In-App Evaluation */}
-                  <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/10">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold flex items-center justify-center font-mono">
-                            1
-                          </span>
-                          <h4 className="text-sm font-bold text-white">
-                            Fill Google Form & Evaluation Feedback
-                          </h4>
-                        </div>
-                        <p className="text-[11px] text-gray-400 mt-1">
-                          Complete our brief Google exit form, or provide your direct rating and feedback notes below.
-                        </p>
-                      </div>
-
-                      <a
-                        href={GOOGLE_FORM_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap shadow-sm"
-                      >
-                        <span>Open Official Google Form</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1.5">
-                          Experience Rating *
-                        </label>
-                        <div className="flex items-center gap-1.5 bg-black/40 p-2 rounded-xl border border-white/10">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setFeedbackRating(star)}
-                              className={`p-1 rounded-lg transition-transform hover:scale-110 cursor-pointer ${
-                                feedbackRating >= star ? "text-yellow-400" : "text-gray-600"
-                              }`}
-                            >
-                              <Star className="w-5 h-5 fill-current" />
-                            </button>
-                          ))}
-                          <span className="text-xs font-bold text-yellow-400 ml-2 font-mono">
-                            {feedbackRating} / 5
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1.5">
-                          Internship Experience Notes & Suggestions
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="What did you learn and build during your internship at Haque & Sons?"
-                          value={feedbackText}
-                          onChange={(e) => setFeedbackText(e.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* STEP 2: UPI Payment QR Code (nejamulhaque@upi) */}
-                  <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-5">
-                    <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                      <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center justify-center font-mono">
-                        2
-                      </span>
-                      <div>
-                        <h4 className="text-sm font-bold text-white">
-                          Select Track Mode & Pay Processing Fee via UPI
-                        </h4>
-                        <p className="text-[11px] text-gray-400">
-                          Scan the dynamic QR code with any UPI app. The amount is automatically configured.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Interactive 3-Tier Track Mode Selector */}
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-semibold text-gray-300 block">
-                        Select Your Internship Mode & Fee Tier:
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {Object.entries(MODE_FEES).map(([modeKey, feeInfo]) => {
-                          const isSelected = activeModeKey === modeKey;
-                          return (
-                            <button
-                              key={modeKey}
-                              type="button"
-                              onClick={() => setMode(modeKey)}
-                              className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 relative overflow-hidden ${
-                                isSelected
-                                  ? "bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400"
-                                  : "bg-white/[0.02] hover:bg-white/[0.05] border-white/10 text-gray-400"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span className="text-xl">{feeInfo.icon}</span>
-                                <span
-                                  className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full ${
-                                    isSelected
-                                      ? "bg-cyan-500 text-black font-extrabold"
-                                      : "bg-white/10 text-gray-300"
-                                  }`}
-                                >
-                                  ₹{feeInfo.amount}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center pt-2">
+                            <div className="flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-xl border-2 border-cyan-500/40">
+                              <div className="relative w-44 h-44 bg-white flex items-center justify-center">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={upiQrSrc}
+                                  alt="UPI QR Code for Nejamul Haque"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <div className="mt-2 text-center text-black">
+                                <p className="text-[11px] font-extrabold uppercase tracking-tight">
+                                  Scan with Any UPI App
+                                </p>
+                                <p className="text-[10px] text-gray-600 font-mono font-bold">
+                                  Nejamul Haque • {UPI_ID}
+                                </p>
+                                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-mono font-extrabold">
+                                  Amount: ₹{activeFee.amount} ({activeModeKey})
                                 </span>
                               </div>
-                              <div>
-                                <h5 className={`text-xs font-bold ${isSelected ? "text-white" : "text-gray-300"}`}>
-                                  {feeInfo.title}
-                                </h5>
-                                <p className="text-[10px] text-gray-400 mt-0.5">{feeInfo.subtitle}</p>
+                            </div>
+
+                            <div className="md:col-span-2 space-y-3 text-xs">
+                              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-400 font-medium">Recipient:</span>
+                                  <span className="text-white font-bold">{UPI_PAYEE_NAME}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-400 font-medium">Official UPI ID:</span>
+                                  <div className="flex items-center gap-2">
+                                    <code className="text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+                                      {UPI_ID}
+                                    </code>
+                                    <button
+                                      type="button"
+                                      onClick={handleCopyUpi}
+                                      className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                    >
+                                      {copiedUpi ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                                      <span>{copiedUpi ? "Copied!" : "Copy"}</span>
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-400 font-medium">Processing Fee:</span>
+                                  <span className="text-yellow-300 font-bold font-mono">
+                                    ₹{activeFee.amount} ({activeModeKey} Track)
+                                  </span>
+                                </div>
                               </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center pt-2">
-                      {/* Interactive QR Code Card */}
-                      <div className="flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-xl border-2 border-cyan-500/40">
-                        <div className="relative w-44 h-44 bg-white flex items-center justify-center">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={upiQrSrc}
-                            alt="UPI QR Code for Nejamul Haque"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <div className="mt-2 text-center text-black">
-                          <p className="text-[11px] font-extrabold uppercase tracking-tight">
-                            Scan to Pay with Any UPI App
-                          </p>
-                          <p className="text-[10px] text-gray-600 font-mono font-bold">
-                            Nejamul Haque • {UPI_ID}
-                          </p>
-                          <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-mono font-extrabold">
-                            Amount: ₹{activeFee.amount} ({activeModeKey})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Payment Details & Copy Button */}
-                      <div className="md:col-span-2 space-y-3 text-xs">
-                        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400 font-medium">Recipient / Signatory:</span>
-                            <span className="text-white font-bold">{UPI_PAYEE_NAME}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400 font-medium">Official UPI ID:</span>
-                            <div className="flex items-center gap-2">
-                              <code className="text-cyan-300 font-mono font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
-                                {UPI_ID}
-                              </code>
-                              <button
-                                type="button"
-                                onClick={handleCopyUpi}
-                                className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                              >
-                                {copiedUpi ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                                <span>{copiedUpi ? "Copied!" : "Copy"}</span>
-                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400 font-medium">Processing & Verification Fee:</span>
-                            <span className="text-yellow-300 font-bold font-mono">
-                              ₹{activeFee.amount} ({activeModeKey} Track Processing)
+                        </div>
+
+                        {/* Step 3: UTR & Screenshot */}
+                        <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-4">
+                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+                            <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center font-mono">
+                              3
                             </span>
+                            <h4 className="text-sm font-bold text-white">
+                              Upload Payment Screenshot & 12-Digit UTR
+                            </h4>
                           </div>
-                        </div>
 
-                        {/* Supported Apps Badges */}
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
-                            Supported Payment Apps:
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {["Google Pay", "PhonePe", "Paytm", "BHIM UPI", "Cred", "Amazon Pay"].map((app) => (
-                              <span
-                                key={app}
-                                className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-300 font-medium"
-                              >
-                                {app}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                                12-Digit UPI Transaction ID / UTR *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="e.g. 423871928371"
+                                value={paymentUtr}
+                                onChange={(e) => setPaymentUtr(e.target.value)}
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                                Payment Screenshot
+                              </label>
+                              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 hover:border-cyan-400/50 rounded-xl p-3 cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-all">
+                                <Upload className="w-4 h-4 text-cyan-400 mb-1" />
+                                <span className="text-xs text-gray-300 font-semibold">
+                                  {paymentScreenshot ? "Change Screenshot" : "Upload Screenshot"}
+                                </span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleScreenshotChange}
+                                  className="hidden"
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 flex items-center gap-3">
+                            <button
+                              type="submit"
+                              disabled={submittingPayment}
+                              className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                            >
+                              <Check className="w-4 h-4" />
+                              <span>
+                                {submittingPayment ? "Submitting for Review..." : "Submit Payment & Unlock Certificate"}
                               </span>
-                            ))}
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* STEP 3: Upload Screenshot & Enter 12-Digit UTR */}
-                  <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                      <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center font-mono">
-                        3
-                      </span>
-                      <h4 className="text-sm font-bold text-white">
-                        Upload Payment Proof & 12-Digit UPI UTR Reference
-                      </h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* UTR Input */}
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          12-Digit UPI Transaction ID / UTR *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. 423871928371"
-                          value={paymentUtr}
-                          onChange={(e) => setPaymentUtr(e.target.value)}
-                          className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                        />
-                        <span className="text-[10px] text-gray-500 mt-1 block">
-                          Found in payment transaction receipt details in your UPI app.
-                        </span>
-                      </div>
-
-                      {/* Screenshot Picker */}
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          Upload Payment Screenshot (PNG/JPG &lt; 4MB)
-                        </label>
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 hover:border-cyan-400/50 rounded-xl p-3 cursor-pointer bg-white/[0.02] hover:bg-white/[0.04] transition-all">
-                          <Upload className="w-4 h-4 text-cyan-400 mb-1" />
-                          <span className="text-xs text-gray-300 font-semibold">
-                            {paymentScreenshot ? "Change Screenshot Image" : "Choose Screenshot"}
-                          </span>
-                          <span className="text-[10px] text-gray-500">Click to browse from device</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleScreenshotChange}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Screenshot Preview */}
-                    {paymentScreenshot && (
-                      <div className="p-3 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={paymentScreenshot}
-                            alt="Screenshot preview"
-                            className="w-12 h-12 rounded-lg object-cover border border-white/10"
-                          />
-                          <div>
-                            <span className="text-xs font-bold text-white block">Screenshot Ready</span>
-                            <span className="text-[10px] text-emerald-400">Attached for verification</span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setPaymentScreenshot("")}
-                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs font-semibold flex items-center gap-1 cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                          <span>Remove</span>
-                        </button>
-                      </div>
+                      </form>
                     )}
+                  </SpotlightCard>
+                )}
 
-                    {/* Submit Actions */}
-                    <div className="pt-2 flex flex-wrap items-center gap-3">
-                      <button
-                        type="submit"
-                        disabled={submittingPayment}
-                        className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>
-                          {submittingPayment
-                            ? "Submitting for Review..."
-                            : "Submit Payment Proof & Feedback for Approval"}
-                        </span>
-                      </button>
+                {/* SLIDE 4: VERIFIED CERTIFICATE & LOR SUITE */}
+                {currentSlide === 4 && (
+                  <div className="space-y-6">
+                    {isApproved && certificate ? (
+                      <div className="space-y-6">
+                        <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+                            <div>
+                              <strong className="block font-bold text-emerald-300">
+                                Verified by Nejamul Haque (Founder & Lead Engineer)
+                              </strong>
+                              <span className="text-[11px] text-emerald-400/90">
+                                Certificate ID: {certificate.id} • Permanently recorded on public ledger.
+                              </span>
+                            </div>
+                          </div>
 
-                      {isEditingPayment && (
-                        <button
-                          type="button"
-                          onClick={() => setIsEditingPayment(false)}
-                          className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-400 hover:text-white transition-all cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
+                          <button
+                            onClick={() => setIsLorModalOpen(true)}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Star className="w-3.5 h-3.5 fill-slate-950" />
+                            <span>Download LOR (PDF)</span>
+                          </button>
+                        </div>
+
+                        <CertificateRenderer certificate={certificate} showActions={true} />
+
+                        <VerifyCredentialActions
+                          certId={certificate.id}
+                          studentName={certificate.studentName}
+                          domain={certificate.domain}
+                          issueDate={certificate.issueDate}
+                        />
+                      </div>
+                    ) : (
+                      <SpotlightCard className="p-8 sm:p-12 text-center border-purple-500/30 space-y-4">
+                        <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 mx-auto flex items-center justify-center">
+                          <ShieldCheck className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">Certificate Locked</h3>
+                        <p className="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+                          Complete your capstone submission (Slide 03) and clear the exit feedback & verification fee (Slide 04) to unlock your tamper-proof certificate and official Letter of Recommendation.
+                        </p>
+                        <div className="pt-2">
+                          <button
+                            onClick={() => goToSlide(3)}
+                            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold transition-all shadow-md cursor-pointer inline-flex items-center gap-2"
+                          >
+                            <span>Go to Exit Form & Payment (Slide 04)</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </SpotlightCard>
+                    )}
                   </div>
-                </form>
-              )}
-            </SpotlightCard>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         )}
 
-        {/* TAB 2: ACADEMIC & PROFILE DETAILS */}
-        {activeTab === "academic" && (
-          <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-white">Academic & Professional Details</h3>
-              <p className="text-xs text-gray-400 mt-1">
-                Keep your college credentials and links up to date for official certificates and recommendations.
-              </p>
+        {/* =========================================================================
+            MODE B: FULL OVERVIEW GRID DASHBOARD
+        ========================================================================= */}
+        {viewMode === "overview" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-2 bg-gray-950/80 border border-white/10 p-1.5 rounded-2xl backdrop-blur-xl shadow-lg">
+              <button
+                onClick={() => setActiveTab("internship")}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "internship"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span>Internship Command OS & Capstone</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("academic")}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "academic"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <User className="w-4 h-4" />
+                <span>Academic & Profile Details</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("community")}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === "community"
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Community & Mentorship</span>
+              </button>
             </div>
 
-            {saveSuccessMsg && (
-              <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{saveSuccessMsg}</span>
+            {activeTab === "internship" && (
+              <div className="space-y-6">
+                {/* Stepper overview */}
+                <div className="p-6 rounded-3xl bg-gray-950/90 border border-cyan-500/20 backdrop-blur-xl shadow-xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] uppercase font-bold tracking-widest text-cyan-400 font-mono flex items-center gap-2">
+                      <Terminal className="w-3.5 h-3.5" />
+                      <span>Internship Lifecycle Progression</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      Ref ID: <strong className="text-white">{offerLetterData.id}</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                    <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-500/40">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">01 Active</span>
+                      <h4 className="text-xs font-bold text-white mt-1">Enrolled & Offer Issued</h4>
+                      <p className="text-[11px] text-emerald-400/80 mt-0.5">Letter of Intent signed & issued.</p>
+                    </div>
+
+                    <div className={`p-4 rounded-2xl border ${githubRepo || application?.githubRepo ? "bg-cyan-950/30 border-cyan-500/40" : "bg-white/[0.02] border-white/10"}`}>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">02 Capstone</span>
+                      <h4 className="text-xs font-bold text-white mt-1">Capstone Project</h4>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Submit GitHub & live link.</p>
+                    </div>
+
+                    <div className={`p-4 rounded-2xl border ${isApproved ? "bg-emerald-950/30 border-emerald-500/40" : isPendingReview ? "bg-yellow-950/30 border-yellow-500/40" : "bg-purple-950/30 border-purple-500/40"}`}>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">03 Clearance</span>
+                      <h4 className="text-xs font-bold text-white mt-1">Exit Form & UPI Fee</h4>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Google form + fee to {UPI_ID}.</p>
+                    </div>
+
+                    <div className={`p-4 rounded-2xl border ${isApproved ? "bg-emerald-950/30 border-emerald-500/40" : "bg-white/[0.02] border-white/10"}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isApproved ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-gray-500"}`}>04 Verified</span>
+                      <h4 className="text-xs font-bold text-white mt-1">Verified Certificate</h4>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Cryptographic QR & public ledger.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Offer Letter Preview button */}
+                <div className="p-6 rounded-3xl bg-gray-950/90 border border-white/10 flex items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-base font-bold text-white">Official Offer Letter & Terms</h4>
+                    <p className="text-xs text-gray-400">View, print, or download your 2-page letter of intent.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsOfferLetterOpen(true)}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    View Offer Letter
+                  </button>
+                </div>
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Academic Details Tab */}
+            {activeTab === "academic" && (
+              <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-6">
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Full Legal Name (For Certificate) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
+                  <h3 className="text-xl font-bold text-white">Academic & Professional Details</h3>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Keep your college credentials and links up to date for official certificates and recommendations.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Phone / WhatsApp Number *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+91 9876543210"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
+                {saveSuccessMsg && (
+                  <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{saveSuccessMsg}</span>
+                  </div>
+                )}
 
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    College / University *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Delhi University / IIT"
-                    value={college}
-                    onChange={(e) => setCollege(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
+                <form onSubmit={handleSaveProfile} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        Full Legal Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        Phone / WhatsApp *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+91 9876543210"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        College / University *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Teerthanker Mahaveer University"
+                        value={college}
+                        onChange={(e) => setCollege(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        Degree & Branch
+                      </label>
+                      <input
+                        type="text"
+                        value={degree}
+                        onChange={(e) => setDegree(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        Graduation Year
+                      </label>
+                      <select
+                        value={graduationYear}
+                        onChange={(e) => setGraduationYear(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      >
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="Passout">Recent Graduate</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        Internship Domain
+                      </label>
+                      <select
+                        value={domain}
+                        onChange={(e) => setDomain(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                      >
+                        {INTERNSHIP_DOMAINS.map((d) => (
+                          <option key={d.id} value={d.name}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        GitHub Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://github.com/username"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                        LinkedIn Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://linkedin.com/in/username"
+                        value={linkedinUrl}
+                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={savingProfile}
+                      className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer disabled:opacity-50"
+                    >
+                      {savingProfile ? "Saving Profile..." : "Save Academic Profile"}
+                    </button>
+                  </div>
+                </form>
+              </SpotlightCard>
+            )}
+
+            {/* Community Tab */}
+            {activeTab === "community" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <MessageSquare className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Developer Community</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Collaborate with fellow student engineers, share code snippets, and participate in tech discussions.
+                  </p>
+                  <div className="pt-2">
+                    <a
+                      href="https://chat.whatsapp.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center gap-1.5"
+                    >
+                      <span>Join WhatsApp Group</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </SpotlightCard>
+
+                <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Direct Mentorship</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Schedule code audits, ask architecture questions, and get resume reviews directly with <strong>Nejamul Haque</strong>.
+                  </p>
+                  <div className="pt-2">
+                    <a
+                      href="mailto:haquendsons@gmail.com?subject=Internship%20Mentorship%20Inquiry"
+                      className="px-4 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold inline-flex items-center gap-1.5"
+                    >
+                      <span>Email Mentor Directly</span>
+                      <Mail className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </SpotlightCard>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Degree & Branch
-                  </label>
-                  <input
-                    type="text"
-                    value={degree}
-                    onChange={(e) => setDegree(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Graduation Year
-                  </label>
-                  <select
-                    value={graduationYear}
-                    onChange={(e) => setGraduationYear(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                    <option value="2028">2028</option>
-                    <option value="Passout">Recent Graduate</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Internship Domain Track
-                  </label>
-                  <select
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    {INTERNSHIP_DOMAINS.map((d) => (
-                      <option key={d.id} value={d.name}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Mode of Internship
-                  </label>
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="Online">Online (Remote)</option>
-                    <option value="Offline">Offline (Studio Campus)</option>
-                    <option value="Hybrid">Hybrid</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Internship Program Type
-                  </label>
-                  <select
-                    value={internshipType}
-                    onChange={(e) => setInternshipType(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="Free (Project Certification)">Free (Project Certification)</option>
-                    <option value="Paid (Stipend Eligible)">Paid (Stipend Eligible)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    Duration
-                  </label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="4 Weeks">4 Weeks (Standard Sprint)</option>
-                    <option value="8 Weeks">8 Weeks (Advanced Architecture)</option>
-                    <option value="12 Weeks">12 Weeks (Full Semester)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    GitHub Profile URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://github.com/username"
-                    value={githubUrl}
-                    onChange={(e) => setGithubUrl(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                    LinkedIn Profile URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://linkedin.com/in/username"
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={savingProfile}
-                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer disabled:opacity-50"
-                >
-                  {savingProfile ? "Saving Profile..." : "Save Academic Profile"}
-                </button>
-              </div>
-            </form>
-          </SpotlightCard>
-        )}
-
-        {/* TAB 3: COMMUNITY & MENTORSHIP */}
-        {activeTab === "community" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                <MessageSquare className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Student Developer Community</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Collaborate with fellow student engineers, share code snippets, participate in weekly tech talks, and solve bugs together.
-              </p>
-              <div className="pt-2">
-                <a
-                  href="https://chat.whatsapp.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold inline-flex items-center gap-1.5"
-                >
-                  <span>Join Student WhatsApp Group</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </SpotlightCard>
-
-            <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-white">Direct Mentorship Channel</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Schedule code audits, ask architecture questions, and get resume reviews directly with <strong>Nejamul Haque</strong>.
-              </p>
-              <div className="pt-2">
-                <a
-                  href="mailto:haquendsons@gmail.com?subject=Internship%20Mentorship%20Inquiry"
-                  className="px-4 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold inline-flex items-center gap-1.5"
-                >
-                  <span>Email Mentor Directly</span>
-                  <Mail className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </SpotlightCard>
+            )}
           </div>
         )}
       </div>
@@ -1659,7 +1699,6 @@ function ProfileContent() {
       {isOfferLetterOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
           <div className="relative w-full max-w-4xl bg-gray-950 border border-cyan-500/40 rounded-3xl shadow-[0_0_80px_rgba(6,182,212,0.25)] my-2 sm:my-4 pb-28">
-            {/* Sticky Top Header inside modal */}
             <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -1668,22 +1707,19 @@ function ProfileContent() {
                     Official 2-Page Internship Offer Letter
                   </span>
                   <span className="text-[10px] text-cyan-400 font-mono">
-                    Ref: {offerLetterData.id} • Verified Signatory: Nejamul Haque
+                    Ref: {offerLetterData.id} • Signatory: Nejamul Haque
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOfferLetterOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
-                  title="Close Document"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Close</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsOfferLetterOpen(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+              >
+                <X className="w-4 h-4" />
+                <span>Close</span>
+              </button>
             </div>
 
             <div className="p-3 sm:p-6">
@@ -1697,11 +1733,10 @@ function ProfileContent() {
         </div>
       )}
 
-      {/* LETTER OF RECOMMENDATION (LOR) MODAL */}
+      {/* LOR MODAL */}
       {isLorModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
           <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
-            {/* Sticky Top Header inside modal */}
             <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
@@ -1710,22 +1745,19 @@ function ProfileContent() {
                     Official Executive Letter of Recommendation (LOR)
                   </span>
                   <span className="text-[10px] text-amber-400 font-mono">
-                    Ref: {lorData.id} • Signatory Authority: Nejamul Haque
+                    Ref: {lorData.id} • Signatory: Nejamul Haque
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsLorModalOpen(false)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
-                  title="Close Document"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Close</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsLorModalOpen(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+              >
+                <X className="w-4 h-4" />
+                <span>Close</span>
+              </button>
             </div>
 
             <div className="p-3 sm:p-6">
