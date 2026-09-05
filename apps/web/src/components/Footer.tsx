@@ -14,7 +14,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="relative border-t border-white/10 bg-black pt-16 pb-8">
+    <footer className="relative border-t border-white/10 bg-black pt-16 pb-8 print:hidden">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
           {/* Brand Column */}

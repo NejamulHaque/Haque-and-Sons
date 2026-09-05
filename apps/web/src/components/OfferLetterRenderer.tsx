@@ -65,22 +65,25 @@ export function OfferLetterRenderer({
           <style>
             @page {
               size: A4 portrait;
-              margin: 10mm 12mm 10mm 12mm;
+              margin: 0 !important;
             }
-            body {
+            *, *::before, *::after {
+              box-sizing: border-box;
+            }
+            html, body {
               background: #ffffff !important;
               color: #0f172a !important;
               font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
-              margin: 0;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
             }
             .page-break {
               page-break-before: always !important;
               break-before: page !important;
-              margin-top: 18px !important;
-              padding-top: 12px !important;
+              margin-top: 0 !important;
+              padding-top: 0 !important;
             }
             .pdf-sheet {
               width: 100% !important;
@@ -88,8 +91,17 @@ export function OfferLetterRenderer({
               box-shadow: none !important;
               border: none !important;
               padding: 0 !important;
+              margin: 0 !important;
               background: #ffffff !important;
               color: #0f172a !important;
+            }
+            #offer-letter-document > div {
+              box-shadow: none !important;
+              border: none !important;
+              border-radius: 0 !important;
+              padding: 12mm 14mm !important;
+              min-height: 297mm !important;
+              box-sizing: border-box !important;
             }
           </style>
         </head>
@@ -220,20 +232,22 @@ export function OfferLetterRenderer({
         </div>
       )}
 
-      {/* Embedded Print CSS to guarantee clean A4 PDF output */}
+      {/* Embedded Print CSS to guarantee clean A4 PDF output without browser headers/footers */}
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 0 !important;
           }
           body {
             background: #ffffff !important;
             color: #0f172a !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
-          nav, header, footer, .print\\:hidden, [role="navigation"] {
+          nav, header, footer, aside, .print\\:hidden, [role="navigation"] {
             display: none !important;
           }
           #offer-letter-document {
@@ -246,9 +260,19 @@ export function OfferLetterRenderer({
             background: #ffffff !important;
             color: #0f172a !important;
           }
+          #offer-letter-document > div {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 12mm 14mm !important;
+            min-height: 297mm !important;
+            box-sizing: border-box !important;
+          }
           .page-break {
             page-break-before: always !important;
             break-before: page !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
           }
         }
       `}</style>

@@ -52,7 +52,7 @@ export function ShareButtons() {
   ];
 
   return (
-  <div className="fixed bottom-15 left-6 z-50 flex flex-col items-end gap-3">
+  <div className="fixed bottom-15 left-6 z-50 flex flex-col items-end gap-3 print:hidden">
     <AnimatePresence>
       {copied && (
         <motion.div

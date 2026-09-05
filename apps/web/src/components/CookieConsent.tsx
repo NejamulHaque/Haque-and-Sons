@@ -44,7 +44,7 @@ export function CookieConsent() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-96 z-50 p-6 rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl"
+          className="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-96 z-50 p-6 rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl print:hidden"
         >
           <h3 className="text-sm font-semibold text-white mb-2">Cookie Consent</h3>
           <p className="text-xs text-gray-400 mb-4">

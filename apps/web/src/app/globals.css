@@ -291,3 +291,37 @@ html.light ::selection {
   color: #0f172a;
 }
 
+/* =========================================================================
+   UNIVERSAL PRINT STYLES - ZERO BROWSER HEADERS & FOOTERS
+========================================================================= */
+@media print {
+  @page {
+    margin: 0 !important;
+  }
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  header,
+  footer,
+  nav,
+  aside,
+  [role="navigation"],
+  .print\:hidden,
+  .print-hidden,
+  #haque-navbar,
+  #haque-footer,
+  .cookie-consent,
+  .irus-copilot,
+  [data-copilot],
+  .share-buttons {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+}

@@ -106,7 +106,7 @@ export function CertificateRenderer({
           <style>
             @page {
               size: A4 landscape;
-              margin: 0;
+              margin: 0 !important;
             }
             *, *::before, *::after {
               box-sizing: border-box;
@@ -114,8 +114,8 @@ export function CertificateRenderer({
             html, body {
               width: 297mm;
               height: 210mm;
-              margin: 0;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
               background: ${isDayTheme ? "#ffffff" : "#030712"} !important;
               color: ${isDayTheme ? "#0f172a" : "#ffffff"} !important;
               font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -130,7 +130,7 @@ export function CertificateRenderer({
               max-height: 210mm !important;
               box-shadow: none !important;
               margin: 0 !important;
-              padding: 9mm 12mm !important;
+              padding: 10mm 12mm !important;
               background-color: ${isDayTheme ? "#ffffff" : "#050814"} !important;
               color: ${isDayTheme ? "#0f172a" : "#ffffff"} !important;
               -webkit-print-color-adjust: exact !important;
@@ -139,6 +139,7 @@ export function CertificateRenderer({
               flex-direction: column;
               justify-content: space-between;
               overflow: hidden;
+              box-sizing: border-box !important;
             }
           </style>
         </head>
@@ -168,9 +169,9 @@ export function CertificateRenderer({
   };
 
   const linkedInShareUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(
-    `Internship in ${certificate.domain}`
+    `Engineering Internship - ${certificate.domain}`
   )}&organizationName=${encodeURIComponent(
-    "Haque & Sons"
+    "Haque & Sons Software Studio"
   )}&issueYear=${new Date(certificate.issueDate).getFullYear()}&issueMonth=${
     new Date(certificate.issueDate).getMonth() + 1
   }&certUrl=${encodeURIComponent(verificationUrl)}&certId=${encodeURIComponent(
@@ -178,13 +179,13 @@ export function CertificateRenderer({
   )}`;
 
   return (
-    <div className="space-y-6">
-      {/* Embedded Print CSS to guarantee clean landscape PDF output */}
+    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto items-center">
+      {/* Embedded print CSS for direct browser printing */}
       <style jsx global>{`
         @media print {
           @page {
             size: A4 landscape;
-            margin: 0;
+            margin: 0 !important;
           }
           *, *::before, *::after {
             box-sizing: border-box !important;
@@ -200,7 +201,7 @@ export function CertificateRenderer({
             print-color-adjust: exact !important;
             overflow: hidden !important;
           }
-          nav, header, footer, .print\\:hidden, [role="navigation"] {
+          nav, header, footer, aside, .print\\:hidden, [role="navigation"] {
             display: none !important;
           }
           #certificate-node {
@@ -211,13 +212,14 @@ export function CertificateRenderer({
             height: 210mm !important;
             max-width: 297mm !important;
             max-height: 210mm !important;
-            padding: 9mm 12mm !important;
+            padding: 10mm 12mm !important;
             border: ${isDay ? "2px solid #0f172a" : "2px solid rgba(6, 182, 212, 0.4)"} !important;
             box-shadow: none !important;
             margin: 0 !important;
             background-color: ${isDay ? "#ffffff" : "#050814"} !important;
             color: ${isDay ? "#0f172a" : "#ffffff"} !important;
             overflow: hidden !important;
+            box-sizing: border-box !important;
           }
         }
       `}</style>

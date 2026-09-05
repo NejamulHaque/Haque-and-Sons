@@ -75,33 +75,38 @@ export function LetterOfRecommendationRenderer({
           <style>
             @page {
               size: A4 portrait;
-              margin: 10mm 12mm 10mm 12mm;
+              margin: 0 !important;
             }
 
-            * {
+            *, *::before, *::after {
               box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
             }
 
             body {
               font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               background-color: #ffffff !important;
               color: #0f172a !important;
-              margin: 0;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
 
             .page-container {
-              width: 100% !important;
-              max-width: 100% !important;
-              margin: 0 auto;
+              width: 210mm !important;
+              min-height: 297mm !important;
+              max-height: 297mm !important;
+              margin: 0 auto !important;
+              padding: 12mm 14mm !important;
               background: #ffffff !important;
               color: #0f172a !important;
               box-shadow: none !important;
               border: none !important;
+              box-sizing: border-box !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              overflow: hidden !important;
             }
 
             img {
@@ -178,20 +183,22 @@ export function LetterOfRecommendationRenderer({
         </div>
       )}
 
-      {/* Global media print styles */}
+      {/* Global media print styles without browser headers/footers */}
       <style jsx global>{`
         @media print {
           @page {
             size: A4 portrait;
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 0 !important;
           }
           body {
             background: #ffffff !important;
             color: #0f172a !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
-          nav, header, footer, .print\\:hidden, [role="navigation"] {
+          nav, header, footer, aside, .print\\:hidden, [role="navigation"] {
             display: none !important;
           }
         }

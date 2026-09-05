@@ -80,7 +80,7 @@ export function IrusCopilotWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40">
+    <div className="fixed bottom-6 right-6 z-40 print:hidden">
       <AnimatePresence>
         {isOpen && (
           <motion.div
