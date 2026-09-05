@@ -106,15 +106,22 @@ export function CertificateRenderer({
           <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
           <style>
             @page {
-              size: A4 landscape;
+              size: 297mm 210mm;
+              size: landscape;
+              margin: 0 !important;
+            }
+            @page :left {
+              margin: 0 !important;
+            }
+            @page :right {
               margin: 0 !important;
             }
             *, *::before, *::after {
               box-sizing: border-box !important;
             }
             html, body {
-              width: 297mm;
-              height: 210mm;
+              width: 297mm !important;
+              height: 210mm !important;
               margin: 0 !important;
               padding: 0 !important;
               background: ${isDayTheme ? "#ffffff" : "#030712"} !important;
@@ -122,7 +129,7 @@ export function CertificateRenderer({
               font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
-              overflow: hidden;
+              overflow: hidden !important;
             }
             .cert-print-sheet {
               width: 297mm !important;
@@ -136,10 +143,10 @@ export function CertificateRenderer({
               color: ${isDayTheme ? "#0f172a" : "#ffffff"} !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-              overflow: hidden;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              overflow: hidden !important;
               box-sizing: border-box !important;
             }
             img {
@@ -189,7 +196,8 @@ export function CertificateRenderer({
       <style jsx global>{`
         @media print {
           @page {
-            size: A4 landscape;
+            size: 297mm 210mm;
+            size: landscape;
             margin: 0 !important;
           }
           *, *::before, *::after {
@@ -210,7 +218,7 @@ export function CertificateRenderer({
             display: none !important;
           }
           #certificate-node {
-            position: absolute !important;
+            position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             width: 297mm !important;
@@ -225,6 +233,7 @@ export function CertificateRenderer({
             color: ${isDay ? "#0f172a" : "#ffffff"} !important;
             overflow: hidden !important;
             box-sizing: border-box !important;
+            z-index: 999999 !important;
           }
         }
       `}</style>
