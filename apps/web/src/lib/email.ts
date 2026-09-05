@@ -1,11 +1,29 @@
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const apiKey = process.env.RESEND_API_KEY;
-const resend = apiKey ? new Resend(apiKey) : null;
+// 1. Resend Configuration
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const RESEND_FROM = process.env.RESEND_FROM_EMAIL || "Haque & Sons <onboarding@resend.dev>";
 
-// Configurable sender identity. If you verify a domain in resend.com/domains (e.g. haqueandsons.in),
-// set RESEND_FROM_EMAIL="Haque & Sons <team@haqueandsons.in>" in your .env.local / Vercel env.
-const DEFAULT_FROM = process.env.RESEND_FROM_EMAIL || "Haque & Sons <onboarding@resend.dev>";
+// 2. Gmail / Custom SMTP Configuration (Zero Domain Required)
+// Set in .env.local or Vercel:
+// GMAIL_USER="haquendsons@gmail.com"
+// GMAIL_APP_PASSWORD="your-16-char-app-password"
+const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
+const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD;
+
+const smtpTransporter =
+  gmailUser && gmailPass
+    ? nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: gmailUser,
+          pass: gmailPass.replace(/\s+/g, ""), // strip any spaces in Google 16-char app password
+        },
+      })
+    : null;
+
 const ADMIN_FALLBACK_EMAIL = "nejamulhaque.works@gmail.com";
 
 export interface SendEmailOptions {
@@ -17,37 +35,62 @@ export interface SendEmailOptions {
 }
 
 export async function sendEmail({
-  fromName,
+  fromName = "Haque & Sons",
   to,
   subject,
   html,
   replyTo,
-}: SendEmailOptions): Promise<{ success: boolean; id?: string; testMode?: boolean; error?: string }> {
-  if (!resend) {
-    console.warn("[Email Dispatcher] Notice: RESEND_API_KEY not configured. Skipping email dispatch.");
-    return { success: false, error: "RESEND_API_KEY not configured" };
-  }
-
-  // Determine From address
-  let fromAddress = DEFAULT_FROM;
-  if (fromName && DEFAULT_FROM.includes("<")) {
-    const rawEmail = DEFAULT_FROM.slice(DEFAULT_FROM.indexOf("<"));
-    fromAddress = `${fromName} ${rawEmail}`;
-  }
-
+}: SendEmailOptions): Promise<{ success: boolean; id?: string; testMode?: boolean; transport?: string; error?: string }> {
   const cleanRecipient = to.trim().toLowerCase();
+  const cleanReplyTo = replyTo || gmailUser || ADMIN_FALLBACK_EMAIL;
 
-  try {
-    // 1. Primary Attempt: Send to recipient
-    const response = await resend.emails.send({
-      from: fromAddress,
-      to: cleanRecipient,
-      subject,
-      html,
-      replyTo: replyTo || "nejamulhaque.works@gmail.com",
-    });
+  // -------------------------------------------------------------
+  // PRIORITY 1: Gmail SMTP (Sends to ANY email worldwide for FREE)
+  // -------------------------------------------------------------
+  if (smtpTransporter && gmailUser) {
+    try {
+      const fromFormatted = `${fromName} <${gmailUser}>`;
+      const info = await smtpTransporter.sendMail({
+        from: fromFormatted,
+        to: cleanRecipient,
+        subject,
+        html,
+        replyTo: cleanReplyTo,
+      });
 
-    if (response.error) {
+      console.log(`[Email Dispatcher - Gmail SMTP] Successfully delivered email to ${cleanRecipient} (MessageID: ${info.messageId})`);
+      return { success: true, id: info.messageId, transport: "gmail" };
+    } catch (smtpErr: any) {
+      console.error("[Email Dispatcher - Gmail SMTP] Delivery error:", smtpErr?.message || smtpErr);
+      // If SMTP fails and Resend exists, fall through to Resend attempt
+    }
+  }
+
+  // -------------------------------------------------------------
+  // PRIORITY 2: Resend API
+  // -------------------------------------------------------------
+  if (resend) {
+    let fromAddress = RESEND_FROM;
+    if (fromName && RESEND_FROM.includes("<")) {
+      const rawEmail = RESEND_FROM.slice(RESEND_FROM.indexOf("<"));
+      fromAddress = `${fromName} ${rawEmail}`;
+    }
+
+    try {
+      const response = await resend.emails.send({
+        from: fromAddress,
+        to: cleanRecipient,
+        subject,
+        html,
+        replyTo: cleanReplyTo,
+      });
+
+      if (!response.error) {
+        console.log(`[Email Dispatcher - Resend] Successfully delivered email to ${cleanRecipient} (ID: ${response.data?.id})`);
+        return { success: true, id: response.data?.id, transport: "resend" };
+      }
+
+      // Check if blocked by Resend Free Tier / Unverified Domain restriction
       const errMsg = response.error.message || "";
       const isFreeTierRestriction =
         response.error.name === "validation_error" ||
@@ -56,18 +99,17 @@ export async function sendEmail({
 
       if (isFreeTierRestriction && cleanRecipient !== ADMIN_FALLBACK_EMAIL) {
         console.warn(
-          `[Email Dispatcher] Resend Sandbox Mode: Cannot deliver to ${cleanRecipient} without a verified domain. Forwarding test preview copy to admin (${ADMIN_FALLBACK_EMAIL}).`
+          `[Email Dispatcher - Resend Sandbox] Cannot send to external recipient ${cleanRecipient} without a verified domain. Forwarding test preview copy to admin (${ADMIN_FALLBACK_EMAIL}).`
         );
 
-        // Fallback Attempt: Dispatch to admin testing email with debug header
         const fallbackRes = await resend.emails.send({
           from: fromAddress,
           to: ADMIN_FALLBACK_EMAIL,
           subject: `[Dev Preview: For ${cleanRecipient}] ${subject}`,
           html: `
             <div style="background: #1e1b4b; border: 1px solid #4338ca; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-family: sans-serif; font-size: 13px; color: #e0e7ff;">
-              <strong>Resend Sandbox Mode Notice:</strong><br />
-              This email was intended for <code>${cleanRecipient}</code>. To send to arbitrary student emails directly, add and verify your custom domain at <a href="https://resend.com/domains" style="color: #38bdf8; text-decoration: underline;">resend.com/domains</a> and set <code>RESEND_FROM_EMAIL="Haque & Sons &lt;internships@yourdomain.com&gt;"</code>.
+              <strong>Resend Sandbox Notice:</strong><br />
+              This email was addressed to <code>${cleanRecipient}</code>. To deliver directly to any student email without a domain, set <code>GMAIL_USER</code> and <code>GMAIL_APP_PASSWORD</code> in your environment variables.
             </div>
             ${html}
           `,
@@ -78,17 +120,18 @@ export async function sendEmail({
           success: !fallbackRes.error,
           id: fallbackRes.data?.id,
           testMode: true,
+          transport: "resend-sandbox-fallback",
           error: fallbackRes.error?.message,
         };
       }
 
-      console.error("[Email Dispatcher] Resend error:", response.error);
       return { success: false, error: response.error.message };
+    } catch (err: any) {
+      console.error("[Email Dispatcher - Resend] Exception:", err?.message || err);
+      return { success: false, error: err?.message || "Internal email error" };
     }
-
-    return { success: true, id: response.data?.id };
-  } catch (error: any) {
-    console.error("[Email Dispatcher] Exception sending email:", error?.message || error);
-    return { success: false, error: error?.message || "Internal error sending email" };
   }
+
+  console.warn("[Email Dispatcher] Neither Gmail SMTP nor RESEND_API_KEY is configured.");
+  return { success: false, error: "No email provider configured (Set GMAIL_USER/GMAIL_APP_PASSWORD or RESEND_API_KEY)" };
 }
