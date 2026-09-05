@@ -254,9 +254,9 @@ export function CertificateRenderer({
 
       {/* Top action toolbar (hidden during print) */}
       {showActions && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-950/90 border border-white/10 rounded-2xl backdrop-blur-md print:hidden shadow-xl w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-950/90 border border-white/10 rounded-2xl backdrop-blur-md print:hidden shadow-xl w-full">
           <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <div>
               <span className="text-xs font-mono font-semibold text-emerald-300 block">
                 Cryptographically Verified Credential
@@ -304,7 +304,7 @@ export function CertificateRenderer({
               className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
             >
               {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
-              <span>{copied ? "Link Copied!" : "Copy Verification URL"}</span>
+              <span>{copied ? "Link Copied!" : "Copy URL"}</span>
             </button>
 
             <a
@@ -314,7 +314,7 @@ export function CertificateRenderer({
               className="px-3.5 py-1.5 rounded-xl bg-[#0A66C2]/20 hover:bg-[#0A66C2]/30 border border-[#0A66C2]/40 text-[#70B5F9] text-xs font-semibold transition-all flex items-center gap-1.5"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>Add to LinkedIn</span>
+              <span>LinkedIn</span>
             </a>
 
             <button
@@ -330,27 +330,35 @@ export function CertificateRenderer({
               className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download PDF ({isDay ? "Day" : "Night"})</span>
+              <span>PDF ({isDay ? "Day" : "Night"})</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* The Printable / Downloadable Certificate Card */}
-      <div
-        ref={certRef}
-        id="certificate-node"
-        className={`relative w-full max-w-5xl mx-auto aspect-[1.414/1] p-5 sm:p-7 md:p-8 rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border ${
-          isDay
-            ? "bg-[#ffffff] text-slate-900 border-slate-900 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
-            : "bg-[#040714] text-white border-cyan-500/40 shadow-[0_0_80px_rgba(6,182,212,0.18)]"
-        }`}
-        style={{
-          backgroundImage: isDay
-            ? `radial-gradient(circle at 50% 50%, rgba(217,119,6,0.03) 0%, #ffffff 80%), radial-gradient(circle at 10% 10%, rgba(3,105,161,0.02) 0%, transparent 50%), linear-gradient(135deg, rgba(15,23,42,0.015) 0%, transparent 100%)`
-            : `radial-gradient(circle at 50% 50%, rgba(6,182,212,0.08) 0%, #030712 80%), radial-gradient(circle at 90% 90%, rgba(168,85,247,0.05) 0%, transparent 50%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)`,
-        }}
-      >
+      {/* Mobile Swipe Guidance Notice (Hidden on desktop & print) */}
+      <div className="md:hidden flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-[11px] font-mono text-cyan-300 w-full text-center print:hidden shadow-sm">
+        <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <span>Swipe horizontally to view full high-res certificate</span>
+      </div>
+
+      {/* Mobile Scroll Container for Crisp High-Res Certificate Rendering */}
+      <div className="w-full overflow-x-auto pb-2 overscroll-x-contain sm:overflow-visible flex justify-start md:justify-center">
+        {/* The Printable / Downloadable Certificate Card */}
+        <div
+          ref={certRef}
+          id="certificate-node"
+          className={`relative w-full min-w-[740px] md:min-w-0 max-w-5xl mx-auto aspect-[1.414/1] p-5 sm:p-7 md:p-8 rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border shrink-0 ${
+            isDay
+              ? "bg-[#ffffff] text-slate-900 border-slate-900 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
+              : "bg-[#040714] text-white border-cyan-500/40 shadow-[0_0_80px_rgba(6,182,212,0.18)]"
+          }`}
+          style={{
+            backgroundImage: isDay
+              ? `radial-gradient(circle at 50% 50%, rgba(217,119,6,0.03) 0%, #ffffff 80%), radial-gradient(circle at 10% 10%, rgba(3,105,161,0.02) 0%, transparent 50%), linear-gradient(135deg, rgba(15,23,42,0.015) 0%, transparent 100%)`
+              : `radial-gradient(circle at 50% 50%, rgba(6,182,212,0.08) 0%, #030712 80%), radial-gradient(circle at 90% 90%, rgba(168,85,247,0.05) 0%, transparent 50%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)`,
+          }}
+        >
         {/* Intricate Guilloché Double Framing & Corner Medallions */}
         <div
           className={`absolute inset-2 sm:inset-2.5 border rounded-2xl pointer-events-none ${
@@ -722,6 +730,7 @@ export function CertificateRenderer({
             </span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

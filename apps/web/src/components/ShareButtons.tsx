@@ -35,7 +35,11 @@ export function ShareButtons() {
     setShareUrl(window.location.href);
   }, []);
 
-  if (pathname?.startsWith("/admin")) {
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/profile") ||
+    pathname?.startsWith("/auth")
+  ) {
     return null;
   }
 
@@ -52,42 +56,42 @@ export function ShareButtons() {
   ];
 
   return (
-  <div className="fixed bottom-15 left-6 z-50 flex flex-col items-end gap-3 print:hidden">
-    <AnimatePresence>
-      {copied && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          className="bg-white text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2"
-        >
-          <CheckIcon className="w-4 h-4" /> Link Copied!
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 flex flex-col items-start gap-2.5 print:hidden">
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="bg-white text-black px-3.5 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5"
+          >
+            <CheckIcon className="w-3.5 h-3.5" /> Link Copied!
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-    <div className="flex gap-2 bg-black/80 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-2xl">
-      {socialLinks.map((link) => (
-        <a
-          key={link.name}
-          href={link.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Share on ${link.name}`}
-          className={`p-3 rounded-full transition-all duration-300 ${link.color}`}
+      <div className="flex gap-1.5 sm:gap-2 bg-black/85 backdrop-blur-md p-1.5 rounded-full border border-white/10 shadow-2xl">
+        {socialLinks.map((link) => (
+          <a
+            key={link.name}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Share on ${link.name}`}
+            className={`p-2 sm:p-2.5 rounded-full transition-all duration-300 ${link.color}`}
+          >
+            <link.icon className="w-4 h-4" />
+          </a>
+        ))}
+        
+        <button
+          onClick={handleCopy}
+          aria-label="Copy link"
+          className="p-2 sm:p-2.5 rounded-full text-purple-400 hover:bg-purple-500/10 transition-all duration-300 cursor-pointer" 
         >
-          <link.icon className="w-5 h-5" />
-        </a>
-      ))}
-      
-      <button
-        onClick={handleCopy}
-        aria-label="Copy link"
-        className="p-3 rounded-full text-purple-400 hover:bg-purple-500/10 transition-all duration-300" 
-      >
-        {copied ? <CheckIcon className="w-5 h-5" /> : <LinkIcon className="w-5 h-5" />}
-      </button>
+          {copied ? <CheckIcon className="w-4 h-4" /> : <LinkIcon className="w-4 h-4" />}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
 }

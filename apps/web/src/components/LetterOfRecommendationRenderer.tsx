@@ -144,13 +144,13 @@ export function LetterOfRecommendationRenderer({
     <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
       {/* Floating Action Controls */}
       {showActions && (
-        <div className="flex flex-wrap items-center justify-between gap-4 w-full bg-slate-900/90 border border-white/10 p-4 rounded-2xl backdrop-blur-xl shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full bg-slate-900/90 border border-white/10 p-3 sm:p-4 rounded-2xl backdrop-blur-xl shadow-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 flex items-center justify-center shadow-lg">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 flex items-center justify-center shadow-lg shrink-0">
               <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2 flex-wrap">
                 <span>Executive Letter of Recommendation</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-mono font-semibold">
                   Official Endorsement
@@ -162,14 +162,14 @@ export function LetterOfRecommendationRenderer({
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handlePrint}
               disabled={downloading}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>{downloading ? "Generating PDF..." : "Download Official LOR (PDF)"}</span>
+              <span>{downloading ? "Generating PDF..." : "Download Official LOR"}</span>
             </button>
 
             <button
@@ -182,6 +182,12 @@ export function LetterOfRecommendationRenderer({
           </div>
         </div>
       )}
+
+      {/* Mobile Swipe Guidance Notice (Hidden on desktop & print) */}
+      <div className="md:hidden flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-[11px] font-mono text-amber-300 w-full text-center print:hidden shadow-sm">
+        <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <span>Swipe horizontally to view full high-res LOR document</span>
+      </div>
 
       {/* Global media print styles without browser headers/footers */}
       <style jsx global>{`
@@ -205,7 +211,7 @@ export function LetterOfRecommendationRenderer({
       `}</style>
 
       {/* LOR Document Container - Strict Single Page A4 Proportion */}
-      <div className="w-full overflow-x-auto pb-4 flex justify-center">
+      <div className="w-full overflow-x-auto pb-4 flex justify-start md:justify-center overscroll-x-contain">
         <div
           ref={containerRef}
           style={{ width: "210mm", minHeight: "297mm", padding: "12mm 14mm" }}

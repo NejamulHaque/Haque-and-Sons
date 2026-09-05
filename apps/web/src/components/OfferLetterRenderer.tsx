@@ -285,7 +285,7 @@ export function OfferLetterRenderer({
         {/* =========================================================================
             PAGE 1 OF 2: APPOINTMENT OFFER & TERMS OF ENGAGEMENT
         ========================================================================= */}
-        <div className="bg-white text-slate-900 p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-2xl relative overflow-hidden">
+        <div className="bg-white text-slate-900 p-4 sm:p-8 md:p-12 rounded-2xl border border-slate-200 shadow-2xl relative overflow-hidden">
           {/* Top Corporate Ribbon */}
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-950 via-sky-600 to-slate-950" />
 
@@ -435,7 +435,7 @@ export function OfferLetterRenderer({
         {/* =========================================================================
             PAGE 2 OF 2: INTELLECTUAL PROPERTY, CODE OF CONDUCT & FORMAL SIGNATURES
         ========================================================================= */}
-        <div className="page-break bg-white text-slate-900 p-8 sm:p-12 rounded-2xl border border-slate-200 shadow-2xl relative overflow-hidden">
+        <div className="page-break bg-white text-slate-900 p-4 sm:p-8 md:p-12 rounded-2xl border border-slate-200 shadow-2xl relative overflow-hidden">
           {/* Top Corporate Ribbon */}
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-slate-950 via-sky-600 to-slate-950" />
 
@@ -570,14 +570,14 @@ export function OfferLetterRenderer({
 
       {/* Floating Action Pill Bar - Always Visible On Screen */}
       {showActions && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-950/95 border-2 border-cyan-500/50 rounded-full px-5 py-2.5 shadow-[0_0_35px_rgba(6,182,212,0.4)] flex items-center gap-3 backdrop-blur-xl print:hidden">
+        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-950/95 border-2 border-cyan-500/50 rounded-full px-3.5 sm:px-5 py-2 sm:py-2.5 shadow-[0_0_35px_rgba(6,182,212,0.4)] flex items-center gap-2 sm:gap-3 backdrop-blur-xl print:hidden max-w-[calc(100vw-24px)]">
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black text-xs font-extrabold transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+            className="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black text-[11px] sm:text-xs font-extrabold transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider whitespace-nowrap"
           >
-            <Download className="w-4 h-4" />
-            <span>Download 2-Page PDF</span>
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>PDF (2 Pages)</span>
           </button>
 
           {data.studentEmail && (
@@ -585,9 +585,9 @@ export function OfferLetterRenderer({
               type="button"
               onClick={handleEmailOfferLetter}
               disabled={sendingEmail}
-              className="px-3.5 py-2 rounded-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 whitespace-nowrap"
             >
-              <Mail className="w-3.5 h-3.5" />
+              <Mail className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Email to Me</span>
             </button>
           )}
@@ -596,10 +596,10 @@ export function OfferLetterRenderer({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-all cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-all cursor-pointer shrink-0"
               title="Close Offer Letter Preview"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           )}
         </div>

@@ -80,7 +80,7 @@ export function IrusCopilotWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 print:hidden">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 print:hidden">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -88,7 +88,7 @@ export function IrusCopilotWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="w-[90vw] sm:w-[400px] h-[520px] rounded-3xl bg-gray-950/95 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.25)] flex flex-col overflow-hidden mb-3"
+            className="w-[calc(100vw-32px)] sm:w-[400px] h-[480px] sm:h-[520px] max-h-[82vh] rounded-3xl bg-gray-950/95 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.25)] flex flex-col overflow-hidden mb-3"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-gray-950 via-gray-900 to-black border-b border-white/10 flex items-center justify-between">

@@ -479,7 +479,7 @@ function ProfileContent() {
   const sprintPercentage = totalSprintTasks > 0 ? Math.round((completedSprintTasks / totalSprintTasks) * 100) : 0;
 
   return (
-    <div className={`min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white ${isFocusMode ? "pt-8 pb-12" : "pt-24 pb-24"} px-4 sm:px-6 relative overflow-hidden transition-all duration-300`}>
+    <div className={`min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white ${isFocusMode ? "pt-6 pb-12" : "pt-20 sm:pt-24 pb-20 sm:pb-24"} px-3 sm:px-6 relative overflow-hidden transition-all duration-300`}>
       {/* Glow Meshes */}
       <div className="fixed top-10 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-10 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
@@ -490,7 +490,7 @@ function ProfileContent() {
             1. CANDIDATE PROFILE HEADER & CONTROL MASTHEAD
         ========================================================================= */}
         {!isFocusMode && (
-          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
+          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-white/10 p-5 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-purple-500" />
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -608,14 +608,14 @@ function ProfileContent() {
 
           {/* Slide Deck Navigation Controls (When in Slides View) */}
           {viewMode === "slides" && (
-            <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+            <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end w-full sm:w-auto">
               {/* Slide Indicator Pills */}
-              <div className="hidden md:flex items-center gap-1">
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full py-1">
                 {SLIDES_CONFIG.map((s, idx) => (
                   <button
                     key={s.id}
                     onClick={() => goToSlide(idx)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap ${
                       currentSlide === idx
                         ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
