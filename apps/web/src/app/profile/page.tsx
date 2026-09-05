@@ -41,6 +41,9 @@ import {
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
 import { OfferLetterRenderer, type OfferLetterData } from "@/components/OfferLetterRenderer";
+import { LetterOfRecommendationRenderer, type LORData } from "@/components/LetterOfRecommendationRenderer";
+import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
+import { IrusCopilotWidget } from "@/components/IrusCopilotWidget";
 import { INTERNSHIP_DOMAINS, type InternshipDomain } from "@/lib/domains";
 import Link from "next/link";
 
@@ -104,12 +107,39 @@ function ProfileContent() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
-  // Offer Letter modal
+  // Offer Letter & LOR modals
   const [isOfferLetterOpen, setIsOfferLetterOpen] = useState(false);
+  const [isLorModalOpen, setIsLorModalOpen] = useState(false);
 
-  // Scroll management for Offer Letter modal
+  // Interactive LMS Sprint Checklist state
+  const [sprintTasks, setSprintTasks] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
-    if (isOfferLetterOpen) {
+    if (session?.user?.email) {
+      try {
+        const saved = localStorage.getItem(`haque-sprint-tasks-${session.user.email}`);
+        if (saved) {
+          setSprintTasks(JSON.parse(saved));
+        }
+      } catch {}
+    }
+  }, [session?.user?.email]);
+
+  const toggleSprintTask = (taskId: string) => {
+    setSprintTasks((prev) => {
+      const updated = { ...prev, [taskId]: !prev[taskId] };
+      if (session?.user?.email) {
+        try {
+          localStorage.setItem(`haque-sprint-tasks-${session.user.email}`, JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+  };
+
+  // Scroll management for Modals
+  useEffect(() => {
+    if (isOfferLetterOpen || isLorModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -117,7 +147,7 @@ function ProfileContent() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOfferLetterOpen]);
+  }, [isOfferLetterOpen, isLorModalOpen]);
 
   // Fetch initial profile
   useEffect(() => {
@@ -356,6 +386,20 @@ function ProfileContent() {
     startDate: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
   };
 
+  const lorData: LORData = {
+    id: certificate?.id || `HS-INT-2026-${(fullName || "STUDENT").replace(/\s+/g, "").slice(0, 4).toUpperCase()}-001`,
+    studentName: fullName || session?.user?.name || "Student Intern",
+    studentEmail: session?.user?.email || application?.email || "",
+    college: college || "Partner University",
+    degree: degree || "B.Tech Computer Science",
+    domain: domain || "Full-Stack Web Development",
+    duration: duration || "4 Weeks",
+    mode: mode || "Online",
+    grade: certificate?.grade || "Distinction (Top 1%)",
+    issueDate: certificate?.issueDate || new Date().toISOString(),
+    signatoryTitle: "Nejamul Haque, Founder & Lead Engineer",
+  };
+
   const isApproved = paymentStatus === "Approved" || certificate !== null;
   const isPendingReview = paymentStatus === "Pending Approval" && !isApproved;
 
@@ -446,6 +490,14 @@ function ProfileContent() {
               >
                 <FileText className="w-4 h-4" />
                 <span>View & Download Offer Letter</span>
+              </button>
+
+              <button
+                onClick={() => setIsLorModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 cursor-pointer"
+              >
+                <Star className="w-4 h-4 fill-slate-950 text-slate-950" />
+                <span>View & Download LOR</span>
               </button>
 
               <button
@@ -675,36 +727,131 @@ function ProfileContent() {
                 </p>
               </div>
 
-              {/* 4-Week Sprint Milestone Breakdown */}
-              <div className="space-y-3 pt-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 block">
-                  Weekly Sprint Roadmap & Syllabus
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {currentDomainObj.curriculum.map((c) => (
-                    <div
-                      key={c.week}
-                      className="p-4 rounded-2xl bg-black/60 border border-white/10 hover:border-cyan-500/40 transition-all space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                          {c.week}
-                        </span>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                      </div>
-                      <h4 className="text-xs font-bold text-white leading-tight">{c.title}</h4>
-                      <div className="pt-1">
-                        <ul className="text-[10px] text-gray-400 space-y-1 font-mono">
-                          {c.topics.map((t) => (
-                            <li key={t} className="flex items-center gap-1.5">
-                              <span className="w-1 h-1 rounded-full bg-cyan-400 shrink-0" />
-                              <span>{t}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+              {/* 4-Week Interactive LMS Sprint Milestone Tracker */}
+              <div className="space-y-4 pt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/20">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono flex items-center gap-1.5">
+                        <Terminal className="w-3.5 h-3.5" />
+                        <span>Interactive Sprint Kanban Tracker</span>
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">
+                        {currentDomainObj.curriculum.reduce(
+                          (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
+                          0
+                        )}{" "}
+                        /{" "}
+                        {currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)} Tasks Completed
+                      </span>
                     </div>
-                  ))}
+                    <p className="text-[11px] text-gray-400">
+                      Check off weekly milestone deliverables as you build your capstone project.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-32 bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
+                      <div
+                        className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${
+                            currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0) > 0
+                              ? Math.round(
+                                  (currentDomainObj.curriculum.reduce(
+                                    (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
+                                    0
+                                  ) /
+                                    currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)) *
+                                    100
+                                )
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-mono font-bold text-emerald-400">
+                      {currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0) > 0
+                        ? Math.round(
+                            (currentDomainObj.curriculum.reduce(
+                              (acc, c) => acc + c.topics.filter((t) => sprintTasks[`${c.week}-${t}`]).length,
+                              0
+                            ) /
+                              currentDomainObj.curriculum.reduce((acc, c) => acc + c.topics.length, 0)) *
+                              100
+                          )
+                        : 0}
+                      %
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {currentDomainObj.curriculum.map((c) => {
+                    const weekDone = c.topics.every((t) => sprintTasks[`${c.week}-${t}`]);
+                    return (
+                      <div
+                        key={c.week}
+                        className={`p-4 rounded-2xl border transition-all space-y-2.5 ${
+                          weekDone
+                            ? "bg-emerald-950/20 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                            : "bg-black/60 border-white/10 hover:border-cyan-500/40"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                              weekDone
+                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                                : "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                            }`}
+                          >
+                            {c.week}
+                          </span>
+                          {weekDone ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Clock className="w-3.5 h-3.5 text-gray-500" />
+                          )}
+                        </div>
+                        <h4 className="text-xs font-bold text-white leading-tight">{c.title}</h4>
+                        <div className="pt-1">
+                          <div className="text-[11px] text-gray-400 space-y-1.5 font-mono">
+                            {c.topics.map((t) => {
+                              const isTaskDone = !!sprintTasks[`${c.week}-${t}`];
+                              return (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => toggleSprintTask(`${c.week}-${t}`)}
+                                  className="w-full flex items-start gap-2 text-left cursor-pointer group py-0.5"
+                                >
+                                  <span
+                                    className={`w-3.5 h-3.5 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                      isTaskDone
+                                        ? "bg-emerald-500 border-emerald-400 text-white"
+                                        : "border-white/20 bg-white/5 group-hover:border-cyan-400"
+                                    }`}
+                                  >
+                                    {isTaskDone && <Check className="w-2.5 h-2.5" />}
+                                  </span>
+                                  <span
+                                    className={`leading-snug transition-all ${
+                                      isTaskDone
+                                        ? "line-through text-gray-500"
+                                        : "text-gray-300 group-hover:text-cyan-200"
+                                    }`}
+                                  >
+                                    {t}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </SpotlightCard>
@@ -857,19 +1004,37 @@ function ProfileContent() {
               {/* State 1: Certificate is Approved */}
               {isApproved && certificate && (
                 <div className="space-y-6 pt-2">
-                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-                    <div>
-                      <strong className="block font-bold text-emerald-300">
-                        Payment & Feedback Verified by Nejamul Haque
-                      </strong>
-                      <span className="text-[11px] text-emerald-400/90">
-                        Your official tamper-proof certificate (ID: {certificate.id}) has been issued and permanently verified on our public registry.
-                      </span>
+                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+                      <div>
+                        <strong className="block font-bold text-emerald-300">
+                          Payment &amp; Feedback Verified by Nejamul Haque
+                        </strong>
+                        <span className="text-[11px] text-emerald-400/90">
+                          Your official tamper-proof certificate (ID: {certificate.id}) has been issued and permanently verified on our public registry.
+                        </span>
+                      </div>
                     </div>
+
+                    <button
+                      onClick={() => setIsLorModalOpen(true)}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                    >
+                      <Star className="w-3.5 h-3.5 fill-slate-950" />
+                      <span>Download LOR (PDF)</span>
+                    </button>
                   </div>
 
                   <CertificateRenderer certificate={certificate} showActions={true} />
+
+                  {/* Social Proof Credential & GitHub Badge Embed Suite */}
+                  <VerifyCredentialActions
+                    certId={certificate.id}
+                    studentName={certificate.studentName}
+                    domain={certificate.domain}
+                    issueDate={certificate.issueDate}
+                  />
                 </div>
               )}
 
@@ -1531,6 +1696,50 @@ function ProfileContent() {
           </div>
         </div>
       )}
+
+      {/* LETTER OF RECOMMENDATION (LOR) MODAL */}
+      {isLorModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
+          <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
+            {/* Sticky Top Header inside modal */}
+            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Official Executive Letter of Recommendation (LOR)
+                  </span>
+                  <span className="text-[10px] text-amber-400 font-mono">
+                    Ref: {lorData.id} • Signatory Authority: Nejamul Haque
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLorModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+                  title="Close Document"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-6">
+              <LetterOfRecommendationRenderer
+                lorData={lorData}
+                showActions={true}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Embedded Irus AI Studio Copilot */}
+      <IrusCopilotWidget />
     </div>
   );
 }

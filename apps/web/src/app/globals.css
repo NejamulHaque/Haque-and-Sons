@@ -72,21 +72,222 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-/* Light mode support */
-html.light body { background-color: #ffffff !important; color: #111827 !important; }
-html.light section { background-color: #ffffff !important; background-image: none !important; }
-html.light section.border-y { border-color: #e5e7eb !important; }
-html.light h1, html.light h2, html.light h3, html.light h4 { color: #111827 !important; }
-html.light .bg-clip-text.text-transparent { -webkit-text-fill-color: transparent !important; }
-html.light p { color: #4b5563 !important; }
-html.light .text-cyan-400 { color: #0891b2 !important; }
-html.light .text-purple-400 { color: #7c3aed !important; }
-html.light .text-emerald-400 { color: #059669 !important; }
-html.light [class*="bg-white/[0.0"] { background-color: #f3f4f6 !important; border-color: #e5e7eb !important; }
-html.light input, html.light textarea, html.light select { background-color: #f3f4f6 !important; border-color: #e5e7eb !important; color: #111827 !important; }
-html.light label { color: #6b7280 !important; }
-html.light [class*="blur-[1"] { opacity: 0.1 !important; }
-html.light ::-webkit-scrollbar-track { background: #f3f4f6; }
-html.light ::-webkit-scrollbar-thumb { background: #d1d5db; }
-html.light ::selection { background: rgba(6, 182, 212, 0.2); color: #111827; }
+/* =========================================================================
+   COMPREHENSIVE LIGHT MODE DESIGN SYSTEM (STUDIO PLATINUM / PRO LIGHT)
+========================================================================= */
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light .min-h-screen,
+html.light main,
+html.light section {
+  background-color: transparent !important;
+}
+
+/* Surfaces & Containers */
+html.light [class*="bg-black"],
+html.light [class*="bg-[#000000]"],
+html.light [class*="bg-[#030712]"],
+html.light [class*="bg-[#070B14]"],
+html.light [class*="bg-[#0B0F19]"],
+html.light [class*="bg-[#0d121f]"],
+html.light [class*="bg-[#050811]"],
+html.light [class*="bg-[#0a0f1d]"],
+html.light [class*="bg-gray-950"],
+html.light [class*="bg-slate-900"],
+html.light [class*="bg-zinc-950"],
+html.light [class*="bg-neutral-950"] {
+  background-color: #ffffff !important;
+}
+
+html.light [class*="bg-gray-900"],
+html.light [class*="bg-slate-800"] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light [class*="bg-gradient-to-br from-gray-950"],
+html.light [class*="bg-gradient-to-tr from-gray-950"],
+html.light [class*="bg-gradient-to-b from-gray-950"] {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+}
+
+/* Borders */
+html.light [class*="border-white/"],
+html.light [class*="border-gray-800"],
+html.light [class*="border-gray-900"],
+html.light [class*="border-slate-800"],
+html.light section.border-y {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-cyan-500\/30,
+html.light .border-cyan-500\/20,
+html.light .border-cyan-500\/10 {
+  border-color: #bae6fd !important;
+}
+
+html.light .border-emerald-500\/30 {
+  border-color: #a7f3d0 !important;
+}
+
+html.light .border-purple-500\/30 {
+  border-color: #ddd6fe !important;
+}
+
+html.light .border-amber-500\/30,
+html.light .border-yellow-500\/30 {
+  border-color: #fde68a !important;
+}
+
+/* Typography & Headings */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6,
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light button[class*="bg-gradient-"],
+html.light a[class*="bg-gradient-"],
+html.light button[class*="from-cyan-"],
+html.light a[class*="from-cyan-"],
+html.light [class*="bg-cyan-500"],
+html.light [class*="bg-blue-600"],
+html.light [class*="bg-emerald-600"],
+html.light [class*="bg-purple-600"] {
+  color: #ffffff !important;
+}
+
+html.light [class*="text-black"] {
+  color: #000000 !important;
+}
+
+html.light .text-gray-100,
+html.light .text-gray-200 {
+  color: #1e293b !important;
+}
+
+html.light p,
+html.light .text-gray-300,
+html.light .text-gray-400 {
+  color: #475569 !important;
+}
+
+html.light .text-gray-500 {
+  color: #64748b !important;
+}
+
+html.light .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+/* Accent Colors */
+html.light .text-cyan-400,
+html.light .text-cyan-300 {
+  color: #0284c7 !important;
+}
+
+html.light .text-purple-400,
+html.light .text-purple-300 {
+  color: #7c3aed !important;
+}
+
+html.light .text-emerald-400,
+html.light .text-emerald-300 {
+  color: #059669 !important;
+}
+
+html.light .text-amber-400,
+html.light .text-yellow-400 {
+  color: #d97706 !important;
+}
+
+html.light .bg-clip-text.text-transparent {
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Badges, Chips & Pills */
+html.light [class*="bg-white/5"],
+html.light [class*="bg-white/10"],
+html.light [class*="bg-white/[0.0"] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+html.light .bg-cyan-500\/10,
+html.light .bg-cyan-500\/15,
+html.light .bg-cyan-500\/20 {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+}
+
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-500\/15 {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+html.light .bg-purple-500\/10,
+html.light .bg-purple-500\/15 {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+}
+
+html.light .bg-amber-500\/10,
+html.light .bg-yellow-500\/10 {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+}
+
+/* Form Controls */
+html.light input,
+html.light textarea,
+html.light select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light label {
+  color: #475569 !important;
+}
+
+/* Lighting & Ambient Meshes */
+html.light [class*="blur-[1"] {
+  opacity: 0.15 !important;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+html.light ::selection {
+  background: rgba(2, 132, 199, 0.25);
+  color: #0f172a;
+}
 

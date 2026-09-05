@@ -605,6 +605,78 @@ export function AdminDashboardClient({
     document.body.removeChild(link);
   };
 
+  const handleExportAccreditationCSV = () => {
+    if (applications.length === 0) {
+      alert("No student application records to export.");
+      return;
+    }
+
+    const headers = [
+      "Candidate Name",
+      "Email Address",
+      "Contact Phone",
+      "College / Institution",
+      "Degree Program",
+      "Graduation Year",
+      "Domain Track",
+      "Internship Modality",
+      "Duration",
+      "Accreditation Hours",
+      "Enrollment Status",
+      "Payment Status",
+      "UPI UTR Number",
+      "GitHub Repo Link",
+      "Live Deployment Demo",
+      "Certificate ID",
+      "Evaluation Grade",
+      "Date Applied / Issued",
+      "Official Verification URL",
+    ];
+
+    const rows = applications.map((app) => {
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
+      const cert = certificates.find((c) => c.studentEmail === app.email || c.id === app.certificateId);
+      const hours = app.duration?.includes("12") ? "240 Hours" : app.duration?.includes("8") ? "160 Hours" : "120 Hours";
+      const certId = app.certificateId || cert?.id || "Pending";
+      const grade = cert?.grade || (app.paymentStatus === "Approved" ? "Distinction" : "Under Evaluation");
+      const verUrl = certId !== "Pending" ? `${origin}/verify/${certId}` : "N/A";
+
+      return [
+        `"${(app.fullName || "").replace(/"/g, '""')}"`,
+        `"${(app.email || "").replace(/"/g, '""')}"`,
+        `"${(app.phone || "").replace(/"/g, '""')}"`,
+        `"${(app.college || "").replace(/"/g, '""')}"`,
+        `"${(app.degree || "").replace(/"/g, '""')}"`,
+        `"${(app.graduationYear || "").replace(/"/g, '""')}"`,
+        `"${(app.domain || "").replace(/"/g, '""')}"`,
+        `"${(app.mode || "").replace(/"/g, '""')}"`,
+        `"${(app.duration || "").replace(/"/g, '""')}"`,
+        `"${hours}"`,
+        `"${app.status || "Pending"}"`,
+        `"${app.paymentStatus || "None"}"`,
+        `"${(app.paymentUtr || "N/A").replace(/"/g, '""')}"`,
+        `"${(app.githubRepo || "N/A").replace(/"/g, '""')}"`,
+        `"${(app.liveUrl || "N/A").replace(/"/g, '""')}"`,
+        `"${certId}"`,
+        `"${grade}"`,
+        `"${new Date(app.createdAt).toLocaleDateString()}"`,
+        `"${verUrl}"`,
+      ].join(",");
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `Haque_and_Sons_Accreditation_Report_${new Date().toISOString().slice(0, 10)}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const openIssueCertForApp = (app: InternshipAppRow) => {
     setCertStudentName(app.fullName);
     setCertStudentEmail(app.email);
@@ -899,6 +971,15 @@ export function AdminDashboardClient({
                 >
                   <Download className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Export CSV</span>
+                </button>
+
+                <button
+                  onClick={handleExportAccreditationCSV}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  title="Export full institutional accreditation CSV for AICTE / NAAC reporting"
+                >
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span>NAAC / AICTE Accreditation CSV</span>
                 </button>
 
                 <button

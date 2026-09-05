@@ -4,6 +4,7 @@ import { internshipApplications } from "@/db/schema";
 import { ensureTablesExist } from "@/db/init-tables";
 import { eq, desc } from "drizzle-orm";
 import { Resend } from "resend";
+import { dispatchWebhook } from "@/lib/webhooks";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const ADMIN_NOTIFICATION_EMAIL = "haquendsons@gmail.com";
@@ -66,6 +67,21 @@ export async function POST(req: NextRequest) {
 
     const mode = app.mode || "Online";
     const expectedFee = mode === "Offline" ? 249 : mode === "Hybrid" ? 199 : 99;
+
+    // Dispatch Discord/Slack webhook notification
+    await dispatchWebhook({
+      event: "payment.submitted",
+      title: `Payment Submitted: ${app.fullName} (₹${expectedFee})`,
+      description: `Student submitted UPI payment proof and Google exit feedback form for ${app.domain}.`,
+      data: {
+        student: app.fullName,
+        email: cleanEmail,
+        college: app.college,
+        track: `${mode} Track (₹${expectedFee})`,
+        utr: paymentUtr || "Screenshot Attached",
+        rating: `${feedbackRating} / 5 Stars`,
+      },
+    });
 
     // Alert Admin at haquendsons@gmail.com about payment proof & evaluation submission
     if (resend) {

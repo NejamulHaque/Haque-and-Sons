@@ -30,7 +30,21 @@ export function Navbar() {
     const isLight = document.documentElement.classList.contains("light") || localStorage.getItem("theme") === "light";
     if (isLight) {
       document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+      setDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+      setDarkMode(true);
     }
+
+    const handleThemeChange = (e: any) => {
+      const mode = e.detail;
+      setDarkMode(mode !== "light");
+    };
+
+    window.addEventListener("haque-theme-change", handleThemeChange);
+    return () => window.removeEventListener("haque-theme-change", handleThemeChange);
   }, []);
 
   useEffect(() => {
@@ -48,10 +62,14 @@ export function Navbar() {
     setDarkMode(newMode);
     if (newMode) {
       document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
+      window.dispatchEvent(new CustomEvent("haque-theme-change", { detail: "dark" }));
     } else {
       document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
+      window.dispatchEvent(new CustomEvent("haque-theme-change", { detail: "light" }));
     }
   };
 
@@ -65,32 +83,34 @@ export function Navbar() {
     }
   };
 
+  const isHome = pathname === "/";
+
   const navStyle: React.CSSProperties = darkMode
-    ? scrolled
+    ? scrolled || !isHome
       ? {
-          backgroundColor: "rgba(0,0,0,0.75)",
+          backgroundColor: "rgba(0,0,0,0.8)",
           backdropFilter: "blur(24px)",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
         }
       : { backgroundColor: "transparent", borderBottom: "none", boxShadow: "none" }
-    : scrolled
+    : scrolled || !isHome
     ? {
         backgroundColor: "rgba(255,255,255,0.92)",
         backdropFilter: "blur(24px)",
-        borderBottom: "1px solid #e5e7eb",
+        borderBottom: "1px solid #e2e8f0",
         boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
       }
     : {
-        backgroundColor: "rgba(255,255,255,0.75)",
+        backgroundColor: "rgba(255,255,255,0.85)",
         backdropFilter: "blur(24px)",
-        borderBottom: "1px solid #e5e7eb",
+        borderBottom: "1px solid #e2e8f0",
         boxShadow: "none",
       };
 
-  const textColor = darkMode ? "#9ca3af" : "#374151";
-  const textHoverColor = darkMode ? "#ffffff" : "#111827";
-  const logoTextColor = darkMode ? "#ffffff" : "#111827";
+  const textColor = darkMode ? "#9ca3af" : "#475569";
+  const textHoverColor = darkMode ? "#ffffff" : "#0f172a";
+  const logoTextColor = darkMode ? "#ffffff" : "#0f172a";
 
   return (
     <motion.nav
@@ -161,11 +181,19 @@ export function Navbar() {
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
-            style={{ color: textColor }}
-            className="ml-1 p-2 rounded-lg hover:bg-white/10 transition-all cursor-pointer bg-transparent border-none"
+            className={`ml-1.5 p-2 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center ${
+              darkMode
+                ? "bg-white/5 hover:bg-white/10 border-white/10 text-yellow-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.25)]"
+                : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-cyan-600 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+            }`}
             aria-label="Toggle theme"
+            title={darkMode ? "Switch to Light Studio OS" : "Switch to Dark Cyber OS"}
           >
-            {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+            {darkMode ? (
+              <Sun size={17} className="text-yellow-400" />
+            ) : (
+              <Moon size={17} className="text-cyan-600" />
+            )}
           </button>
 
           {/* Student Auth & Dashboard */}
@@ -208,8 +236,11 @@ export function Navbar() {
         <div className="md:hidden flex items-center gap-2">
           <button
             onClick={toggleTheme}
-            style={{ color: textColor }}
-            className="p-2 rounded-lg cursor-pointer bg-transparent border-none"
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
+              darkMode
+                ? "bg-white/5 border-white/10 text-yellow-400"
+                : "bg-slate-100 border-slate-200 text-cyan-600"
+            }`}
             aria-label="Toggle theme"
           >
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}

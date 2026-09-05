@@ -3,6 +3,7 @@ import { certificates } from "@/db/schema";
 import { ensureTablesExist } from "@/db/init-tables";
 import { eq } from "drizzle-orm";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
+import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
 import { ShieldCheck, AlertTriangle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -132,8 +133,16 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
         {/* The Printable & Downloadable Certificate Component */}
         <CertificateRenderer certificate={certData} showActions={true} />
 
+        {/* Social Credential & GitHub Badge Embed Suite */}
+        <VerifyCredentialActions
+          certId={certData.id}
+          studentName={certData.studentName}
+          domain={certData.domain}
+          issueDate={certData.issueDate}
+        />
+
         {/* Verification Metadata Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
             <span className="text-[10px] text-gray-500 uppercase font-semibold block">
               Recipient College
