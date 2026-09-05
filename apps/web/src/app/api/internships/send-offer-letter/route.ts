@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       domain = "Full-Stack Web Development",
       mode = "Online",
       duration = "4 Weeks",
-      internshipType = "Free (Project Certification)",
+      internshipType = "Certification",
       offerId,
     } = body;
 

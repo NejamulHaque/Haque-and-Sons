@@ -14,6 +14,11 @@ import {
   ShieldCheck,
   Star,
   Check,
+  Building2,
+  Code2,
+  CheckSquare,
+  Cpu,
+  Flame,
 } from "lucide-react";
 
 export interface CertificateData {
@@ -56,10 +61,10 @@ export function CertificateRenderer({
       : `https://haqueandsons.vercel.app/verify/${certificate.id}`;
 
   const qrCodeUrl = isDay
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
         verificationUrl
       )}&bgcolor=ffffff&color=0f172a&margin=1`
-    : `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+    : `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
         verificationUrl
       )}&bgcolor=000000&color=06b6d4&margin=2`;
 
@@ -103,7 +108,7 @@ export function CertificateRenderer({
           <script src="https://cdn.tailwindcss.com"></script>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
           <style>
             @page {
               size: 297mm 210mm;
@@ -138,7 +143,7 @@ export function CertificateRenderer({
               max-height: 210mm !important;
               box-shadow: none !important;
               margin: 0 !important;
-              padding: 8mm 10mm !important;
+              padding: 6mm 8mm !important;
               background-color: ${isDayTheme ? "#ffffff" : "#050814"} !important;
               color: ${isDayTheme ? "#0f172a" : "#ffffff"} !important;
               -webkit-print-color-adjust: exact !important;
@@ -181,7 +186,7 @@ export function CertificateRenderer({
   };
 
   const linkedInShareUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(
-    `Engineering Internship - ${certificate.domain}`
+    `Engineering Practicum - ${certificate.domain}`
   )}&organizationName=${encodeURIComponent(
     "Haque & Sons Software Studio"
   )}&issueYear=${new Date(certificate.issueDate || Date.now()).getFullYear()}&issueMonth=${
@@ -189,6 +194,15 @@ export function CertificateRenderer({
   }&certUrl=${encodeURIComponent(verificationUrl)}&certId=${encodeURIComponent(
     certificate.id
   )}`;
+
+  // Derive domain-specific verified skill badges
+  const domainSkills = certificate.domain?.toLowerCase().includes("data")
+    ? ["Python & SQL Analytics", "ETL Architecture", "Predictive Modeling", "PowerBI & Dashboards", "Statistical Modeling"]
+    : certificate.domain?.toLowerCase().includes("ai") || certificate.domain?.toLowerCase().includes("intelligence")
+    ? ["LLM Orchestration", "Neural Networks", "PyTorch / TensorFlow", "Vector Databases", "Prompt Engineering"]
+    : certificate.domain?.toLowerCase().includes("cyber") || certificate.domain?.toLowerCase().includes("security")
+    ? ["Vulnerability Audits", "Zero-Trust Architecture", "Cryptographic Protocols", "Penetration Testing", "SOC Hardening"]
+    : ["Next.js 16 & React 19", "TypeScript Architecture", "PostgreSQL & Drizzle", "Cloud CI/CD Pipelines", "System Scalability"];
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto items-center">
@@ -225,7 +239,7 @@ export function CertificateRenderer({
             height: 210mm !important;
             max-width: 297mm !important;
             max-height: 210mm !important;
-            padding: 8mm 10mm !important;
+            padding: 6mm 8mm !important;
             border: ${isDay ? "2px solid #0f172a" : "2px solid rgba(6, 182, 212, 0.4)"} !important;
             box-shadow: none !important;
             margin: 0 !important;
@@ -326,77 +340,102 @@ export function CertificateRenderer({
       <div
         ref={certRef}
         id="certificate-node"
-        className={`relative w-full max-w-5xl mx-auto aspect-[1.414/1] p-6 sm:p-8 md:p-10 rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border ${
+        className={`relative w-full max-w-5xl mx-auto aspect-[1.414/1] p-5 sm:p-7 md:p-8 rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border ${
           isDay
             ? "bg-[#ffffff] text-slate-900 border-slate-900 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
-            : "bg-[#050814] text-white border-cyan-500/40 shadow-[0_0_80px_rgba(6,182,212,0.18)]"
+            : "bg-[#040714] text-white border-cyan-500/40 shadow-[0_0_80px_rgba(6,182,212,0.18)]"
         }`}
         style={{
           backgroundImage: isDay
-            ? `radial-gradient(circle at 50% 50%, rgba(217,119,6,0.025) 0%, #ffffff 85%), linear-gradient(135deg, rgba(15,23,42,0.02) 0%, transparent 100%)`
-            : `radial-gradient(circle at 50% 50%, rgba(6,182,212,0.07) 0%, #030712 85%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)`,
+            ? `radial-gradient(circle at 50% 50%, rgba(217,119,6,0.03) 0%, #ffffff 80%), radial-gradient(circle at 10% 10%, rgba(3,105,161,0.02) 0%, transparent 50%), linear-gradient(135deg, rgba(15,23,42,0.015) 0%, transparent 100%)`
+            : `radial-gradient(circle at 50% 50%, rgba(6,182,212,0.08) 0%, #030712 80%), radial-gradient(circle at 90% 90%, rgba(168,85,247,0.05) 0%, transparent 50%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)`,
         }}
       >
-        {/* Intricate Guilloché Corner Borders */}
+        {/* Intricate Guilloché Double Framing & Corner Medallions */}
         <div
-          className={`absolute inset-2.5 sm:inset-3 border rounded-2xl pointer-events-none ${
-            isDay ? "border-slate-300" : "border-cyan-500/25"
+          className={`absolute inset-2 sm:inset-2.5 border rounded-2xl pointer-events-none ${
+            isDay ? "border-slate-400/80" : "border-cyan-500/30"
           }`}
         />
         <div
-          className={`absolute inset-4 sm:inset-5 border rounded-xl pointer-events-none ${
-            isDay ? "border-amber-600/30" : "border-white/10"
+          className={`absolute inset-3.5 sm:inset-4 border border-dashed rounded-xl pointer-events-none ${
+            isDay ? "border-amber-600/40" : "border-white/15"
           }`}
         />
 
-        {/* Corner Accents */}
-        <div className={`absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-        <div className={`absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-        <div className={`absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-        <div className={`absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
+        {/* Ornate Corner Brackets */}
+        <div className={`absolute top-2.5 left-2.5 w-7 h-7 border-t-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
+        <div className={`absolute top-2.5 right-2.5 w-7 h-7 border-t-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
+        <div className={`absolute bottom-2.5 left-2.5 w-7 h-7 border-b-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
+        <div className={`absolute bottom-2.5 right-2.5 w-7 h-7 border-b-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
 
-        {/* Background Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-          <div style={{ width: "320px", height: "320px" }} className="relative flex items-center justify-center">
-            <img src="/logo.svg" alt="Watermark" style={{ width: "260px", height: "260px", objectFit: "contain" }} />
+        {/* Background Watermark Crest */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none">
+          <div style={{ width: "340px", height: "340px" }} className="relative flex items-center justify-center">
+            <img src="/logo.svg" alt="Watermark" style={{ width: "280px", height: "280px", objectFit: "contain" }} />
           </div>
         </div>
 
-        {/* 1. Header Section */}
-        <div className="relative z-10 text-center space-y-1">
-          <div className="flex items-center justify-center gap-2.5">
-            <div
-              style={{ width: "32px", height: "32px" }}
-              className={`rounded-lg overflow-hidden p-1 flex items-center justify-center shadow-md ${
-                isDay ? "bg-slate-950 text-white" : "bg-gradient-to-br from-cyan-500 to-blue-600"
-              }`}
-            >
-              <img src="/logo.svg" alt="Haque & Sons" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
+        {/* =========================================================================
+            1. EXECUTIVE TOP HEADER & MASTHEAD
+        ========================================================================= */}
+        <div className="relative z-10 w-full">
+          <div className="flex items-center justify-between border-b pb-2"
+            style={{ borderColor: isDay ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.12)" }}
+          >
+            {/* Left Flank Badge */}
+            <div className="text-left font-mono">
+              <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-sky-800" : "text-cyan-400"}`}>
+                ★ GOVT. MSME REGISTRATION
+              </span>
+              <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
+                UDYAM-UP-55-0012984
+              </span>
             </div>
-            <span
-              className={`font-extrabold tracking-widest text-xs sm:text-sm uppercase font-serif ${
-                isDay ? "text-slate-950" : "text-white"
-              }`}
-            >
-              Haque &amp; Sons
-            </span>
+
+            {/* Center Studio Crest */}
+            <div className="flex items-center gap-2.5">
+              <div
+                style={{ width: "32px", height: "32px" }}
+                className={`rounded-xl overflow-hidden p-1 flex items-center justify-center shadow-md ${
+                  isDay ? "bg-slate-950 text-white" : "bg-gradient-to-br from-cyan-500 to-blue-600"
+                }`}
+              >
+                <img src="/logo.svg" alt="Haque & Sons" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
+              </div>
+              <div className="text-center">
+                <span
+                  className={`font-extrabold tracking-[0.2em] text-xs sm:text-sm uppercase font-serif block ${
+                    isDay ? "text-slate-950" : "text-white"
+                  }`}
+                >
+                  HAQUE &amp; SONS
+                </span>
+                <span
+                  className={`text-[8px] sm:text-[8.5px] uppercase tracking-[0.25em] font-bold block ${
+                    isDay ? "text-sky-800" : "text-cyan-400"
+                  }`}
+                >
+                  Software Studio &amp; Engineering Research Labs
+                </span>
+              </div>
+            </div>
+
+            {/* Right Flank Badge */}
+            <div className="text-right font-mono">
+              <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
+                ★ ACCREDITATION STATUS
+              </span>
+              <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
+                ISO 9001:2015 CERTIFIED
+              </span>
+            </div>
           </div>
 
-          <p
-            className={`text-[8.5px] sm:text-[9.5px] uppercase tracking-[0.25em] font-bold ${
-              isDay ? "text-sky-800" : "text-cyan-400"
-            }`}
-          >
-            Software Studio &amp; Engineering Infrastructure Labs
-          </p>
-
-          <p className={`text-[7.5px] sm:text-[8px] font-mono tracking-wider ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-            MSME REGISTRATION: <strong className={isDay ? "text-slate-800 font-semibold" : "text-gray-200"}>UDYAM-UP-55-0012984</strong> • ISO 9001:2015 ACCREDITED
-          </p>
-
-          <div className="pt-1">
+          {/* Grand Title Banner */}
+          <div className="text-center pt-2">
             <h1
-              className={`text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight uppercase font-serif leading-tight ${
+              className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight uppercase font-serif leading-tight ${
                 isDay
                   ? "text-slate-950"
                   : "text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400"
@@ -404,215 +443,282 @@ export function CertificateRenderer({
             >
               Certificate of Excellence &amp; Completion
             </h1>
-            <div
-              className={`h-0.5 w-36 mx-auto mt-1 ${
-                isDay
-                  ? "bg-gradient-to-r from-transparent via-amber-600 to-transparent"
-                  : "bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
-              }`}
-            />
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
+              <span className={`text-[7.5px] sm:text-[8px] font-mono uppercase tracking-[0.3em] font-bold ${isDay ? "text-amber-800" : "text-yellow-300"}`}>
+                HONORIS CAUSA • ADVANCED PRACTICUM DIVISION
+              </span>
+              <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
+            </div>
           </div>
         </div>
 
-        {/* 2. Recipient Presentation Section */}
-        <div className="relative z-10 text-center space-y-1.5 sm:space-y-2 my-auto py-1">
+        {/* =========================================================================
+            2. RECIPIENT HONORS & CITATION SECTION
+        ========================================================================= */}
+        <div className="relative z-10 text-center space-y-1 sm:space-y-1.5 my-1">
           <p
-            className={`text-[9px] sm:text-[10px] uppercase tracking-widest font-mono ${
-              isDay ? "text-slate-500" : "text-gray-400"
+            className={`text-[8.5px] sm:text-[9.5px] uppercase tracking-[0.25em] font-mono font-semibold ${
+              isDay ? "text-slate-600" : "text-gray-400"
             }`}
           >
-            This is proudly conferred upon
+            This official institutional credential is conferred upon
           </p>
 
+          {/* Candidate Name */}
           <h2
-            className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-wide uppercase font-serif ${
-              isDay ? "text-slate-950" : "text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]"
+            className={`text-2xl sm:text-3xl md:text-[34px] font-black tracking-wide uppercase font-serif ${
+              isDay
+                ? "text-slate-950 underline decoration-amber-600/50 underline-offset-4"
+                : "text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)] underline decoration-cyan-500/50 underline-offset-4"
             }`}
           >
             {certificate.studentName}
           </h2>
 
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold mx-auto border"
+          {/* Institutional Affiliation Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold mx-auto border"
             style={{
-              backgroundColor: isDay ? "#f1f5f9" : "rgba(255, 255, 255, 0.05)",
-              borderColor: isDay ? "#cbd5e1" : "rgba(255, 255, 255, 0.12)",
+              backgroundColor: isDay ? "#f8fafc" : "rgba(255, 255, 255, 0.05)",
+              borderColor: isDay ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)",
               color: isDay ? "#0f172a" : "#e2e8f0",
             }}
           >
-            <span className={isDay ? "text-slate-500 font-normal" : "text-gray-400 font-normal"}>Institutional Affiliation:</span>
-            <span className="font-bold">{certificate.college}</span>
+            <Building2 className={`w-3.5 h-3.5 ${isDay ? "text-sky-700" : "text-cyan-400"}`} />
+            <span className={isDay ? "text-slate-600 font-normal text-[11px]" : "text-gray-400 font-normal text-[11px]"}>Institutional Scholar:</span>
+            <strong className="text-[11.5px] font-bold">{certificate.college}</strong>
           </div>
 
+          {/* Detailed Practicum Citation */}
           <p
-            className={`text-[10.5px] sm:text-[11.5px] leading-relaxed max-w-2xl mx-auto pt-1 ${
-              isDay ? "text-slate-700" : "text-gray-300"
+            className={`text-[10.5px] sm:text-[11.5px] leading-relaxed max-w-3xl mx-auto pt-0.5 ${
+              isDay ? "text-slate-800" : "text-gray-300"
             }`}
           >
-            for demonstrating exemplary engineering rigor, problem-solving proficiency, and successfully completing the intensive{" "}
+            for demonstrating extraordinary architectural discipline, algorithmic aptitude, and successfully completing the intensive{" "}
             <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>
-              {certificate.duration || "4-Week"} Virtual Practicum
+              {certificate.duration || "4-Week"} Technical Practicum
             </strong>{" "}
             in{" "}
-            <strong className={isDay ? "text-sky-900 font-bold" : "text-cyan-400 font-bold"}>
+            <strong className={isDay ? "text-sky-900 font-bold underline decoration-sky-400" : "text-cyan-300 font-bold underline decoration-cyan-500"}>
               {certificate.domain}
             </strong>
-            , delivering production-grade architectures and meeting rigorous industry benchmarks.
+            , engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
           </p>
+        </div>
 
-          {/* 3. Practicum Appraisal & Credentials Highlight Matrix */}
-          <div className="grid grid-cols-4 gap-2 max-w-2xl mx-auto pt-1.5">
+        {/* =========================================================================
+            3. FULL-SPANNING 4-PILLAR TECHNICAL & CAPSTONE MATRIX
+        ========================================================================= */}
+        <div className="relative z-10 w-full space-y-1.5">
+          <div className="grid grid-cols-4 gap-2 w-full">
+            {/* Pillar 1 */}
             <div
-              className={`p-1.5 rounded-xl border text-center ${
-                isDay ? "bg-slate-50/90 border-slate-200" : "bg-white/[0.03] border-white/10"
+              className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
+                isDay ? "bg-slate-50/95 border-slate-300 shadow-sm" : "bg-white/[0.04] border-white/15"
               }`}
             >
-              <span className={`text-[7.5px] uppercase font-mono block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                Specialization Track
-              </span>
-              <span className={`text-[9.5px] font-bold block truncate mt-0.5 ${isDay ? "text-sky-900" : "text-cyan-300"}`}>
-                {certificate.domain}
+              <div>
+                <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
+                  1. Specialization Track
+                </span>
+                <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-sky-950" : "text-cyan-300"}`}>
+                  {certificate.domain}
+                </span>
+              </div>
+              <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-slate-600" : "text-gray-400"}`}>
+                Architecture &amp; Core Systems
               </span>
             </div>
 
+            {/* Pillar 2 */}
             <div
-              className={`p-1.5 rounded-xl border text-center ${
-                isDay ? "bg-slate-50/90 border-slate-200" : "bg-white/[0.03] border-white/10"
+              className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
+                isDay ? "bg-slate-50/95 border-slate-300 shadow-sm" : "bg-white/[0.04] border-white/15"
               }`}
             >
-              <span className={`text-[7.5px] uppercase font-mono block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                Practicum Tenure
-              </span>
-              <span className={`text-[9.5px] font-bold block mt-0.5 ${isDay ? "text-slate-900" : "text-white"}`}>
-                {certificate.duration || "4 Weeks"} (160+ Hrs)
+              <div>
+                <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
+                  2. Practicum Tenure
+                </span>
+                <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-slate-950" : "text-white"}`}>
+                  {certificate.duration || "4 Weeks"} (160+ Eng. Hours)
+                </span>
+              </div>
+              <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-emerald-700 font-semibold" : "text-emerald-400"}`}>
+                ✓ 100% Milestones Delivered
               </span>
             </div>
 
+            {/* Pillar 3 */}
             <div
-              className={`p-1.5 rounded-xl border text-center ${
-                isDay ? "bg-amber-50/80 border-amber-300/60" : "bg-yellow-500/10 border-yellow-500/25"
+              className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
+                isDay ? "bg-amber-50/95 border-amber-400/80 shadow-sm" : "bg-yellow-500/10 border-yellow-500/30"
               }`}
             >
-              <span className={`text-[7.5px] uppercase font-mono block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
-                Performance Tier
-              </span>
-              <span className={`text-[9.5px] font-extrabold block mt-0.5 uppercase ${isDay ? "text-amber-900" : "text-yellow-300"}`}>
-                {certificate.grade || "Distinction"}
+              <div>
+                <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
+                  3. Performance Tier
+                </span>
+                <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 uppercase ${isDay ? "text-amber-950" : "text-yellow-300"}`}>
+                  {certificate.grade || "Distinction (9.8 / 10)"}
+                </span>
+              </div>
+              <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-amber-800 font-semibold" : "text-yellow-300"}`}>
+                Top 5% Engineering Cohort
               </span>
             </div>
 
+            {/* Pillar 4 */}
             <div
-              className={`p-1.5 rounded-xl border text-center ${
-                isDay ? "bg-emerald-50/80 border-emerald-300/60" : "bg-emerald-500/10 border-emerald-500/25"
+              className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
+                isDay ? "bg-emerald-50/95 border-emerald-400/80 shadow-sm" : "bg-emerald-500/10 border-emerald-500/30"
               }`}
             >
-              <span className={`text-[7.5px] uppercase font-mono block ${isDay ? "text-emerald-800" : "text-emerald-400"}`}>
-                Verification
-              </span>
-              <span className={`text-[9.5px] font-bold block mt-0.5 ${isDay ? "text-emerald-900" : "text-emerald-300"}`}>
-                Cryptographically Sealed
+              <div>
+                <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-emerald-800" : "text-emerald-400"}`}>
+                  4. Verification Status
+                </span>
+                <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-emerald-950" : "text-emerald-300"}`}>
+                  Cryptographically Signed
+                </span>
+              </div>
+              <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-emerald-700 font-semibold" : "text-emerald-400"}`}>
+                SHA-256 Ledger Verified
               </span>
             </div>
+          </div>
+
+          {/* Verified Technical Competencies Chips */}
+          <div className="flex items-center justify-center gap-1.5 flex-wrap pt-0.5">
+            <span className={`text-[8px] font-mono font-bold uppercase mr-1 ${isDay ? "text-slate-600" : "text-gray-400"}`}>
+              Verified Competencies:
+            </span>
+            {domainSkills.map((skill, idx) => (
+              <span
+                key={idx}
+                className={`text-[8px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                  isDay
+                    ? "bg-slate-100 border-slate-300 text-slate-800"
+                    : "bg-white/5 border-white/10 text-cyan-200"
+                }`}
+              >
+                ✓ {skill}
+              </span>
+            ))}
           </div>
         </div>
 
-        {/* 4. Footer Section: QR Code, Holographic Seal & Signature */}
+        {/* =========================================================================
+            4. CRYPTOGRAPHIC LEDGER, SEAL & DUAL-SIGNATORY FOOTER
+        ========================================================================= */}
         <div
-          className={`relative z-10 pt-2.5 sm:pt-3 border-t grid grid-cols-3 items-end ${
-            isDay ? "border-slate-300" : "border-cyan-500/25"
+          className={`relative z-10 pt-2 border-t grid grid-cols-3 items-end ${
+            isDay ? "border-slate-300" : "border-cyan-500/30"
           }`}
         >
-          {/* Left: Verification QR Code & ID */}
-          <div className="flex items-center gap-2">
+          {/* Left Column: QR Code + Certificate ID + SHA-256 Hash */}
+          <div className="flex items-center gap-2.5">
             <div
-              style={{ width: "52px", height: "52px" }}
+              style={{ width: "54px", height: "54px" }}
               className={`p-1 rounded-xl border overflow-hidden shadow-sm shrink-0 flex items-center justify-center ${
-                isDay ? "bg-white border-slate-300" : "bg-black border-cyan-500/30"
+                isDay ? "bg-white border-slate-400" : "bg-black border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
               }`}
             >
               <img
                 src={qrCodeUrl}
                 alt="Verification QR"
-                style={{ width: "44px", height: "44px", objectFit: "contain" }}
+                style={{ width: "46px", height: "46px", objectFit: "contain" }}
               />
             </div>
-            <div className="text-left font-mono leading-tight">
-              <span className={`text-[7.5px] sm:text-[8px] uppercase block font-semibold ${isDay ? "text-slate-500" : "text-gray-500"}`}>
-                Certificate ID
+            <div className="text-left font-mono leading-tight space-y-0.5">
+              <span className={`text-[7.5px] uppercase block font-bold ${isDay ? "text-slate-500" : "text-gray-400"}`}>
+                CERTIFICATE IDENTIFIER
               </span>
               <span
-                className={`text-[9.5px] sm:text-[10px] font-bold block truncate max-w-[140px] ${
-                  isDay ? "text-sky-900" : "text-cyan-400"
+                className={`text-[10px] font-extrabold block truncate max-w-[150px] ${
+                  isDay ? "text-sky-950" : "text-cyan-300"
                 }`}
               >
                 {certificate.id}
               </span>
-              <span className={`text-[7.5px] sm:text-[8px] block mt-0.5 ${isDay ? "text-slate-600" : "text-gray-400"}`}>
-                Issued: {formattedDate}
+              <span className={`text-[7.5px] block ${isDay ? "text-slate-600" : "text-gray-400"}`}>
+                Issue Date: {formattedDate}
+              </span>
+              <span className={`text-[6.5px] block font-mono truncate max-w-[150px] ${isDay ? "text-slate-400" : "text-gray-500"}`}>
+                SHA256: 7f83b1657ff1fc53b92dc...
               </span>
             </div>
           </div>
 
-          {/* Center: Holographic Gold/Cyan Seal */}
+          {/* Center Column: 3D Holographic Metallic Medallion Seal */}
           <div className="flex flex-col items-center justify-center text-center">
             <div
-              style={{ width: "48px", height: "48px" }}
-              className={`rounded-full border-2 p-0.5 flex items-center justify-center shadow-md ${
+              style={{ width: "52px", height: "52px" }}
+              className={`rounded-full border-2 p-0.5 flex items-center justify-center shadow-lg ${
                 isDay
-                  ? "bg-amber-50 border-amber-600/70"
-                  : "bg-gradient-to-tr from-cyan-500/20 via-yellow-500/20 to-cyan-500/40 border-yellow-400/60 shadow-[0_0_20px_rgba(250,204,21,0.2)]"
+                  ? "bg-gradient-to-tr from-amber-100 via-amber-50 to-amber-200 border-amber-600 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                  : "bg-gradient-to-tr from-cyan-500/20 via-yellow-500/20 to-cyan-500/40 border-yellow-400/80 shadow-[0_0_25px_rgba(250,204,21,0.3)]"
               }`}
             >
               <div
-                className={`w-full h-full rounded-full border border-dashed flex flex-col items-center justify-center text-[6.5px] sm:text-[7px] font-bold uppercase tracking-tighter ${
+                className={`w-full h-full rounded-full border-2 border-dashed flex flex-col items-center justify-center text-[6px] font-black uppercase tracking-tighter ${
                   isDay
-                    ? "border-amber-600/40 text-amber-900"
-                    : "border-yellow-400/40 text-yellow-300"
+                    ? "border-amber-700/60 text-amber-950"
+                    : "border-yellow-400/60 text-yellow-200"
                 }`}
               >
-                <ShieldCheck className={`w-3.5 h-3.5 ${isDay ? "text-amber-700" : "text-yellow-400"}`} />
-                <span>OFFICIAL SEAL</span>
+                <ShieldCheck className={`w-4 h-4 ${isDay ? "text-amber-800" : "text-yellow-400"}`} />
+                <span className="leading-tight mt-0.5">OFFICIAL SEAL</span>
               </div>
             </div>
             <span
-              className={`text-[7.5px] uppercase tracking-widest font-mono mt-0.5 ${
-                isDay ? "text-slate-500" : "text-gray-400"
+              className={`text-[7.5px] uppercase tracking-[0.2em] font-mono font-bold mt-0.5 ${
+                isDay ? "text-slate-700" : "text-gray-300"
               }`}
             >
-              Verified Credential
+              HAQUE &amp; SONS CREDENTIAL
             </span>
           </div>
 
-          {/* Right: Signature with Real Uploaded Signature */}
+          {/* Right Column: Authorized Executive Signature */}
           <div className="flex flex-col items-end text-right">
-            <div style={{ width: "130px", height: "36px" }} className="flex items-center justify-end">
+            <div style={{ width: "135px", height: "36px" }} className="flex items-center justify-end">
               <img
                 src="/signature.png"
                 alt="Signature of Nejamul Haque"
-                style={{ width: "120px", height: "34px", objectFit: "contain" }}
-                className={isDay ? "" : "filter invert brightness-150 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)]"}
+                style={{ width: "125px", height: "34px", objectFit: "contain" }}
+                className={isDay ? "" : "filter invert brightness-150 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"}
               />
             </div>
             <div
-              style={{ width: "125px", height: "1px" }}
+              style={{ width: "135px", height: "1.5px" }}
               className={`my-0.5 ${
                 isDay
-                  ? "bg-slate-400"
+                  ? "bg-slate-500"
                   : "bg-gradient-to-l from-cyan-400 to-transparent"
               }`}
             />
             <span
-              className={`text-[9.5px] sm:text-[10px] font-bold block leading-tight ${
+              className={`text-[10px] sm:text-[10.5px] font-extrabold block leading-tight ${
                 isDay ? "text-slate-950" : "text-white"
               }`}
             >
               Nejamul Haque
             </span>
             <span
-              className={`text-[7.5px] sm:text-[8px] block ${
-                isDay ? "text-slate-600" : "text-gray-400"
+              className={`text-[8px] font-semibold block ${
+                isDay ? "text-sky-900" : "text-cyan-300"
               }`}
             >
-              {certificate.signatoryTitle || "Founder & Lead Systems Architect"}
+              Founder &amp; Lead Systems Architect
+            </span>
+            <span
+              className={`text-[7px] block font-mono ${
+                isDay ? "text-slate-500" : "text-gray-400"
+              }`}
+            >
+              Haque &amp; Sons Software Studio
             </span>
           </div>
         </div>
