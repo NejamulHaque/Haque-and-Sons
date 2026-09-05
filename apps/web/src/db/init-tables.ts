@@ -35,11 +35,11 @@ export async function ensureTablesExist(): Promise<void> {
           errMsg.includes("undefined_table");
 
         if (!isTableMissing) {
-          // It was likely a transient network error or permission issue, do not spam DDL
-          console.warn("Database probe notice:", probeErr?.message || probeErr);
+          // Cold start or transient connection, quietly return and allow queries to retry
           return;
         }
       }
+
 
       // 2. Better Auth Core Tables
       await db.execute(sql`

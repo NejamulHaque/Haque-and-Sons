@@ -44,12 +44,27 @@ const retryFetch: typeof fetch = async (url, options) => {
 neonConfig.fetchFunction = retryFetch;
 
 
+function sanitizeNeonUrl(raw: string): string {
+  if (!raw || !raw.startsWith("postgres")) return raw;
+  try {
+    const url = new URL(raw);
+    url.host = url.host.replace("-pooler", "");
+    url.searchParams.delete("channel_binding");
+    if (!url.searchParams.has("sslmode")) {
+      url.searchParams.set("sslmode", "require");
+    }
+    return url.toString();
+  } catch {
+    return raw
+      .replace("-pooler", "")
+      .replace(/[?&]channel_binding=[^&]+/g, "");
+  }
+}
+
 const rawUrl = process.env.DATABASE_URL || "postgresql://user:password@localhost:5432/haque_studio";
-// For neon-http serverless queries, direct endpoint without -pooler is most reliable
-const connectionString = rawUrl.includes("-pooler")
-  ? rawUrl.replace("-pooler", "")
-  : rawUrl;
+const connectionString = sanitizeNeonUrl(rawUrl);
 
 export const sql = neon(connectionString);
 export const db = drizzle(sql, { schema });
+
 
