@@ -712,273 +712,285 @@ function ProfileContent() {
 
       <div className="max-w-6xl mx-auto space-y-6 relative z-10">
         {/* =========================================================================
-            1. CANDIDATE PROFILE & ACADEMIC IDENTITY SECTION (AICTE NEP 2020 COMPLIANT HUD)
+            1. EXECUTIVE CANDIDATE HUD (AICTE NEP 2020 & NCRF ACCREDITED)
         ========================================================================= */}
         {!isFocusMode && (
-          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-[#0a0f1d] to-black border border-cyan-500/30 p-5 sm:p-7 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden">
-            {/* Holographic Header Gradient Top Bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-cyan-500 via-indigo-500 via-amber-400 to-purple-500" />
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative rounded-3xl bg-gradient-to-b from-[#0b101d] via-[#080d18] to-black border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-[0_0_60px_rgba(6,182,212,0.12)] overflow-hidden space-y-6">
+            {/* Subtle Top Accent Glow Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-80" />
+            <div className="absolute -top-32 -right-32 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col gap-6">
-              {/* Top Row: Candidate Avatar & Info + Action Buttons */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                {/* User Avatar & Candidate Details */}
-                <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-                  <div className="relative shrink-0">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] flex items-center justify-center">
-                      <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
-                        {fullName ? fullName.charAt(0).toUpperCase() : "S"}
-                      </div>
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Online Active">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            {/* Top Row: Identity + Actions */}
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              {/* Left: Avatar + Details */}
+              <div className="flex items-start sm:items-center gap-5">
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-600/20 to-purple-600/20 border border-cyan-500/30 p-1 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.25)]">
+                    <div className="w-full h-full bg-[#070b14] rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
+                      {fullName ? fullName.charAt(0).toUpperCase() : "S"}
                     </div>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                        {fullName || session?.user?.name || "Student Candidate"}
-                      </h1>
-                      {isApplicationApproved ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                          <span>Selected & Enrolled</span>
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-yellow-400 animate-pulse" />
-                          <span>Under Review</span>
-                        </span>
-                      )}
-                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
-                        Verified Candidate
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-3 h-3" />
-                        <span>Neon SQL Synced</span>
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-gray-400 font-mono flex items-center gap-2 flex-wrap">
-                      <span>{session?.user?.email}</span>
-                      <span className="text-gray-600">•</span>
-                      <span className="text-cyan-400 font-semibold">{college || "College not set"}</span>
-                      {degree && (
-                        <>
-                          <span className="text-gray-600">•</span>
-                          <span className="text-gray-300">{degree} ({graduationYear})</span>
-                        </>
-                      )}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                        <Cpu className="w-3 h-3 text-purple-400" />
-                        <span>{domain}</span>
-                      </span>
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                        <Zap className="w-3 h-3 text-yellow-400" />
-                        <span>{mode} Track ({duration})</span>
-                      </span>
-                      {phone && (
-                        <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-400">
-                          📞 {phone}
-                        </span>
-                      )}
-                    </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Active Candidate">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                   </div>
                 </div>
 
-                {/* Quick Actions & Launch Buttons */}
-                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-                  <button
-                    onClick={() => setIsEditProfileOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <User className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Edit Details</span>
-                  </button>
+                {/* Info */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      {fullName || session?.user?.name || "Candidate Profile"}
+                    </h1>
 
-                  {/* AICTE Weekly Activity Logbook / Diary Quick Launch */}
-                  <button
-                    onClick={() => setIsAicteDiaryOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 hover:text-amber-200 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center gap-1.5 cursor-pointer group"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-                    <span>AICTE Logbook &amp; Diary</span>
-                    <span className="px-1.5 py-0.2 rounded bg-amber-500/30 text-[9px] font-mono text-amber-200 font-bold">
-                      +{aicteInfo.activityPoints} Pts
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsOfferLetterOpen(true)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isApplicationApproved
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.35)]"
-                        : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
-                    }`}
-                  >
                     {isApplicationApproved ? (
-                      <>
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Offer Letter</span>
-                      </>
+                      <span className="px-3 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Enrolled Intern</span>
+                      </span>
                     ) : (
+                      <span className="px-3 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                        <span>Application Under Review</span>
+                      </span>
+                    )}
+
+                    <span className="px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-400 font-mono text-xs">
+                      ID: #HS-{application?.id ? String(application.id).padStart(4, "0") : "2026"}
+                    </span>
+                  </div>
+
+                  {/* Structured Metadata Row */}
+                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs text-gray-300 font-sans">
+                    <span className="flex items-center gap-1.5 text-cyan-300 font-medium">
+                      <GraduationCap className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span>{college || "Institution Not Specified"}</span>
+                    </span>
+                    <span className="text-gray-600 hidden sm:inline">•</span>
+                    <span className="text-gray-300">
+                      {degree} ({graduationYear})
+                    </span>
+                    <span className="text-gray-600 hidden sm:inline">•</span>
+                    <span className="text-purple-300 font-medium">
+                      {domain}
+                    </span>
+                    <span className="text-gray-600 hidden sm:inline">•</span>
+                    <span className="text-yellow-300/90 font-medium">
+                      {mode} Track ({duration})
+                    </span>
+                    {session?.user?.email && (
                       <>
-                        <Clock className="w-3.5 h-3.5 text-yellow-400" />
-                        <span>Offer Letter (Under Review)</span>
+                        <span className="text-gray-600 hidden sm:inline">•</span>
+                        <span className="text-gray-400 font-mono">
+                          {session.user.email}
+                        </span>
                       </>
                     )}
-                  </button>
-
-                  {isLorApproved ? (
-                    <button
-                      onClick={() => setIsLorModalOpen(true)}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                      <span>Official LOR</span>
-                    </button>
-                  ) : isLorPending ? (
-                    <button
-                      onClick={() => setIsLorModalOpen(true)}
-                      className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                      <span>LOR (Under Review)</span>
-                    </button>
-                  ) : isLorRejected ? (
-                    <button
-                      onClick={() => setIsApplyLorModalOpen(true)}
-                      className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-                      <span>LOR (Re-Apply)</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setIsApplyLorModalOpen(true)}
-                      className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-gray-300 hover:text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Star className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Apply for LOR</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleSignOut}
-                    disabled={loggingOut}
-                    className="px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                  >
-                    {loggingOut ? (
-                      <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <LogOut className="w-3.5 h-3.5" />
+                    {phone && (
+                      <>
+                        <span className="text-gray-600 hidden sm:inline">•</span>
+                        <span className="text-gray-400 font-mono">
+                          📞 {phone}
+                        </span>
+                      </>
                     )}
-                    <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
-                  </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Bottom Row: AICTE Activity Points & NCrF Academic Credit Ledger Card */}
-              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* AICTE Activity Points Tracker */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5 text-amber-400" />
-                      <span>AICTE Activity Points Granted</span>
-                    </span>
-                    <span className="text-xs font-mono font-extrabold text-amber-400">
-                      +{aicteInfo.activityPoints} Pts
-                    </span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
-                    <div
-                      className="bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (aicteInfo.activityPoints / 100) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                    <span>{aicteInfo.activityPoints} / 100 Pts AICTE Mandate</span>
-                    <span className="text-emerald-400 font-semibold">{Math.round((aicteInfo.activityPoints / 100) * 100)}% Achieved</span>
-                  </div>
-                </div>
+              {/* Right: Clean Unified Action Bar */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 lg:pt-0">
+                {/* Primary Action Button: Offer Letter */}
+                <button
+                  onClick={() => setIsOfferLetterOpen(true)}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md ${
+                    isApplicationApproved
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:scale-[1.02]"
+                      : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>{isApplicationApproved ? "Offer Letter" : "Offer Letter (Pending)"}</span>
+                </button>
 
-                {/* Academic Credit & Hours Allocation */}
-                <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-white/10 md:pl-4 pt-3 md:pt-0">
-                  <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>NCrF Academic Credit Matrix</span>
+                {/* AICTE Logbook Button */}
+                <button
+                  onClick={() => setIsAicteDiaryOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm group hover:scale-[1.02]"
+                >
+                  <BookOpen className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span>AICTE Logbook</span>
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono text-amber-200">
+                    +{aicteInfo.activityPoints} Pts
                   </span>
-                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold font-mono">
-                      {aicteInfo.credits} Academic Credits
-                    </span>
-                    <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-mono">
-                      {aicteInfo.totalHours} Clock Hours
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 leading-tight">
-                    {aicteInfo.category} ({aicteInfo.aicteCode})
-                  </p>
-                </div>
+                </button>
 
-                {/* Institutional Endorsement & MSME Certification */}
-                <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-white/10 md:pl-4 pt-3 md:pt-0">
-                  <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Institutional Accreditations</span>
+                {/* LOR Button */}
+                {isLorApproved ? (
+                  <button
+                    onClick={() => setIsLorModalOpen(true)}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Star className="w-4 h-4 fill-slate-950 text-slate-950" />
+                    <span>Official LOR</span>
+                  </button>
+                ) : isLorPending ? (
+                  <button
+                    onClick={() => setIsLorModalOpen(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Clock className="w-4 h-4 text-amber-400 animate-spin" />
+                    <span>LOR Review</span>
+                  </button>
+                ) : isLorRejected ? (
+                  <button
+                    onClick={() => setIsApplyLorModalOpen(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                    <span>Re-Apply LOR</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsApplyLorModalOpen(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-gray-300 hover:text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Star className="w-4 h-4 text-amber-400" />
+                    <span>Apply LOR</span>
+                  </button>
+                )}
+
+                {/* Edit Profile */}
+                <button
+                  onClick={() => setIsEditProfileOpen(true)}
+                  className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+                  title="Edit Candidate Details"
+                >
+                  <User className="w-4 h-4 text-cyan-400" />
+                </button>
+
+                {/* Sign Out */}
+                <button
+                  onClick={handleSignOut}
+                  disabled={loggingOut}
+                  className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-red-200 transition-all cursor-pointer disabled:opacity-60"
+                  title="Sign Out"
+                >
+                  {loggingOut ? (
+                    <div className="w-4 h-4 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <LogOut className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Row: Modern AICTE & NCrF Academic Credit HUD Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2 border-t border-white/5">
+              {/* 1. AICTE Activity Points */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-amber-500/20 transition-all space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span>AICTE Activity Points</span>
                   </span>
-                  <div className="flex items-center gap-2 flex-wrap text-xs">
-                    <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[11px]">
-                      MSME: {aicteInfo.msmeUdyamId}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono text-[11px]">
-                      ISO 9001:2015
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 leading-tight">
-                    Compliant under AICTE NEP 2020 Internship Guidelines Clause 4.1-4.3
-                  </p>
+                  <span className="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                    +{aicteInfo.activityPoints} Pts Granted
+                  </span>
                 </div>
+                <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/5">
+                  <div
+                    className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                    style={{ width: `${Math.min(100, (aicteInfo.activityPoints / 100) * 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono">
+                  <span>{aicteInfo.activityPoints} / 100 Pts AICTE Mandate</span>
+                  <span className="text-emerald-400 font-bold">{Math.round((aicteInfo.activityPoints / 100) * 100)}% Achieved</span>
+                </div>
+              </div>
+
+              {/* 2. NCrF Academic Credit Matrix */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-cyan-500/20 transition-all space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-cyan-400" />
+                    <span>NCrF Academic Credits</span>
+                  </span>
+                  <span className="text-xs font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                    {aicteInfo.credits} Credits
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-300 font-mono">
+                  <span className="text-white font-bold">{aicteInfo.totalHours} Clock Hours</span>
+                  <span className="text-gray-500">•</span>
+                  <span className="text-cyan-300">{mode} Practicum</span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate" title={`${aicteInfo.category} (${aicteInfo.aicteCode})`}>
+                  Category-B: Industry Practicum & Software R&D ({aicteInfo.aicteCode})
+                </p>
+              </div>
+
+              {/* 3. Institutional Accreditations */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-emerald-500/20 transition-all space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Institutional Accreditation</span>
+                  </span>
+                  <span className="text-xs font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                    AICTE Compliant
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <span className="text-emerald-300 font-semibold">MSME: {aicteInfo.msmeUdyamId}</span>
+                  <span className="text-gray-500">•</span>
+                  <span className="text-purple-300 font-semibold">ISO 9001:2015</span>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Compliant under AICTE NEP 2020 Internship Guidelines Clause 4.1-4.3
+                </p>
               </div>
             </div>
           </div>
         )}
 
         {/* =========================================================================
-            2. INTERNSHIP DASHBOARD & MILESTONE WORKSPACE
+            2. INTERNSHIP WORKSPACE & 5-STAGE PIPELINE NAVIGATION
         ========================================================================= */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {!isFocusMode && (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
                   <GraduationCap className="w-3 h-3" />
-                  <span>Internship Workspace</span>
+                  <span>AICTE Practicum Pipeline</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                  Internship Dashboard &amp; Milestone Kanban
+                  Internship Workspace &amp; Milestones
                 </h2>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-gray-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                  Progress: <strong className="text-cyan-400">{sprintPercentage}% Completed</strong>
-                </span>
+                <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-gray-950 border border-white/10 text-xs font-mono">
+                  <span className="text-gray-400">Sprint Progress:</span>
+                  <span className="font-bold text-cyan-400">{sprintPercentage}% Completed</span>
+                  <div className="w-16 bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-cyan-400 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${sprintPercentage}%` }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* VIEW MODE TOGGLE & SLIDE CONTROLLER BAR */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2.5 rounded-2xl bg-gray-950/90 border border-white/10 backdrop-blur-xl shadow-xl">
-            {/* View Mode Pills */}
-            <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-xl border border-white/5">
+          {/* VIEW MODE TOGGLE & 5-STAGE LINEAR STEPPER */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-2 rounded-2xl bg-gray-950/90 border border-white/10 backdrop-blur-xl shadow-xl">
+            {/* Left: View Mode Pills */}
+            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/5 shrink-0">
               <button
                 onClick={() => setViewMode("slides")}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -988,7 +1000,7 @@ function ProfileContent() {
                 }`}
               >
                 <Sliders className="w-3.5 h-3.5" />
-                <span>Interactive Slides</span>
+                <span>Step-by-Step</span>
               </button>
 
               <button
@@ -1000,69 +1012,85 @@ function ProfileContent() {
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Full Overview</span>
+                <span>Complete Overview</span>
               </button>
             </div>
 
-          {/* Slide Deck Navigation Controls (When in Slides View) */}
-          {viewMode === "slides" && (
-            <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end w-full sm:w-auto">
-              {/* Slide Indicator Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full py-1">
-                {SLIDES_CONFIG.map((s, idx) => (
+            {/* Center / Right: 5-Stage Linear Pipeline Navigation (When in Slides View) */}
+            {viewMode === "slides" && (
+              <div className="flex items-center gap-2 flex-wrap justify-between lg:justify-end w-full lg:w-auto">
+                {/* 5-Stage Stepper Pills */}
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-full py-0.5">
+                  {SLIDES_CONFIG.map((s, idx) => {
+                    const isActive = currentSlide === idx;
+                    const isCompleted = idx < currentSlide;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => goToSlide(idx)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${
+                          isActive
+                            ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] font-bold"
+                            : isCompleted
+                            ? "text-gray-300 hover:bg-white/5 border border-transparent"
+                            : "text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent"
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
+                          isActive
+                            ? "bg-cyan-500 text-black font-bold"
+                            : isCompleted
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-white/10 text-gray-400"
+                        }`}>
+                          {isCompleted ? "✓" : idx + 1}
+                        </span>
+                        <span className="hidden sm:inline">{s.title}</span>
+                        <span className="sm:hidden">{s.title.split(" ")[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Navigation Arrows & Fullscreen Toggle */}
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
-                    key={s.id}
-                    onClick={() => goToSlide(idx)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap ${
-                      currentSlide === idx
-                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
-                        : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                    }`}
+                    onClick={prevSlide}
+                    disabled={currentSlide === 0}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    title="Previous Step (← Arrow)"
                   >
-                    <span>{idx + 1}.</span>
-                    <span>{s.title}</span>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
-                ))}
+
+                  <span className="text-xs font-mono font-bold px-2.5 py-1.5 rounded-xl bg-black/60 border border-white/10 text-cyan-400">
+                    {currentSlide + 1} / {SLIDES_CONFIG.length}
+                  </span>
+
+                  <button
+                    onClick={nextSlide}
+                    disabled={currentSlide === SLIDES_CONFIG.length - 1}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    title="Next Step (→ Arrow)"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsFocusMode(!isFocusMode)}
+                    className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                      isFocusMode
+                        ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
+                        : "bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white"
+                    }`}
+                    title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
+                  >
+                    {isFocusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={prevSlide}
-                  disabled={currentSlide === 0}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  title="Previous Slide (← Arrow)"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 text-cyan-400">
-                  {currentSlide + 1} / {SLIDES_CONFIG.length}
-                </span>
-
-                <button
-                  onClick={nextSlide}
-                  disabled={currentSlide === SLIDES_CONFIG.length - 1}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  title="Next Slide (→ Arrow)"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                <button
-                  onClick={() => setIsFocusMode(!isFocusMode)}
-                  className={`p-2 rounded-xl border transition-all cursor-pointer ${
-                    isFocusMode
-                      ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
-                      : "bg-white/5 hover:bg-white/10 border-white/10 text-gray-400 hover:text-white"
-                  }`}
-                  title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
-                >
-                  {isFocusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
 
         {/* =========================================================================
