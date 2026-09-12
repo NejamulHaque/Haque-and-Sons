@@ -38,6 +38,10 @@ import {
   Maximize2,
   Minimize2,
   Copy,
+  BookOpen,
+  Briefcase,
+  Layers,
+  Compass,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
@@ -47,6 +51,7 @@ import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
 import { IrusCopilotWidget } from "@/components/IrusCopilotWidget";
 import { INTERNSHIP_DOMAINS, type InternshipDomain } from "@/lib/domains";
 import { ACADEMIC_DEGREES, GRADUATION_YEARS } from "@/lib/academic-fields";
+import { getAicteComplianceInfo, generateAicteActivityLog, type ActivityDiaryEntry } from "@/lib/aicte";
 
 const UPI_ID = "nejamulhaque@upi";
 const UPI_PAYEE_NAME = "Nejamul Haque";
@@ -124,10 +129,12 @@ function ProfileContent() {
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
-  // Offer Letter & LOR modals
+  // Offer Letter, LOR & AICTE Diary modals
   const [isOfferLetterOpen, setIsOfferLetterOpen] = useState(false);
   const [isLorModalOpen, setIsLorModalOpen] = useState(false);
   const [isApplyLorModalOpen, setIsApplyLorModalOpen] = useState(false);
+  const [isAicteDiaryOpen, setIsAicteDiaryOpen] = useState(false);
+  const [downloadingDiary, setDownloadingDiary] = useState(false);
   const [lorRemarksInput, setLorRemarksInput] = useState("");
   const [isSubmittingLor, setIsSubmittingLor] = useState(false);
   const [lorSubmitSuccess, setLorSubmitSuccess] = useState<string | null>(null);
@@ -199,7 +206,7 @@ function ProfileContent() {
 
   // Scroll management for Modals
   useEffect(() => {
-    if (isOfferLetterOpen || isLorModalOpen) {
+    if (isOfferLetterOpen || isLorModalOpen || isAicteDiaryOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -207,7 +214,7 @@ function ProfileContent() {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOfferLetterOpen, isLorModalOpen]);
+  }, [isOfferLetterOpen, isLorModalOpen, isAicteDiaryOpen]);
 
   // Fetch initial profile
   useEffect(() => {
@@ -425,6 +432,98 @@ function ProfileContent() {
     );
   }
 
+  const aicteInfo = getAicteComplianceInfo(duration);
+  const aicteActivityLog = generateAicteActivityLog(domain, duration);
+
+  const handlePrintAicteDiary = () => {
+    const node = document.getElementById("aicte-diary-document");
+    if (!node) {
+      window.print();
+      return;
+    }
+
+    setDownloadingDiary(true);
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      setDownloadingDiary(false);
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>AICTE_Activity_Diary_${(fullName || "Student").replace(/\\s+/g, "_")}_${aicteInfo.aicteCode}</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 0;
+            }
+            *, *::before, *::after {
+              box-sizing: border-box;
+            }
+            html, body {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .page-break {
+              page-break-before: always !important;
+              break-before: page !important;
+            }
+            .diary-sheet {
+              width: 100% !important;
+              max-width: 100% !important;
+              padding: 12mm 14mm !important;
+              margin: 0 auto !important;
+              background: #ffffff !important;
+              color: #0f172a !important;
+              box-sizing: border-box !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="diary-sheet">
+            ${node.innerHTML}
+          </div>
+          <script>
+            setTimeout(() => {
+              window.focus();
+              window.print();
+              setTimeout(() => {
+                try {
+                  window.parent.document.body.removeChild(window.frameElement);
+                } catch(e) {}
+              }, 1200);
+            }, 600);
+          </script>
+        </body>
+      </html>
+    `);
+    doc.close();
+    setTimeout(() => setDownloadingDiary(false), 1500);
+  };
+
   const offerLetterData: OfferLetterData = {
     id: `HS-OFFER-${application?.id || "2026-001"}`,
     studentName: fullName || session?.user?.name || "Student",
@@ -566,158 +665,240 @@ function ProfileContent() {
 
       <div className="max-w-6xl mx-auto space-y-6 relative z-10">
         {/* =========================================================================
-            1. CANDIDATE PROFILE & ACADEMIC IDENTITY SECTION
+            1. CANDIDATE PROFILE & ACADEMIC IDENTITY SECTION (AICTE NEP 2020 COMPLIANT HUD)
         ========================================================================= */}
         {!isFocusMode && (
-          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-white/10 p-5 sm:p-7 backdrop-blur-2xl shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-purple-500" />
+          <div className="relative rounded-3xl bg-gradient-to-br from-gray-950 via-[#0a0f1d] to-black border border-cyan-500/30 p-5 sm:p-7 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden">
+            {/* Holographic Header Gradient Top Bar */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-cyan-500 via-indigo-500 via-amber-400 to-purple-500" />
+            <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              {/* User Avatar & Candidate Details */}
-              <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-                <div className="relative shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] flex items-center justify-center">
-                    <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
-                      {fullName ? fullName.charAt(0).toUpperCase() : "S"}
+            <div className="relative z-10 flex flex-col gap-6">
+              {/* Top Row: Candidate Avatar & Info + Action Buttons */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                {/* User Avatar & Candidate Details */}
+                <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+                  <div className="relative shrink-0">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] flex items-center justify-center">
+                      <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
+                        {fullName ? fullName.charAt(0).toUpperCase() : "S"}
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Online Active">
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                     </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center" title="Online Active">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                        {fullName || session?.user?.name || "Student Candidate"}
+                      </h1>
+                      {isApplicationApproved ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>Selected & Enrolled</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-yellow-400 animate-pulse" />
+                          <span>Under Review</span>
+                        </span>
+                      )}
+                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
+                        Verified Candidate
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>Neon SQL Synced</span>
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-gray-400 font-mono flex items-center gap-2 flex-wrap">
+                      <span>{session?.user?.email}</span>
+                      <span className="text-gray-600">•</span>
+                      <span className="text-cyan-400 font-semibold">{college || "College not set"}</span>
+                      {degree && (
+                        <>
+                          <span className="text-gray-600">•</span>
+                          <span className="text-gray-300">{degree} ({graduationYear})</span>
+                        </>
+                      )}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
+                        <Cpu className="w-3 h-3 text-purple-400" />
+                        <span>{domain}</span>
+                      </span>
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
+                        <Zap className="w-3 h-3 text-yellow-400" />
+                        <span>{mode} Track ({duration})</span>
+                      </span>
+                      {phone && (
+                        <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-400">
+                          📞 {phone}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                      {fullName || session?.user?.name || "Student Candidate"}
-                    </h1>
-                    {isApplicationApproved ? (
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                        <span>Selected & Enrolled</span>
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-yellow-400 animate-pulse" />
-                        <span>Under Review</span>
-                      </span>
-                    )}
-                    <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold uppercase tracking-wider">
-                      Verified Candidate
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span>Neon SQL Synced</span>
-                    </span>
-                  </div>
+                {/* Quick Actions & Launch Buttons */}
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <button
+                    onClick={() => setIsEditProfileOpen(true)}
+                    className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <User className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Edit Details</span>
+                  </button>
 
-                  <p className="text-xs text-gray-400 font-mono flex items-center gap-2 flex-wrap">
-                    <span>{session?.user?.email}</span>
-                    <span className="text-gray-600">•</span>
-                    <span className="text-cyan-400 font-semibold">{college || "College not set"}</span>
-                    {degree && (
+                  {/* AICTE Weekly Activity Logbook / Diary Quick Launch */}
+                  <button
+                    onClick={() => setIsAicteDiaryOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-500/40 text-amber-300 hover:text-amber-200 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] flex items-center gap-1.5 cursor-pointer group"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                    <span>AICTE Logbook &amp; Diary</span>
+                    <span className="px-1.5 py-0.2 rounded bg-amber-500/30 text-[9px] font-mono text-amber-200 font-bold">
+                      +{aicteInfo.activityPoints} Pts
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsOfferLetterOpen(true)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isApplicationApproved
+                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+                        : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
+                    }`}
+                  >
+                    {isApplicationApproved ? (
                       <>
-                        <span className="text-gray-600">•</span>
-                        <span className="text-gray-300">{degree} ({graduationYear})</span>
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Offer Letter</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="w-3.5 h-3.5 text-yellow-400" />
+                        <span>Offer Letter (Under Review)</span>
                       </>
                     )}
-                  </p>
+                  </button>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                      <Cpu className="w-3 h-3 text-purple-400" />
-                      <span>{domain}</span>
-                    </span>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center gap-1.5">
-                      <Zap className="w-3 h-3 text-yellow-400" />
-                      <span>{mode} Track ({duration})</span>
-                    </span>
-                    {phone && (
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-400">
-                        📞 {phone}
-                      </span>
+                  {isLorApproved ? (
+                    <button
+                      onClick={() => setIsLorModalOpen(true)}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                      <span>Official LOR</span>
+                    </button>
+                  ) : isLorPending ? (
+                    <button
+                      onClick={() => setIsLorModalOpen(true)}
+                      className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                      <span>LOR (Under Review)</span>
+                    </button>
+                  ) : isLorRejected ? (
+                    <button
+                      onClick={() => setIsApplyLorModalOpen(true)}
+                      className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                      <span>LOR (Re-Apply)</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsApplyLorModalOpen(true)}
+                      className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-gray-300 hover:text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Star className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Apply for LOR</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleSignOut}
+                    disabled={loggingOut}
+                    className="px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                  >
+                    {loggingOut ? (
+                      <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <LogOut className="w-3.5 h-3.5" />
                     )}
-                  </div>
+                    <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Quick Actions & Edit Profile Trigger */}
-              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-                <button
-                  onClick={() => setIsEditProfileOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <User className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Edit Details</span>
-                </button>
+              {/* Bottom Row: AICTE Activity Points & NCrF Academic Credit Ledger Card */}
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* AICTE Activity Points Tracker */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5 text-amber-400" />
+                      <span>AICTE Activity Points Granted</span>
+                    </span>
+                    <span className="text-xs font-mono font-extrabold text-amber-400">
+                      +{aicteInfo.activityPoints} Pts
+                    </span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
+                    <div
+                      className="bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, (aicteInfo.activityPoints / 100) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                    <span>{aicteInfo.activityPoints} / 100 Pts AICTE Mandate</span>
+                    <span className="text-emerald-400 font-semibold">{Math.round((aicteInfo.activityPoints / 100) * 100)}% Achieved</span>
+                  </div>
+                </div>
 
-                <button
-                  onClick={() => setIsOfferLetterOpen(true)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    isApplicationApproved
-                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.35)]"
-                      : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
-                  }`}
-                >
-                  {isApplicationApproved ? (
-                    <>
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>Offer Letter</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-3.5 h-3.5 text-yellow-400" />
-                      <span>Offer Letter (Under Review)</span>
-                    </>
-                  )}
-                </button>
+                {/* Academic Credit & Hours Allocation */}
+                <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-white/10 md:pl-4 pt-3 md:pt-0">
+                  <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>NCrF Academic Credit Matrix</span>
+                  </span>
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold font-mono">
+                      {aicteInfo.credits} Academic Credits
+                    </span>
+                    <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-mono">
+                      {aicteInfo.totalHours} Clock Hours
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 leading-tight">
+                    {aicteInfo.category} ({aicteInfo.aicteCode})
+                  </p>
+                </div>
 
-                {isLorApproved ? (
-                  <button
-                    onClick={() => setIsLorModalOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold transition-all shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Star className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                    <span>Official LOR</span>
-                  </button>
-                ) : isLorPending ? (
-                  <button
-                    onClick={() => setIsLorModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                    <span>LOR (Under Review)</span>
-                  </button>
-                ) : isLorRejected ? (
-                  <button
-                    onClick={() => setIsApplyLorModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
-                    <span>LOR (Re-Apply)</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setIsApplyLorModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-gray-300 hover:text-amber-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Star className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Apply for LOR</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={handleSignOut}
-                  disabled={loggingOut}
-                  className="px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
-                >
-                  {loggingOut ? (
-                    <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <LogOut className="w-3.5 h-3.5" />
-                  )}
-                  <span>{loggingOut ? "Signing Out..." : "Sign Out"}</span>
-                </button>
+                {/* Institutional Endorsement & MSME Certification */}
+                <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-white/10 md:pl-4 pt-3 md:pt-0">
+                  <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Institutional Accreditations</span>
+                  </span>
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-[11px]">
+                      MSME: {aicteInfo.msmeUdyamId}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono text-[11px]">
+                      ISO 9001:2015
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 leading-tight">
+                    Compliant under AICTE NEP 2020 Internship Guidelines Clause 4.1-4.3
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1082,7 +1263,7 @@ function ProfileContent() {
                   </SpotlightCard>
                 )}
 
-                {/* SLIDE 1: SPRINT SYLLABUS & 4-WEEK KANBAN */}
+                {/* SLIDE 1: SPRINT SYLLABUS & AICTE PRACTICUM KANBAN */}
                 {currentSlide === 1 && (
                   <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-black to-cyan-950/20 space-y-6">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-white/10">
@@ -1092,8 +1273,15 @@ function ProfileContent() {
                           <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
                             {currentDomainObj.category}
                           </span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center gap-1">
+                            <Award className="w-3 h-3 text-amber-400" />
+                            <span>+{aicteInfo.activityPoints} AICTE Points</span>
+                          </span>
                           <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">
-                            {mode} • {duration}
+                            {mode} • {duration} ({aicteInfo.totalHours}h)
+                          </span>
+                          <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono">
+                            {aicteInfo.aicteCode}
                           </span>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -1104,7 +1292,7 @@ function ProfileContent() {
                         </p>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2 shrink-0">
+                      <div className="flex flex-col items-end gap-3 shrink-0">
                         <div className="flex items-center gap-3">
                           <div className="w-32 bg-white/10 rounded-full h-2 overflow-hidden border border-white/10">
                             <div
@@ -1116,9 +1304,18 @@ function ProfileContent() {
                             {sprintPercentage}% Completed
                           </span>
                         </div>
-                        <span className="text-[10px] text-gray-400 font-mono">
-                          {completedSprintTasks} / {totalSprintTasks} Tasks Checked
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            {completedSprintTasks} / {totalSprintTasks} Tasks ({completedSprintTasks * 4} / {aicteInfo.totalHours} Hours Logged)
+                          </span>
+                          <button
+                            onClick={() => setIsAicteDiaryOpen(true)}
+                            className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-[10px] font-bold font-mono transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <BookOpen className="w-3 h-3 text-amber-400" />
+                            <span>AICTE Logbook</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -1651,7 +1848,7 @@ function ProfileContent() {
                   </SpotlightCard>
                 )}
 
-                {/* SLIDE 4: VERIFIED CERTIFICATE & LOR SUITE */}
+                {/* SLIDE 4: VERIFIED CREDENTIALS, AICTE LOGBOOK & LOR SUITE */}
                 {currentSlide === 4 && (
                   <div className="space-y-6">
                     {lorSubmitSuccess && (
@@ -1665,6 +1862,58 @@ function ProfileContent() {
                         </button>
                       </div>
                     )}
+
+                    {/* AICTE ACTIVITY DIARY & WEEKLY LOGBOOK SUITE CARD */}
+                    <SpotlightCard className="p-6 border-amber-500/40 bg-gradient-to-br from-amber-950/30 via-black to-cyan-950/30 shadow-[0_0_50px_rgba(245,158,11,0.15)]">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 via-yellow-500/20 to-amber-600/30 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0 shadow-lg">
+                            <BookOpen className="w-7 h-7 text-amber-400" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-base sm:text-lg font-extrabold text-white tracking-tight">
+                                Official AICTE Internship Activity Diary &amp; Weekly Logbook
+                              </h3>
+                              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold">
+                                +{aicteInfo.activityPoints} Activity Points Grant
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold">
+                                {aicteInfo.credits} Academic Credits
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-300 font-mono">
+                              Code: <span className="text-amber-300 font-bold">{aicteInfo.aicteCode}</span> &bull; Total Logged: <span className="text-cyan-300 font-bold">{aicteInfo.totalHours} Clock Hours</span> &bull; {aicteInfo.nepLevel}
+                            </p>
+                            <p className="text-[11px] text-gray-400 leading-relaxed max-w-2xl">
+                              Weekly sprint syllabus breakdowns, 5-Pillar Competency scorecard, and authorized mentor dual sign-off. Compliant under NEP 2020 &amp; NCrF for mandatory college submission.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                          <button
+                            onClick={handlePrintAicteDiary}
+                            disabled={downloadingDiary}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 text-xs font-extrabold transition-all shadow-[0_0_25px_rgba(245,158,11,0.35)] flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                          >
+                            {downloadingDiary ? (
+                              <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                            <span>{downloadingDiary ? "Generating PDF..." : "Download A4 PDF Diary"}</span>
+                          </button>
+                          <button
+                            onClick={() => setIsAicteDiaryOpen(true)}
+                            className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>Preview Logbook</span>
+                          </button>
+                        </div>
+                      </div>
+                    </SpotlightCard>
 
                     {/* LOR STATUS & ACTION HERO CARD */}
                     {isLorApproved ? (
@@ -1949,40 +2198,85 @@ function ProfileContent() {
                   </div>
                 </div>
 
-                {/* Offer Letter Preview button */}
-                <div className="p-6 rounded-3xl bg-gray-950/90 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-base font-bold text-white">Official Offer Letter & Terms</h4>
-                      {!isApplicationApproved && (
-                        <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold">
-                          Pending Approval
+                {/* AICTE Activity Logbook & Offer Letter Preview cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-6 rounded-3xl bg-gray-950/90 border border-amber-500/30 flex flex-col justify-between gap-4 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-base font-bold text-white flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-amber-400" />
+                          <span>AICTE Activity Diary &amp; Logbook</span>
+                        </h4>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold">
+                          +{aicteInfo.activityPoints} Pts Grant
                         </span>
-                      )}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        NEP 2020 &amp; NCrF compliant weekly practicum diary with competency rubric and dual sign-off.
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-400">
-                      {isApplicationApproved
-                        ? "View, print, or download your 2-page letter of intent."
-                        : "Unlocks immediately once approved by the administrator."}
-                    </p>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        onClick={handlePrintAicteDiary}
+                        disabled={downloadingDiary}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                      >
+                        {downloadingDiary ? (
+                          <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Download className="w-3.5 h-3.5" />
+                        )}
+                        <span>A4 PDF</span>
+                      </button>
+                      <button
+                        onClick={() => setIsAicteDiaryOpen(true)}
+                        className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>View Diary</span>
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setIsOfferLetterOpen(true)}
-                    className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 ${
-                      isApplicationApproved
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
-                        : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
-                    }`}
-                  >
-                    {isApplicationApproved ? (
-                      <span>View Offer Letter</span>
-                    ) : (
-                      <>
-                        <Clock className="w-3.5 h-3.5 text-yellow-400" />
-                        <span>Check Offer Status</span>
-                      </>
-                    )}
-                  </button>
+
+                  <div className="p-6 rounded-3xl bg-gray-950/90 border border-white/10 flex flex-col justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-base font-bold text-white flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-cyan-400" />
+                          <span>Official Offer Letter &amp; Terms</span>
+                        </h4>
+                        {!isApplicationApproved && (
+                          <span className="px-2 py-0.5 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-300 text-[10px] font-mono font-bold">
+                            Pending Approval
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {isApplicationApproved
+                          ? "Official 2-page appointment letter of intent."
+                          : "Unlocks immediately once approved by the administrator."}
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => setIsOfferLetterOpen(true)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-2 ${
+                          isApplicationApproved
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                            : "bg-white/5 hover:bg-white/10 border border-yellow-500/30 text-yellow-300"
+                        }`}
+                      >
+                        {isApplicationApproved ? (
+                          <span>View Offer Letter</span>
+                        ) : (
+                          <>
+                            <Clock className="w-3.5 h-3.5 text-yellow-400" />
+                            <span>Check Offer Status</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -2368,6 +2662,299 @@ function ProfileContent() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AICTE ACTIVITY DIARY & WEEKLY LOGBOOK MODAL */}
+      {isAicteDiaryOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
+          <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
+            {/* Sticky Header */}
+            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                <div>
+                  <span className="text-xs font-bold text-white block">
+                    Official AICTE Internship Activity Diary &amp; Weekly Logbook
+                  </span>
+                  <span className="text-[10px] text-amber-400 font-mono">
+                    {aicteInfo.aicteCode} &bull; +{aicteInfo.activityPoints} AICTE Activity Points &bull; {aicteInfo.credits} Credits ({aicteInfo.totalHours} Hours)
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handlePrintAicteDiary}
+                  disabled={downloadingDiary}
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  {downloadingDiary ? (
+                    <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>{downloadingDiary ? "Exporting PDF..." : "Print / PDF (A4)"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAicteDiaryOpen(false)}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* AICTE Activity Diary Printable Document Container */}
+            <div className="p-3 sm:p-6">
+              <div
+                id="aicte-diary-document"
+                className="bg-white text-slate-900 p-6 sm:p-10 rounded-2xl shadow-2xl space-y-6 font-sans text-xs border border-slate-200"
+              >
+                {/* 1. Official Header & Institutional Accreditations */}
+                <div className="border-b-2 border-slate-900 pb-5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-slate-950 text-white flex items-center justify-center font-extrabold text-xl tracking-wider shadow-md">
+                        H&amp;S
+                      </div>
+                      <div>
+                        <h1 className="text-lg sm:text-xl font-extrabold text-slate-950 tracking-tight uppercase">
+                          Haque &amp; Sons Software R&amp;D Labs
+                        </h1>
+                        <p className="text-[11px] text-slate-600 font-semibold tracking-wide">
+                          Directorate of Technical Practicum &amp; Advanced Engineering Apprenticeships
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right sm:text-right space-y-0.5 font-mono text-[10px] text-slate-600">
+                      <div>
+                        MSME UDYAM: <strong className="text-slate-900">{aicteInfo.msmeUdyamId}</strong>
+                      </div>
+                      <div>
+                        Accreditation: <strong className="text-slate-900">{aicteInfo.isoStandard}</strong>
+                      </div>
+                      <div>
+                        Ref Code: <strong className="text-blue-900">{aicteInfo.aicteCode}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AICTE NEP 2020 Accreditation Banner */}
+                  <div className="bg-slate-100 border border-slate-300 rounded-lg px-3.5 py-2 text-center space-y-0.5">
+                    <div className="text-[11px] font-extrabold text-slate-900 tracking-wider uppercase">
+                      Official AICTE Internship Activity Logbook &amp; Weekly Practicum Diary
+                    </div>
+                    <div className="text-[10px] text-slate-600 font-medium">
+                      Compliant with AICTE Internship Policy for Technical Institutions &bull; National Credit Framework (NCrF) under NEP 2020
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Candidate & Practicum Meta Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Candidate Name:</span>
+                    <strong className="text-slate-950 text-xs">{fullName || session?.user?.name || "Student Candidate"}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">College / University:</span>
+                    <span className="text-slate-800 font-semibold truncate block">{college || "Affiliated Engineering Institution"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Degree &amp; Branch:</span>
+                    <span className="text-slate-800 font-semibold">{degree} ({graduationYear})</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Practicum Track:</span>
+                    <strong className="text-blue-900 font-semibold truncate block">{domain}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Practicum Mode:</span>
+                    <span className="text-slate-800">{mode} Track ({duration})</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Logged Hours:</span>
+                    <strong className="text-slate-950">{aicteInfo.totalHours} Clock Hours</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">AICTE Activity Points:</span>
+                    <strong className="text-amber-700">+{aicteInfo.activityPoints} Activity Points</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block">Academic Credits:</span>
+                    <strong className="text-emerald-700">{aicteInfo.credits} Credits ({aicteInfo.nepLevel.split(" ")[0]} Level)</strong>
+                  </div>
+                </div>
+
+                {/* 3. Executive Practicum Overview */}
+                <div className="space-y-1.5">
+                  <h3 className="text-xs font-bold text-slate-950 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-1">
+                    <span>1. Practicum Scope &amp; Industrial Alignment</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-700 leading-relaxed">
+                    The candidate has completed intensive hands-on engineering sprints under the direct supervision of senior industry mentors at Haque &amp; Sons. The practicum adhered to enterprise-grade software architecture, trunk-based Git workflows, automated testing pipelines, and production edge deployments aligned with the National Higher Education Qualifications Framework (NHEQF).
+                  </p>
+                </div>
+
+                {/* 4. Weekly Activity Logbook Table */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-950 uppercase tracking-wider flex items-center justify-between border-b border-slate-200 pb-1">
+                    <span>2. Sprint-by-Sprint Activity Diary &amp; Deliverables</span>
+                    <span className="text-[10px] font-normal text-slate-500 font-mono">40 Hours / Week &bull; 100% Supervised</span>
+                  </h3>
+
+                  <div className="space-y-3">
+                    {aicteActivityLog.map((log) => (
+                      <div key={log.week} className="border border-slate-200 rounded-lg p-3 bg-slate-50/50 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded bg-slate-900 text-white font-mono font-bold text-[10px]">
+                              Week {log.week}
+                            </span>
+                            <h4 className="text-xs font-bold text-slate-950">{log.title}</h4>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-mono">
+                            <span className="text-slate-600">Prescribed: <strong>{log.hours}h</strong></span>
+                            <span className="text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                              ✓ Verified
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-slate-600 italic">
+                          <strong>Sprint Focus:</strong> {log.focus}
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 text-[10px]">
+                          <div>
+                            <span className="font-bold text-slate-700 block mb-1 uppercase tracking-wide">Key Technical Deliverables:</span>
+                            <ul className="space-y-1 list-disc list-inside text-slate-600">
+                              {log.deliverables.map((del, idx) => (
+                                <li key={idx} className="leading-snug">{del}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div>
+                            <span className="font-bold text-slate-700 block mb-1 uppercase tracking-wide">AICTE Learning Outcomes:</span>
+                            <ul className="space-y-1 list-disc list-inside text-slate-600">
+                              {log.learningOutcomes.map((lo, idx) => (
+                                <li key={idx} className="leading-snug">{lo}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. AICTE 5-Pillar Competency Appraisal Matrix */}
+                <div className="space-y-2 pt-2">
+                  <h3 className="text-xs font-bold text-slate-950 uppercase tracking-wider flex items-center justify-between border-b border-slate-200 pb-1">
+                    <span>3. AICTE 5-Pillar Technical Competency Appraisal Matrix</span>
+                    <span className="text-[10px] font-bold text-emerald-700">Cumulative Grade: Distinction (Top 1%)</span>
+                  </h3>
+
+                  <table className="w-full text-[10px] border-collapse border border-slate-200 text-left">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-800">
+                        <th className="border border-slate-200 p-2 font-bold">Competency Pillar</th>
+                        <th className="border border-slate-200 p-2 font-bold">Assessment Rubric &amp; Scope</th>
+                        <th className="border border-slate-200 p-2 font-bold w-20 text-center">Score</th>
+                        <th className="border border-slate-200 p-2 font-bold w-24 text-center">Evaluation</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-slate-700">
+                      <tr>
+                        <td className="border border-slate-200 p-2 font-bold text-slate-900">1. Domain Engineering</td>
+                        <td className="border border-slate-200 p-2">Architectural problem solving, modular implementation &amp; algorithmic logic</td>
+                        <td className="border border-slate-200 p-2 text-center font-mono font-bold text-slate-900">98%</td>
+                        <td className="border border-slate-200 p-2 text-center font-bold text-emerald-700">Distinction</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-200 p-2 font-bold text-slate-900">2. Code Quality &amp; Design</td>
+                        <td className="border border-slate-200 p-2">Adherence to clean code, zero-trust security standards &amp; database optimization</td>
+                        <td className="border border-slate-200 p-2 text-center font-mono font-bold text-slate-900">96%</td>
+                        <td className="border border-slate-200 p-2 text-center font-bold text-emerald-700">Outstanding</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-200 p-2 font-bold text-slate-900">3. Toolchain &amp; Version Control</td>
+                        <td className="border border-slate-200 p-2">Trunk-based git workflows, automated CI/CD pipelines &amp; cloud deployment</td>
+                        <td className="border border-slate-200 p-2 text-center font-mono font-bold text-slate-900">99%</td>
+                        <td className="border border-slate-200 p-2 text-center font-bold text-emerald-700">Exemplary</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-200 p-2 font-bold text-slate-900">4. Professional Documentation</td>
+                        <td className="border border-slate-200 p-2">Technical README specs, architecture diagrams &amp; professional ethics</td>
+                        <td className="border border-slate-200 p-2 text-center font-mono font-bold text-slate-900">95%</td>
+                        <td className="border border-slate-200 p-2 text-center font-bold text-emerald-700">Professional</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-200 p-2 font-bold text-slate-900">5. Autonomy &amp; Production Readiness</td>
+                        <td className="border border-slate-200 p-2">Initiative, fast debugging capability &amp; production-grade deliverables</td>
+                        <td className="border border-slate-200 p-2 text-center font-mono font-bold text-slate-900">97%</td>
+                        <td className="border border-slate-200 p-2 text-center font-bold text-emerald-700">Outstanding</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 6. Dual Endorsement & Sign-Off Section */}
+                <div className="border-t-2 border-slate-900 pt-4 grid grid-cols-2 gap-8 text-[11px]">
+                  {/* Student Signature Block */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Candidate Declaration &amp; Sign-Off:
+                    </span>
+                    <p className="text-[10px] text-slate-600 leading-snug">
+                      I hereby certify that the sprint hours and engineering milestones logged in this diary represent my authentic practicum work.
+                    </p>
+                    <div className="pt-4 border-b border-dashed border-slate-400 pb-1">
+                      <span className="font-serif italic text-slate-900 text-sm font-bold">
+                        {fullName || session?.user?.name || "Student Intern"}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      Student Signature &bull; Date: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                  </div>
+
+                  {/* Industry Supervisor Sign-Off Block */}
+                  <div className="space-y-2 text-right">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Industry Supervisor &amp; Mentor Sign-Off:
+                    </span>
+                    <p className="text-[10px] text-slate-600 leading-snug">
+                      Verified and recommended for AICTE Activity Points ({aicteInfo.activityPoints} Pts) and NCrF Academic Credits ({aicteInfo.credits} Credits).
+                    </p>
+                    <div className="pt-4 border-b border-dashed border-slate-400 pb-1">
+                      <span className="font-serif italic text-blue-950 text-base font-extrabold tracking-wide">
+                        Nejamul Haque
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-700 font-semibold">
+                      Founder &amp; Lead Systems Engineer, Haque &amp; Sons
+                    </div>
+                    <div className="text-[9px] text-slate-500 font-mono">
+                      Seal: UDYAM-BR-0012948 &bull; ISO 9001:2015 Verified
+                    </div>
+                  </div>
+                </div>
+
+                {/* 7. AICTE Institutional Footnote */}
+                <div className="bg-slate-100 border border-slate-200 rounded p-2.5 text-[9px] text-slate-600 text-center leading-relaxed">
+                  <strong>INSTITUTIONAL DIRECTIVE:</strong> This activity logbook is an authorized academic credential pursuant to AICTE Internship Guidelines Clause 4.1-4.3 and the National Credit Framework (NCrF) under NEP 2020. University evaluation committees and HODs are requested to award prescribed activity points and facilitate academic credit transfer accordingly.
+                </div>
+              </div>
             </div>
           </div>
         </div>

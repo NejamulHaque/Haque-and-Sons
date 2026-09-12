@@ -19,7 +19,9 @@ import {
   CheckSquare,
   Cpu,
   Flame,
+  GraduationCap,
 } from "lucide-react";
+import { getAicteComplianceInfo } from "@/lib/aicte";
 
 export interface CertificateData {
   id: string;
@@ -47,6 +49,7 @@ export function CertificateRenderer({
   const [copied, setCopied] = useState(false);
   const certRef = useRef<HTMLDivElement>(null);
 
+  const aicte = getAicteComplianceInfo(certificate.duration);
   const isDay = theme === "day";
 
   const formattedDate = new Date(certificate.issueDate || Date.now()).toLocaleDateString("en-US", {
@@ -471,10 +474,10 @@ export function CertificateRenderer({
             <div class="header-bar">
               <div class="flank-left">
                 <span style="font-size: 5.6pt; font-weight: 800; color: ${highlightColor}; text-transform: uppercase; letter-spacing: 0.1em; display: block;">
-                  ★ GOVT. MSME REGISTRATION
+                  ★ AICTE NEP 2020 PRACTICUM • ${aicte.activityPoints} ACTIVITY PTS
                 </span>
                 <span style="font-size: 7.2pt; font-weight: 800; color: ${textColor}; display: block; margin-top: 0.2mm;">
-                  UDYAM-UP-55-0012984
+                  ${aicte.aicteCode}
                 </span>
               </div>
 
@@ -492,7 +495,7 @@ export function CertificateRenderer({
 
               <div class="flank-right">
                 <span style="font-size: 5.6pt; font-weight: 800; color: ${accentGold}; text-transform: uppercase; letter-spacing: 0.1em; display: block;">
-                  ★ ACCREDITATION STATUS
+                  ★ MSME UDYAM: ${aicte.msmeUdyamId}
                 </span>
                 <span style="font-size: 7.2pt; font-weight: 800; color: ${textColor}; display: block; margin-top: 0.2mm;">
                   ISO 9001:2015 CERTIFIED
@@ -505,7 +508,7 @@ export function CertificateRenderer({
               <h1 class="grand-title">Certificate of Excellence &amp; Completion</h1>
               <div class="subtitle-badge">
                 <div class="divider-line"></div>
-                <span>HONORIS CAUSA • ADVANCED PRACTICUM DIVISION</span>
+                <span>HONORIS CAUSA • AICTE CATEGORY-B PRACTICUM DIVISION (${aicte.credits} NCrF CREDITS)</span>
                 <div class="divider-line"></div>
               </div>
             </div>
@@ -522,7 +525,7 @@ export function CertificateRenderer({
                 for demonstrating extraordinary architectural discipline, algorithmic aptitude, and successfully completing the intensive
                 <strong style="color: ${textColor}; font-weight: 800;">${certificate.duration || "4-Week"} Technical Practicum</strong> in
                 <strong style="color: ${highlightColor}; font-weight: 800; text-decoration: underline;">${certificate.domain}</strong>,
-                engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
+                earning <strong style="color: ${textColor}; font-weight: 800;">${aicte.activityPoints} AICTE Activity Points</strong> and <strong style="color: ${textColor}; font-weight: 800;">${aicte.credits} Academic Credits</strong> under the National Credit Framework (NCrF), engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
               </p>
             </div>
 
@@ -540,17 +543,17 @@ export function CertificateRenderer({
                 <div class="matrix-card">
                   <div>
                     <span class="matrix-label">2. Practicum Tenure</span>
-                    <span class="matrix-val">${certificate.duration || "4 Weeks"} (160+ Eng. Hours)</span>
+                    <span class="matrix-val">${certificate.duration || "4 Weeks"} (${aicte.totalHours}+ Hours)</span>
                   </div>
-                  <span class="matrix-sub" style="color: ${isDayTheme ? "#15803d" : "#4ade80"}; font-weight: 700;">✓ 100% Milestones Delivered</span>
+                  <span class="matrix-sub" style="color: ${isDayTheme ? "#15803d" : "#4ade80"}; font-weight: 700;">✓ ${aicte.activityPoints} AICTE Activity Points</span>
                 </div>
 
                 <div class="matrix-card" style="border-color: ${isDayTheme ? "rgba(245,158,11,0.5)" : "rgba(250,204,21,0.3)"}; background-color: ${isDayTheme ? "#fefce8" : "rgba(250,204,21,0.06)"};">
                   <div>
-                    <span class="matrix-label" style="color: ${accentGold};">3. Performance Tier</span>
+                    <span class="matrix-label" style="color: ${accentGold};">3. Performance &amp; Credits</span>
                     <span class="matrix-val" style="color: ${accentGold}; text-transform: uppercase;">${certificate.grade || "Distinction (9.8 / 10)"}</span>
                   </div>
-                  <span class="matrix-sub" style="color: ${accentGold}; font-weight: 700;">Top 5% Engineering Cohort</span>
+                  <span class="matrix-sub" style="color: ${accentGold}; font-weight: 700;">${aicte.credits} Academic Credits (${aicte.nepLevel.split(' ')[0]} Level)</span>
                 </div>
 
                 <div class="matrix-card" style="border-color: ${isDayTheme ? "rgba(16,185,129,0.5)" : "rgba(52,211,153,0.3)"}; background-color: ${isDayTheme ? "#f0fdf4" : "rgba(52,211,153,0.06)"};">
@@ -846,10 +849,10 @@ export function CertificateRenderer({
               {/* Left Flank Badge */}
               <div className="text-left font-mono">
                 <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-sky-800" : "text-cyan-400"}`}>
-                  ★ GOVT. MSME REGISTRATION
+                  ★ AICTE NEP 2020 PRACTICUM • {aicte.activityPoints} ACTIVITY PTS
                 </span>
                 <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
-                  UDYAM-UP-55-0012984
+                  {aicte.aicteCode}
                 </span>
               </div>
 
@@ -884,7 +887,7 @@ export function CertificateRenderer({
               {/* Right Flank Badge */}
               <div className="text-right font-mono">
                 <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
-                  ★ ACCREDITATION STATUS
+                  ★ MSME UDYAM: {aicte.msmeUdyamId}
                 </span>
                 <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
                   ISO 9001:2015 CERTIFIED
@@ -906,7 +909,7 @@ export function CertificateRenderer({
               <div className="flex items-center justify-center gap-2 mt-1">
                 <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
                 <span className={`text-[7.5px] sm:text-[8px] font-mono uppercase tracking-[0.3em] font-bold ${isDay ? "text-amber-800" : "text-yellow-300"}`}>
-                  HONORIS CAUSA • ADVANCED PRACTICUM DIVISION
+                  HONORIS CAUSA • AICTE CATEGORY-B PRACTICUM DIVISION ({aicte.credits} NCrF CREDITS)
                 </span>
                 <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
               </div>
@@ -964,7 +967,7 @@ export function CertificateRenderer({
               <strong className={isDay ? "text-sky-900 font-bold underline decoration-sky-400" : "text-cyan-300 font-bold underline decoration-cyan-500"}>
                 {certificate.domain}
               </strong>
-              , engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
+              , earning <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>{aicte.activityPoints} AICTE Activity Points</strong> and <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>{aicte.credits} Academic Credits</strong> under the National Credit Framework (NCrF), engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
             </p>
           </div>
 
@@ -1003,11 +1006,11 @@ export function CertificateRenderer({
                     2. Practicum Tenure
                   </span>
                   <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-slate-950" : "text-white"}`}>
-                    {certificate.duration || "4 Weeks"} (160+ Eng. Hours)
+                    {certificate.duration || "4 Weeks"} ({aicte.totalHours}+ Hours)
                   </span>
                 </div>
                 <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-emerald-700 font-semibold" : "text-emerald-400"}`}>
-                  ✓ 100% Milestones Delivered
+                  ✓ {aicte.activityPoints} AICTE Activity Points
                 </span>
               </div>
 
@@ -1019,14 +1022,14 @@ export function CertificateRenderer({
               >
                 <div>
                   <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
-                    3. Performance Tier
+                    3. Performance &amp; Credits
                   </span>
                   <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 uppercase ${isDay ? "text-amber-950" : "text-yellow-300"}`}>
                     {certificate.grade || "Distinction (9.8 / 10)"}
                   </span>
                 </div>
                 <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-amber-800 font-semibold" : "text-yellow-300"}`}>
-                  Top 5% Engineering Cohort
+                  {aicte.credits} Academic Credits ({aicte.nepLevel.split(' ')[0]} Level)
                 </span>
               </div>
 

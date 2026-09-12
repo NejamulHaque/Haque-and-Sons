@@ -4,8 +4,9 @@ import { ensureTablesExist } from "@/db/init-tables";
 import { eq } from "drizzle-orm";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
 import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
-import { ShieldCheck, AlertTriangle, ArrowLeft } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ArrowLeft, GraduationCap, Award, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { getAicteComplianceInfo } from "@/lib/aicte";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,8 @@ interface VerifyPageProps {
 export async function generateMetadata({ params }: VerifyPageProps) {
   const { id } = await params;
   return {
-    title: `Verify Certificate ${id.toUpperCase()} | Haque & Sons`,
-    description: `Official cryptographic verification of Haque & Sons Certificate of Internship Completion (${id.toUpperCase()}).`,
+    title: `Verify Certificate ${id.toUpperCase()} | AICTE Approved | Haque & Sons`,
+    description: `Official cryptographic verification of Haque & Sons Certificate of Internship Completion (${id.toUpperCase()}) with AICTE Activity Points & NEP 2020 compliance.`,
   };
 }
 
@@ -90,6 +91,8 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
     status: certRecord.status,
   };
 
+  const aicte = getAicteComplianceInfo(certData.duration);
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white pt-24 pb-24 px-6 relative overflow-hidden">
       {/* Glow backgrounds */}
@@ -104,17 +107,20 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-lg font-bold text-white tracking-tight">
                   Official Verified Credential
                 </h2>
                 <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Status: {certData.status || "Valid"}
                 </span>
+                <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  AICTE {aicte.activityPoints} Activity Points
+                </span>
               </div>
               <p className="text-xs text-gray-300 mt-0.5">
                 Issued to <strong className="text-white">{certData.studentName}</strong> for completing{" "}
-                <strong className="text-cyan-400">{certData.domain}</strong> internship.
+                <strong className="text-cyan-400">{certData.domain}</strong> internship ({aicte.totalHours}+ Hours).
               </p>
             </div>
           </div>
@@ -127,6 +133,48 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Verify Another</span>
             </Link>
+          </div>
+        </div>
+
+        {/* AICTE NEP 2020 Accreditation Breakdown Card */}
+        <div className="p-5 rounded-3xl bg-gray-950/80 border border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
+          <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1">
+            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold font-mono">
+              <GraduationCap className="w-4 h-4" />
+              <span>AICTE ACTIVITY POINTS</span>
+            </div>
+            <span className="text-xl font-extrabold text-white block">
+              {aicte.activityPoints} Points Granted
+            </span>
+            <span className="text-[11px] text-gray-400 block font-mono">
+              {aicte.credits} Credits • {aicte.nepLevel}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-1">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold font-mono">
+              <Award className="w-4 h-4" />
+              <span>GOVT. MSME REGISTRATION</span>
+            </div>
+            <span className="text-base font-extrabold text-white block font-mono">
+              {aicte.msmeUdyamId}
+            </span>
+            <span className="text-[11px] text-gray-400 block">
+              ISO 9001:2015 Quality Management
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/30 space-y-1">
+            <div className="flex items-center gap-2 text-purple-400 text-xs font-bold font-mono">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>PRACTICUM CLASSIFICATION</span>
+            </div>
+            <span className="text-xs font-extrabold text-white block font-mono">
+              {aicte.aicteCode}
+            </span>
+            <span className="text-[11px] text-gray-400 block">
+              Category-B Industry Practicum
+            </span>
           </div>
         </div>
 
@@ -157,7 +205,7 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
               Track Modality & Duration
             </span>
             <span className="text-xs font-bold text-cyan-300 block">
-              {certData.mode || "Online"} • {certData.duration || "4 Weeks"}
+              {certData.mode || "Online"} • {certData.duration || "4 Weeks"} ({aicte.totalHours} Hours)
             </span>
           </div>
 

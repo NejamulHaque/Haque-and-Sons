@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { Download, Printer, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Download, Printer, ShieldCheck, Sparkles, Star, GraduationCap } from "lucide-react";
+import { getAicteComplianceInfo } from "@/lib/aicte";
 
 export interface LORData {
   id?: string;
@@ -28,6 +29,8 @@ export function LetterOfRecommendationRenderer({
 }: LetterOfRecommendationRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+
+  const aicte = getAicteComplianceInfo(lorData.duration);
 
   const formattedDate = new Date(lorData.issueDate || Date.now()).toLocaleDateString("en-US", {
     month: "long",
@@ -150,12 +153,14 @@ export function LetterOfRecommendationRenderer({
               <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2 flex-wrap">
-                <span>Executive Letter of Recommendation</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold text-white tracking-tight">
+                  Executive Letter of Recommendation
+                </h3>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-mono font-semibold">
-                  Official Endorsement
+                  AICTE Approved ({aicte.activityPoints} Activity Pts)
                 </span>
-              </h3>
+              </div>
               <p className="text-xs text-gray-400">
                 Official institutional recommendation for higher education, master&apos;s admissions &amp; high-growth engineering roles.
               </p>
@@ -241,10 +246,10 @@ export function LetterOfRecommendationRenderer({
                     HAQUE &amp; SONS
                   </h1>
                   <p className="text-[9.5px] uppercase font-mono tracking-widest text-sky-800 font-bold">
-                    Next-Gen Software Studio &amp; Engineering Infrastructure
+                    Software Studio &amp; Engineering Research Labs
                   </p>
                   <p className="text-[8.5px] text-slate-600">
-                    MSME UDYAM Registration: <strong className="text-slate-800 font-semibold">UDYAM-UP-55-0012984</strong> • ISO 9001:2015 Compliant
+                    MSME Registration: <strong className="text-slate-800 font-semibold">{aicte.msmeUdyamId}</strong> • ISO 9001:2015 Compliant • AICTE NEP 2020 Practicum
                   </p>
                 </div>
               </div>
@@ -252,18 +257,19 @@ export function LetterOfRecommendationRenderer({
               <div className="text-right text-[9.5px] text-slate-600 space-y-0.5 leading-tight">
                 <p><strong className="text-slate-800 font-semibold">Ref:</strong> {refNumber}</p>
                 <p><strong className="text-slate-800 font-semibold">Date:</strong> {formattedDate}</p>
+                <p><strong className="text-slate-800 font-semibold">AICTE Code:</strong> <span className="font-mono text-emerald-800 font-bold">{aicte.aicteCode}</span></p>
                 <p><strong className="text-slate-800 font-semibold">Web:</strong> haqueandsons.vercel.app</p>
-                <p><strong className="text-slate-800 font-semibold">Email:</strong> haquendsons@gmail.com</p>
               </div>
             </div>
 
             {/* Formal Salutation */}
             <div className="pt-1">
-              <div className="inline-block px-3 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-800 mb-2 uppercase tracking-wider font-mono">
-                Official Letter of Academic &amp; Professional Recommendation
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-800 mb-2 uppercase tracking-wider font-mono">
+                <GraduationCap className="w-3.5 h-3.5 text-sky-800" />
+                <span>AICTE Category-B Practicum • National Credit Framework (NCrF) Endorsement</span>
               </div>
               <p className="text-[11px] text-slate-700">
-                <strong>TO WHOM IT MAY CONCERN / ADMISSIONS &amp; HIRING COMMITTEES,</strong>
+                <strong>TO WHOM IT MAY CONCERN / DEANS, ACADEMIC COMMITTEES &amp; HIRING PANELS,</strong>
               </p>
             </div>
 
@@ -272,17 +278,19 @@ export function LetterOfRecommendationRenderer({
               <p>
                 It is with exceptional enthusiasm that I provide this formal Letter of Recommendation for{" "}
                 <strong className="text-slate-950 underline decoration-sky-500 underline-offset-2">{lorData.studentName}</strong>,
-                a dedicated scholar from <strong className="text-slate-950">{lorData.college}</strong>, who has completed an intensive{" "}
-                <strong>{lorData.duration}</strong> technical engagement as an Engineering Intern in our{" "}
-                <strong className="text-sky-800 font-bold">{lorData.domain}</strong> track at Haque &amp; Sons.
+                a dedicated scholar from <strong className="text-slate-950">{lorData.college}</strong>, who has successfully completed an intensive{" "}
+                <strong>{lorData.duration}</strong> ({aicte.totalHours}+ Engineering Hours) technical immersion as an Engineering Intern in our{" "}
+                <strong className="text-sky-800 font-bold">{lorData.domain}</strong> practicum track at Haque &amp; Sons, earning{" "}
+                <strong className="text-emerald-800 font-bold">{aicte.activityPoints} AICTE Activity Points</strong> and{" "}
+                <strong className="text-emerald-800 font-bold">{aicte.credits} Academic Credits</strong> under the AICTE NEP 2020 National Credit Framework.
               </p>
 
               <p>
-                During their tenure at our software engineering studio, {lorData.studentName} demonstrated profound technical aptitude, algorithmic rigor, and exemplary architectural discipline. They actively engineered and delivered high-velocity capstone deliverables adhering strictly to modern industry standards (including Next.js 16, TypeScript, automated CI/CD pipelines, and resilient PostgreSQL database architectures).
+                During their tenure at our software studio, {lorData.studentName} demonstrated profound technical aptitude, algorithmic rigor, and exemplary architectural discipline. They actively engineered and deployed production-grade capstone deliverables adhering strictly to enterprise engineering standards (including Next.js 16, TypeScript, automated CI/CD pipelines, and high-performance database architectures).
               </p>
 
               <p>
-                Beyond technical execution, {lorData.studentName} exhibited outstanding problem-solving initiative, clean git hygiene, and meticulous engineering documentation. Their ability to decompose complex real-world requirements into modular, scalable, and resilient software components places them firmly among the top echelon of candidate engineers I have mentored.
+                Beyond technical execution, {lorData.studentName} exhibited outstanding problem-solving initiative, clean git hygiene, and meticulous engineering documentation in their weekly AICTE Activity Logbook. Their ability to decompose complex real-world requirements into modular, scalable, and resilient software components places them firmly among the top echelon of candidate engineers I have mentored.
               </p>
             </div>
 
@@ -291,40 +299,40 @@ export function LetterOfRecommendationRenderer({
               <div className="flex items-center justify-between border-b border-slate-200 pb-1">
                 <span className="text-[10px] font-bold text-slate-900 uppercase font-mono tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-sky-700" />
-                  <span>5-Pillar Competency Appraisal Matrix</span>
+                  <span>AICTE 5-Pillar Competency Appraisal Matrix ({aicte.activityPoints} Activity Pts)</span>
                 </span>
                 <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-mono">
-                  Overall Rating: {lorData.grade || "Distinction (9.8 / 10)"}
+                  Overall Rating: {lorData.grade || "Distinction (9.8 / 10)"} • {aicte.credits} Credits
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[10.5px]">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700">1. System Architecture &amp; Scalability:</span>
-                  <span className="font-bold text-slate-950 font-mono">9.8 / 10</span>
+                  <span className="text-slate-700">1. Systems Architecture &amp; Scalability:</span>
+                  <span className="font-bold text-slate-950 font-mono">9.8 / 10 (Distinction)</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700">2. Code Cleanliness &amp; TypeScript Discipline:</span>
-                  <span className="font-bold text-slate-950 font-mono">9.7 / 10</span>
+                  <span className="text-slate-700">2. Code Quality &amp; TypeScript Discipline:</span>
+                  <span className="font-bold text-slate-950 font-mono">9.7 / 10 (Distinction)</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-700">3. Algorithmic Problem Solving &amp; Debugging:</span>
-                  <span className="font-bold text-slate-950 font-mono">9.6 / 10</span>
+                  <span className="text-slate-700">3. Algorithmic Problem Solving &amp; Logic:</span>
+                  <span className="font-bold text-slate-950 font-mono">9.6 / 10 (Distinction)</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-700">4. Git CI/CD &amp; Production Deployment:</span>
-                  <span className="font-bold text-slate-950 font-mono">9.9 / 10</span>
+                  <span className="font-bold text-slate-950 font-mono">9.9 / 10 (Distinction)</span>
                 </div>
                 <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-200/60">
-                  <span className="text-slate-700">5. Technical Communication &amp; Product Ownership:</span>
-                  <span className="font-bold text-slate-950 font-mono">9.8 / 10</span>
+                  <span className="text-slate-700">5. Technical Leadership, Ethics &amp; Logbook:</span>
+                  <span className="font-bold text-slate-950 font-mono">9.8 / 10 (Distinction)</span>
                 </div>
               </div>
             </div>
 
             {/* Closing Endorsement */}
             <p className="text-[11px] leading-relaxed text-slate-800 text-justify">
-              I give {lorData.studentName} my highest and unreserved recommendation for any software engineering position, research fellowship, or postgraduate degree program in Computer Science. Should you require further technical context or verification, please do not hesitate to contact our executive office directly.
+              I give {lorData.studentName} my highest and unreserved recommendation for academic credit transfer under NEP 2020, research fellowships, postgraduate admissions, and high-impact engineering positions. Should you require further technical verification, please do not hesitate to contact our executive office directly.
             </p>
           </div>
 
@@ -347,7 +355,7 @@ export function LetterOfRecommendationRenderer({
                   Founder &amp; Lead Systems Architect
                 </p>
                 <p className="text-[8.5px] text-slate-500">
-                  Haque &amp; Sons Next-Gen Software Studio
+                  Haque &amp; Sons Software Studio ({aicte.msmeUdyamId})
                 </p>
               </div>
             </div>
@@ -360,10 +368,10 @@ export function LetterOfRecommendationRenderer({
                   HAQUE &amp; SONS
                 </span>
                 <span className="text-[5.5px] font-mono text-sky-900 uppercase tracking-widest block font-bold">
-                  OFFICIAL SEAL
+                  AICTE VERIFIED
                 </span>
               </div>
-              <p className="text-[7.5px] font-mono text-slate-500">Cryptographically Sealed</p>
+              <p className="text-[7.5px] font-mono text-slate-500">{aicte.activityPoints} Activity Points Certified</p>
             </div>
           </div>
         </div>

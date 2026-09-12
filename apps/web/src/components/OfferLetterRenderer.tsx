@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Download, Award, Mail, Sparkles, ShieldCheck, Printer, CheckCircle2, X, FileText, Check } from "lucide-react";
+import { Download, Award, Mail, Sparkles, ShieldCheck, Printer, CheckCircle2, X, FileText, Check, BookOpen, GraduationCap, CheckSquare } from "lucide-react";
 import Image from "next/image";
+import { getAicteComplianceInfo } from "@/lib/aicte";
 
 export interface OfferLetterData {
   id: string;
@@ -169,6 +170,7 @@ export function OfferLetterRenderer({
     }
   };
 
+  const aicteInfo = getAicteComplianceInfo(data.duration);
   const isPaid = (data.internshipType || "").toLowerCase().includes("paid");
   const compensationText = isPaid
     ? "Performance & Milestone-Linked Stipend (Up to ₹15,000/month upon milestone evaluation)"
@@ -182,11 +184,16 @@ export function OfferLetterRenderer({
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
             <div>
-              <span className="text-xs font-mono text-cyan-300 font-bold block">
-                Official 2-Page Internship Appointment Letter
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-cyan-300 font-bold block">
+                  Official 2-Page Internship Appointment Letter
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                  AICTE NEP 2020 Compliant ({aicteInfo.activityPoints} Activity Pts)
+                </span>
+              </div>
               <span className="text-[10px] text-gray-400 font-mono">
-                Ref: {data.id} • Verified Issue • Signatory: Nejamul Haque
+                Ref: {data.id} • Signatory: Nejamul Haque • MSME UDYAM: {aicteInfo.msmeUdyamId}
               </span>
             </div>
           </div>
@@ -303,7 +310,7 @@ export function OfferLetterRenderer({
                   Software Studio & Engineering Infrastructure
                 </p>
                 <p className="text-[10px] text-slate-500 font-medium">
-                  Govt. Registered MSME • ISO 9001:2015 Compliant Software Labs
+                  Govt. Registered MSME ({aicteInfo.msmeUdyamId}) • ISO 9001:2015 Compliant • AICTE NEP 2020 Practicum
                 </p>
               </div>
             </div>
@@ -311,9 +318,22 @@ export function OfferLetterRenderer({
             <div className="text-left sm:text-right text-[11px] text-slate-600 space-y-0.5 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
               <p className="font-mono font-bold text-slate-900">Ref: {data.id}</p>
               <p className="text-slate-600">Date: {data.startDate}</p>
-              <p className="text-[10px] text-slate-400">CIN: UDYAM-DL-03-0089421</p>
-              <p className="text-[10px] text-sky-700 font-medium">haqueandsons.vercel.app</p>
+              <p className="text-[10px] text-slate-400">MSME: {aicteInfo.msmeUdyamId}</p>
+              <p className="text-[10px] text-sky-700 font-medium font-mono">{aicteInfo.aicteCode}</p>
             </div>
+          </div>
+
+          {/* AICTE NEP 2020 Accreditation Ribbon */}
+          <div className="my-3 p-2.5 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-emerald-700 shrink-0" />
+              <span className="text-[11px] font-bold text-emerald-950 uppercase font-mono tracking-wide">
+                AICTE NEP 2020 Practicum Allocation: {aicteInfo.activityPoints} Activity Points • {aicteInfo.credits} Academic Credits ({aicteInfo.totalHours} Hours)
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded shrink-0">
+              Category-B Practicum
+            </span>
           </div>
 
           {/* Recipient Information */}
@@ -381,11 +401,19 @@ export function OfferLetterRenderer({
                       Duration & Term
                     </td>
                     <td className="p-2.5 font-bold text-slate-900">
-                      {data.duration} (Commencing {data.startDate})
+                      {data.duration} ({aicteInfo.totalHours}+ Engineering Hours • Commencing {data.startDate})
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200">
                     <td className="p-2.5 font-semibold text-slate-600 border-r border-slate-200 bg-slate-50">
+                      AICTE Activity Points & Credits
+                    </td>
+                    <td className="p-2.5 font-bold text-emerald-800">
+                      {aicteInfo.activityPoints} AICTE Activity Points • {aicteInfo.credits} Academic Credits ({aicteInfo.nepLevel})
+                    </td>
+                  </tr>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <td className="p-2.5 font-semibold text-slate-600 border-r border-slate-200">
                       Stipend / Grant Structure
                     </td>
                     <td className="p-2.5 font-medium text-slate-900">
@@ -408,17 +436,17 @@ export function OfferLetterRenderer({
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-xs">
               <h4 className="font-bold text-slate-950 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-sky-700" />
-                <span>Scope of Work & Learning Objectives:</span>
+                <span>Scope of Work & Learning Objectives (AICTE NEP 2020 Compliant):</span>
               </h4>
               <ul className="list-disc pl-5 space-y-1 text-slate-600 leading-normal text-[11px]">
                 <li>
-                  <strong>Sprint Milestones:</strong> Participate in weekly architecture sprints, database modeling, and code check-ins.
+                  <strong>Sprint Milestones:</strong> Participate in weekly architecture sprints, database modeling, and code check-ins ({aicteInfo.totalHours} hours total practicum effort).
                 </li>
                 <li>
-                  <strong>Capstone Implementation:</strong> Design, build, and deploy an end-to-end production capstone application using modern tools.
+                  <strong>Capstone Implementation:</strong> Design, build, and deploy an end-to-end production capstone application satisfying {aicteInfo.subCategory}.
                 </li>
                 <li>
-                  <strong>Production Deployment:</strong> Host live projects on edge infrastructure (Vercel / Render / Cloud) and submit GitHub repositories.
+                  <strong>Production Deployment & Logbook:</strong> Maintain AICTE Activity Diary, host live projects on edge infrastructure, and submit verified GitHub repositories.
                 </li>
               </ul>
             </div>
@@ -426,7 +454,7 @@ export function OfferLetterRenderer({
 
           {/* Page 1 Footer */}
           <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Page 1 of 2 • Official Appointment Letter</span>
+            <span>Page 1 of 2 • AICTE Category-B Industry Practicum</span>
             <span>Haque & Sons Software Studio</span>
             <span>Ref: {data.id}</span>
           </div>
@@ -445,28 +473,30 @@ export function OfferLetterRenderer({
               <span className="font-bold text-slate-900 uppercase">Haque & Sons</span>
               <span>•</span>
               <span>Ref: {data.id}</span>
+              <span>•</span>
+              <span className="text-emerald-700 font-semibold">{aicteInfo.aicteCode}</span>
             </div>
             <span>Page 2 of 2 • Terms & Signatures</span>
           </div>
 
           <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed font-sans pt-4">
-            {/* Section 4: Confidentiality & Intellectual Property */}
+            {/* Section 4: Intellectual Property & College Submission Rights */}
             <div className="space-y-1.5">
               <h4 className="font-bold text-slate-950 uppercase tracking-wider text-xs text-sky-900">
-                1. Intellectual Property & Confidentiality
+                1. Intellectual Property & Academic Institutional Submission Rights
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                You agree that proprietary algorithms, studio architectures, internal systems, and confidential datasets belonging to Haque & Sons remain the exclusive property of the organization. The candidate retains full portfolio and showcase rights to the open-source code and public capstone projects authored during the internship.
+                You agree that proprietary algorithms and studio architectures belonging to Haque & Sons remain the exclusive property of the organization. The candidate is granted full unencumbered rights to publish, present, and submit their capstone repository, weekly AICTE activity diary, and engineering thesis to their college, university examination board, and Training & Placement Officer (TPO) for academic credit transfer.
               </p>
             </div>
 
-            {/* Section 5: Evaluation & Certification Protocol */}
+            {/* Section 5: AICTE Activity Points & Evaluation Protocol */}
             <div className="space-y-1.5">
               <h4 className="font-bold text-slate-950 uppercase tracking-wider text-xs text-sky-900">
-                2. Evaluation, Verified Certificate & Letter of Recommendation
+                2. Evaluation, AICTE Activity Points ({aicteInfo.activityPoints} Pts) & Recommendation
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haqueandsons.vercel.app/verify</code>). High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
+                Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haqueandsons.vercel.app/verify</code>) granting <strong>{aicteInfo.activityPoints} AICTE Activity Points</strong>. High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
               </p>
             </div>
 
@@ -476,7 +506,7 @@ export function OfferLetterRenderer({
                 3. Code of Conduct & Academic Integrity
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Interns are expected to maintain the highest standards of professional integrity, deliver original work, communicate proactively during sprint check-ins, and adhere to zero-plagiarism principles.
+                Interns are expected to maintain the highest standards of professional integrity, deliver original work, communicate proactively during sprint check-ins, and adhere to zero-plagiarism principles under the National Credit Framework.
               </p>
             </div>
 
