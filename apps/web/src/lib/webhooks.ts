@@ -10,6 +10,8 @@ interface WebhookPayload {
     | "payment.approved"
     | "certificate.issued"
     | "project.submitted"
+    | "project.approved"
+    | "project.revision_requested"
     | "lor.applied"
     | "lor.approved"
     | "lor.rejected";

@@ -92,6 +92,16 @@ export const internshipApplications = pgTable("internship_applications", {
   paymentUtr: text("payment_utr"),
   paymentStatus: text("payment_status").default("None").notNull(), // None | Pending Approval | Approved | Rejected
   certificateId: text("certificate_id"),
+  projectZipUrl: text("project_zip_url"),
+  projectStatus: text("project_status").default("Not Submitted").notNull(), // Not Submitted | Under Review | Approved | Needs Revision
+  projectGrade: text("project_grade").default("Distinction (Grade O)"),
+  projectRemarks: text("project_remarks"),
+  projectSubmittedAt: timestamp("project_submitted_at"),
+  projectApprovedAt: timestamp("project_approved_at"),
+  assignment1Status: text("assignment1_status").default("Pending"), // Pending | Submitted | Approved
+  assignment2Status: text("assignment2_status").default("Pending"), // Pending | Submitted | Approved
+  assignment3Status: text("assignment3_status").default("Pending"), // Pending | Submitted | Approved
+  assignmentNotes: text("assignment_notes"),
   lorStatus: text("lor_status").default("None").notNull(), // None | Pending | Approved | Rejected
   lorRefNumber: text("lor_ref_number"),
   lorAppliedAt: timestamp("lor_applied_at"),

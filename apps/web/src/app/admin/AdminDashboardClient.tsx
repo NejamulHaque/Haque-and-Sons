@@ -87,6 +87,16 @@ export interface InternshipAppRow {
   paymentUtr?: string | null;
   paymentStatus?: string | null;
   certificateId?: string | null;
+  projectZipUrl?: string | null;
+  projectStatus?: string | null;
+  projectGrade?: string | null;
+  projectRemarks?: string | null;
+  projectSubmittedAt?: Date | string | null;
+  projectApprovedAt?: Date | string | null;
+  assignment1Status?: string | null;
+  assignment2Status?: string | null;
+  assignment3Status?: string | null;
+  assignmentNotes?: string | null;
   lorStatus?: string | null;
   lorRefNumber?: string | null;
   lorAppliedAt?: Date | string | null;
@@ -267,6 +277,16 @@ export function AdminDashboardClient({
   const [lorRejectionReasonInput, setLorRejectionReasonInput] = useState("");
   const [isProcessingLor, setIsProcessingLor] = useState(false);
   const [lorToast, setLorToast] = useState<string | null>(null);
+
+  // AICTE Practicum & Project Management States
+  const [appProjectFilter, setAppProjectFilter] = useState("All");
+  const [reviewingProjectApp, setReviewingProjectApp] = useState<InternshipAppRow | null>(null);
+  const [projectGradeInput, setProjectGradeInput] = useState("Distinction (Grade O)");
+  const [projectRemarksInput, setProjectRemarksInput] = useState(
+    "All 3 domain assignments and project ZIP archive evaluated and approved with Distinction."
+  );
+  const [isProcessingProject, setIsProcessingProject] = useState(false);
+  const [projectToast, setProjectToast] = useState<string | null>(null);
 
   const activeCurrency = CURRENCIES[currency];
 
@@ -503,6 +523,56 @@ export function AdminDashboardClient({
       alert("Network error while rejecting LOR.");
     } finally {
       setIsProcessingLor(false);
+    }
+  };
+
+  const openReviewProjectModal = (app: InternshipAppRow) => {
+    setReviewingProjectApp(app);
+    setProjectGradeInput(app.projectGrade || "Distinction (Grade O)");
+    setProjectRemarksInput(
+      app.projectRemarks || "All 3 domain assignments and project ZIP archive evaluated and approved with Distinction."
+    );
+  };
+
+  const handleApproveProjectSubmit = async (action: "approve" | "revision") => {
+    if (!reviewingProjectApp) return;
+    setIsProcessingProject(true);
+    try {
+      const res = await fetch("/api/admin/approve-project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationId: reviewingProjectApp.id,
+          action,
+          grade: projectGradeInput,
+          remarks: projectRemarksInput,
+          assignment1Status: "Approved",
+          assignment2Status: "Approved",
+          assignment3Status: "Approved",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.application) {
+        setProjectToast(
+          action === "approve"
+            ? `🎉 AICTE Practicum & ZIP for ${reviewingProjectApp.fullName} approved with ${projectGradeInput}!`
+            : `Feedback sent to ${reviewingProjectApp.fullName} for project revision.`
+        );
+        setTimeout(() => setProjectToast(null), 7000);
+        setApplications((prev) =>
+          prev.map((a) => (a.id === reviewingProjectApp.id ? { ...a, ...data.application } : a))
+        );
+        if (viewDetailApp?.id === reviewingProjectApp.id) {
+          setViewDetailApp({ ...viewDetailApp, ...data.application });
+        }
+        setReviewingProjectApp(null);
+      } else {
+        alert(data.error || "Failed to update project status.");
+      }
+    } catch {
+      alert("Network error while updating project status.");
+    } finally {
+      setIsProcessingProject(false);
     }
   };
 
@@ -858,6 +928,12 @@ export function AdminDashboardClient({
         if (appLorFilter === "Rejected" && app.lorStatus !== "Rejected") return false;
         if (appLorFilter === "None" && app.lorStatus && app.lorStatus !== "None") return false;
       }
+      if (appProjectFilter !== "All") {
+        if (appProjectFilter === "Under Review" && app.projectStatus !== "Under Review") return false;
+        if (appProjectFilter === "Approved" && app.projectStatus !== "Approved") return false;
+        if (appProjectFilter === "Needs Revision" && app.projectStatus !== "Needs Revision") return false;
+        if (appProjectFilter === "Not Submitted" && app.projectStatus && app.projectStatus !== "Not Submitted") return false;
+      }
       if (appSearchQuery.trim()) {
         const q = appSearchQuery.toLowerCase();
         const matchName = (app.fullName || "").toLowerCase().includes(q);
@@ -1124,9 +1200,10 @@ export function AdminDashboardClient({
                   setAppStatusFilter("All");
                   setAppPaymentFilter("All");
                   setAppLorFilter("All");
+                  setAppProjectFilter("All");
                 }}
                 className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 ${
-                  appStatusFilter === "All" && appPaymentFilter === "All" && appLorFilter === "All"
+                  appStatusFilter === "All" && appPaymentFilter === "All" && appLorFilter === "All" && appProjectFilter === "All"
                     ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm"
                     : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
                 }`}
@@ -1136,18 +1213,19 @@ export function AdminDashboardClient({
 
               <button
                 onClick={() => {
-                  setAppStatusFilter("Pending");
+                  setAppProjectFilter("Under Review");
+                  setAppStatusFilter("All");
                   setAppPaymentFilter("All");
                   setAppLorFilter("All");
                 }}
                 className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                  appStatusFilter === "Pending"
-                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500/40 shadow-sm"
+                  appProjectFilter === "Under Review"
+                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm"
                     : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
                 }`}
               >
-                <Clock className="w-3 h-3 text-yellow-400" />
-                <span>Pending Offers ({applications.filter((a) => a.status === "Pending" || a.status === "Under Review").length})</span>
+                <FolderArchive className="w-3 h-3 text-cyan-400" />
+                <span>Practicum Review ({applications.filter((a) => a.projectStatus === "Under Review").length})</span>
               </button>
 
               <button
@@ -1155,6 +1233,7 @@ export function AdminDashboardClient({
                   setAppPaymentFilter("Pending Approval");
                   setAppStatusFilter("All");
                   setAppLorFilter("All");
+                  setAppProjectFilter("All");
                 }}
                 className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   appPaymentFilter === "Pending Approval"
@@ -1171,6 +1250,7 @@ export function AdminDashboardClient({
                   setAppLorFilter("Pending");
                   setAppStatusFilter("All");
                   setAppPaymentFilter("All");
+                  setAppProjectFilter("All");
                 }}
                 className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   appLorFilter === "Pending"
@@ -1184,9 +1264,27 @@ export function AdminDashboardClient({
 
               <button
                 onClick={() => {
+                  setAppProjectFilter("Approved");
+                  setAppStatusFilter("All");
+                  setAppPaymentFilter("All");
+                  setAppLorFilter("All");
+                }}
+                className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                  appProjectFilter === "Approved"
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm"
+                    : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span>Approved Practicums ({applications.filter((a) => a.projectStatus === "Approved").length})</span>
+              </button>
+
+              <button
+                onClick={() => {
                   setAppLorFilter("Approved");
                   setAppStatusFilter("All");
                   setAppPaymentFilter("All");
+                  setAppProjectFilter("All");
                 }}
                 className={`px-3 py-1.5 rounded-xl border font-semibold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                   appLorFilter === "Approved"
@@ -1223,7 +1321,7 @@ export function AdminDashboardClient({
               </div>
 
               {/* Multi-dropdown filters row */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
                 {/* Domain Filter */}
                 <div>
                   <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
@@ -1240,6 +1338,24 @@ export function AdminDashboardClient({
                         {d.name}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Practicum Status Filter */}
+                <div>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
+                    Practicum / ZIP:
+                  </label>
+                  <select
+                    value={appProjectFilter}
+                    onChange={(e) => setAppProjectFilter(e.target.value)}
+                    className="w-full bg-gray-900 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                  >
+                    <option value="All">All Practicums</option>
+                    <option value="Under Review">Under Review ({applications.filter((a) => a.projectStatus === "Under Review").length})</option>
+                    <option value="Approved">Approved with Distinction</option>
+                    <option value="Needs Revision">Needs Revision</option>
+                    <option value="Not Submitted">Not Submitted</option>
                   </select>
                 </div>
 
@@ -1272,7 +1388,7 @@ export function AdminDashboardClient({
                   >
                     <option value="All">All Payments</option>
                     <option value="Pending Approval">Pending Approval (Action Req.)</option>
-                    <option value="Approved">Paid & Verified</option>
+                    <option value="Approved">Paid &amp; Verified</option>
                     <option value="Unpaid">Unpaid / In Progress</option>
                   </select>
                 </div>
@@ -1298,7 +1414,7 @@ export function AdminDashboardClient({
                 {/* Application Lifecycle Status */}
                 <div>
                   <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block mb-1">
-                    Application Status:
+                    Lifecycle Status:
                   </label>
                   <select
                     value={appStatusFilter}
@@ -1316,7 +1432,7 @@ export function AdminDashboardClient({
                 </div>
               </div>
 
-              {(appSearchQuery || appDomainFilter !== "All" || appModeFilter !== "All" || appPaymentFilter !== "All" || appLorFilter !== "All" || appStatusFilter !== "All") && (
+              {(appSearchQuery || appDomainFilter !== "All" || appModeFilter !== "All" || appPaymentFilter !== "All" || appLorFilter !== "All" || appProjectFilter !== "All" || appStatusFilter !== "All") && (
                 <div className="pt-2 flex items-center justify-between border-t border-white/5 text-xs">
                   <span className="text-gray-400">
                     Showing <strong className="text-cyan-300">{filteredApplications.length}</strong> of {applications.length} interns
@@ -1328,6 +1444,7 @@ export function AdminDashboardClient({
                       setAppModeFilter("All");
                       setAppPaymentFilter("All");
                       setAppLorFilter("All");
+                      setAppProjectFilter("All");
                       setAppStatusFilter("All");
                     }}
                     className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 cursor-pointer"
@@ -1338,6 +1455,13 @@ export function AdminDashboardClient({
                 </div>
               )}
             </div>
+
+            {projectToast && (
+              <div className="p-3.5 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-200 text-xs flex items-center gap-2 shadow-lg animate-fadeIn">
+                <FolderArchive className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>{projectToast}</span>
+              </div>
+            )}
 
             {offerSentToast && (
               <div className="p-3.5 rounded-xl bg-purple-950/70 border border-purple-500/40 text-purple-200 text-xs flex items-center gap-2 shadow-lg">
@@ -1363,6 +1487,7 @@ export function AdminDashboardClient({
                       <th className="px-4 py-3.5 font-semibold">College & Branch</th>
                       <th className="px-4 py-3.5 font-semibold">Domain Track</th>
                       <th className="px-4 py-3.5 font-semibold">Mode & Fee</th>
+                      <th className="px-4 py-3.5 font-semibold">Practicum & ZIP</th>
                       <th className="px-4 py-3.5 font-semibold">Payment & Review</th>
                       <th className="px-4 py-3.5 font-semibold">LOR Endorsement</th>
                       <th className="px-4 py-3.5 font-semibold">Lifecycle</th>
@@ -1407,6 +1532,71 @@ export function AdminDashboardClient({
                               </span>
                             </div>
                             <span className="text-[10px] text-cyan-400/80 block mt-0.5">{app.internshipType}</span>
+                          </td>
+
+                          {/* Practicum & ZIP Column */}
+                          <td className="px-4 py-3.5">
+                            {app.projectStatus === "Approved" ? (
+                              <div className="space-y-1">
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold font-mono inline-flex items-center gap-1">
+                                  <CheckCircle2 className="w-2.5 h-2.5" />
+                                  <span>{app.projectGrade || "Grade O"}</span>
+                                </span>
+                                <div>
+                                  <button
+                                    type="button"
+                                    onClick={() => openReviewProjectModal(app)}
+                                    className="text-[10px] text-cyan-400 hover:underline font-mono flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <FolderArchive className="w-2.5 h-2.5" />
+                                    <span>Practicum View</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : app.projectStatus === "Under Review" ? (
+                              <div className="space-y-1">
+                                <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold font-mono inline-flex items-center gap-1 animate-pulse">
+                                  <Clock className="w-2.5 h-2.5 animate-spin text-cyan-400" />
+                                  <span>Review ZIP</span>
+                                </span>
+                                <div>
+                                  <button
+                                    type="button"
+                                    onClick={() => openReviewProjectModal(app)}
+                                    className="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[9.5px] font-bold border border-cyan-500/40 cursor-pointer flex items-center gap-1"
+                                  >
+                                    <FolderArchive className="w-2.5 h-2.5" />
+                                    <span>Inspect &amp; Grade</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : app.projectStatus === "Needs Revision" ? (
+                              <div className="space-y-0.5">
+                                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold inline-flex items-center gap-1">
+                                  <AlertCircle className="w-2.5 h-2.5" />
+                                  <span>Needs Revision</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => openReviewProjectModal(app)}
+                                  className="text-[9.5px] text-gray-400 hover:text-white underline block cursor-pointer"
+                                >
+                                  Re-evaluate
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-0.5">
+                                <span className="text-[11px] text-gray-500 italic block">Not Submitted</span>
+                                <button
+                                  type="button"
+                                  onClick={() => openReviewProjectModal(app)}
+                                  className="text-[10px] text-gray-400 hover:text-cyan-300 flex items-center gap-0.5 cursor-pointer"
+                                >
+                                  <Code2 className="w-2.5 h-2.5 text-cyan-400" />
+                                  <span>Rubric</span>
+                                </button>
+                              </div>
+                            )}
                           </td>
 
                           {/* Payment Column */}
@@ -1569,6 +1759,21 @@ export function AdminDashboardClient({
                                 className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all cursor-pointer"
                               >
                                 <Mail className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* AICTE Practicum Review Quick Action */}
+                              <button
+                                onClick={() => openReviewProjectModal(app)}
+                                title="Evaluate AICTE Practicum & ZIP"
+                                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                  app.projectStatus === "Under Review"
+                                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/50 animate-pulse"
+                                    : app.projectStatus === "Approved"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                    : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-cyan-300 border-white/10"
+                                }`}
+                              >
+                                <FolderArchive className="w-3.5 h-3.5" />
                               </button>
 
                               {/* LOR Quick Action */}
@@ -2331,12 +2536,36 @@ export function AdminDashboardClient({
               </div>
             </div>
 
-            {/* Project Submissions Details */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-gray-900 to-black border border-white/10 space-y-3 text-xs">
-              <h4 className="text-[11px] uppercase font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
-                <FolderArchive className="w-3.5 h-3.5" /> Final Capstone & Code Submissions
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* AICTE Practicum & Source Code Deliverables */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-gray-900 to-black border border-cyan-500/20 space-y-3.5 text-xs">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[11px] uppercase font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
+                  <FolderArchive className="w-3.5 h-3.5" /> AICTE Practicum & Code Submissions
+                </h4>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      viewDetailApp.projectStatus === "Approved"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        : viewDetailApp.projectStatus === "Under Review"
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 animate-pulse"
+                        : viewDetailApp.projectStatus === "Needs Revision"
+                        ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                        : "bg-white/5 text-gray-400 border border-white/10"
+                    }`}
+                  >
+                    {viewDetailApp.projectStatus === "Approved"
+                      ? `Approved • ${viewDetailApp.projectGrade || "Grade O"}`
+                      : viewDetailApp.projectStatus === "Under Review"
+                      ? "Under Review (Ready)"
+                      : viewDetailApp.projectStatus === "Needs Revision"
+                      ? "Needs Revision"
+                      : "Not Submitted"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3 rounded-xl bg-black/50 border border-white/5">
                   <span className="text-gray-500 block text-[10px] uppercase">Submitted GitHub Repo:</span>
                   {viewDetailApp.githubRepo ? (
@@ -2344,10 +2573,10 @@ export function AdminDashboardClient({
                       href={viewDetailApp.githubRepo}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyan-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5"
+                      className="text-cyan-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5 truncate"
                     >
-                      <span>{viewDetailApp.githubRepo}</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <span className="truncate">{viewDetailApp.githubRepo}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
                     </a>
                   ) : (
                     <span className="text-gray-500 italic">Not submitted yet</span>
@@ -2361,32 +2590,71 @@ export function AdminDashboardClient({
                       href={viewDetailApp.liveUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-emerald-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5"
+                      className="text-emerald-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5 truncate"
                     >
-                      <span>{viewDetailApp.liveUrl}</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <span className="truncate">{viewDetailApp.liveUrl}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
                     </a>
                   ) : (
                     <span className="text-gray-500 italic">Not submitted yet</span>
                   )}
                 </div>
+
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-gray-500 block text-[10px] uppercase">Source Code .ZIP Archive:</span>
+                  {viewDetailApp.projectZipUrl ? (
+                    viewDetailApp.projectZipUrl.startsWith("data:") ? (
+                      <a
+                        href={viewDetailApp.projectZipUrl}
+                        download={`haque_practicum_${viewDetailApp.fullName.replace(/\s+/g, "_")}_${viewDetailApp.id}.zip`}
+                        className="text-amber-400 hover:text-amber-300 font-medium text-xs flex items-center gap-1.5 mt-0.5"
+                      >
+                        <Download className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Download .ZIP</span>
+                      </a>
+                    ) : (
+                      <a
+                        href={viewDetailApp.projectZipUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-400 hover:underline font-mono text-xs flex items-center gap-1 mt-0.5 truncate"
+                      >
+                        <span className="truncate">{viewDetailApp.projectZipUrl}</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    )
+                  ) : (
+                    <span className="text-gray-500 italic">No ZIP uploaded</span>
+                  )}
+                </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-cyan-300 flex items-center justify-between">
-                <div>
-                  <span className="font-semibold block">Project .ZIP Deliverable Email Box:</span>
-                  <span className="text-[11px] text-gray-400 font-mono">
-                    Interns submit project ZIPs to: <strong>haquendsons@gmail.com</strong>
-                  </span>
+              {viewDetailApp.assignmentNotes && (
+                <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                  <span className="text-gray-400 text-[10px] uppercase font-bold block">Candidate Architecture & Milestone Notes:</span>
+                  <p className="text-gray-300 text-xs leading-relaxed">{viewDetailApp.assignmentNotes}</p>
                 </div>
-                <a
-                  href={`mailto:haquendsons@gmail.com?subject=Project%20ZIP%20Submission%20-%20${encodeURIComponent(
-                    viewDetailApp.fullName
-                  )}`}
-                  className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold text-xs"
+              )}
+
+              {viewDetailApp.projectRemarks && (
+                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-cyan-300 space-y-1">
+                  <span className="text-cyan-400 text-[10px] uppercase font-bold block">Admin Evaluation Remarks:</span>
+                  <p className="text-gray-200 text-xs leading-relaxed">{viewDetailApp.projectRemarks}</p>
+                </div>
+              )}
+
+              <div className="pt-1 flex items-center justify-between gap-3">
+                <div className="text-[11px] text-gray-400 font-mono">
+                  Direct submissions inbox: <strong className="text-white">haquendsons@gmail.com</strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openReviewProjectModal(viewDetailApp)}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
-                  Check Inbox
-                </a>
+                  <FolderArchive className="w-3.5 h-3.5" />
+                  <span>{viewDetailApp.projectStatus === "Approved" ? "Re-Evaluate Practicum" : "Evaluate Practicum (AICTE)"}</span>
+                </button>
               </div>
             </div>
 
@@ -3358,6 +3626,309 @@ export function AdminDashboardClient({
                 }}
                 showActions={true}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 9: AICTE PRACTICUM & SOURCE CODE REVIEW MODAL */}
+      {reviewingProjectApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-3xl bg-[#090e1a] border border-cyan-500/40 rounded-3xl p-5 sm:p-7 shadow-[0_0_80px_rgba(6,182,212,0.2)] my-6 max-h-[92vh] overflow-y-auto space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                  <FolderArchive className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-bold text-white">AICTE Practicum & Source Code Evaluation</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-mono text-cyan-300 font-semibold">
+                      ID #{reviewingProjectApp.id}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-[10px] font-semibold text-purple-300">
+                      AICTE & NEP 2020 Compliant
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Candidate: <strong className="text-white">{reviewingProjectApp.fullName}</strong> ({reviewingProjectApp.email}) &bull; Track: <span className="text-cyan-300 font-semibold">{reviewingProjectApp.domain}</span>
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setReviewingProjectApp(null)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Candidate Metadata Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
+                <span className="text-gray-500 text-[10px] uppercase block">Institution</span>
+                <span className="text-white font-medium truncate block" title={reviewingProjectApp.college}>
+                  {reviewingProjectApp.college}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
+                <span className="text-gray-500 text-[10px] uppercase block">Degree & Cohort</span>
+                <span className="text-white font-medium">
+                  {reviewingProjectApp.degree} ({reviewingProjectApp.graduationYear})
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
+                <span className="text-gray-500 text-[10px] uppercase block">Duration & Mode</span>
+                <span className="text-white font-medium">
+                  {reviewingProjectApp.duration} &bull; {reviewingProjectApp.mode}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-black/40 border border-white/5">
+                <span className="text-gray-500 text-[10px] uppercase block">Current Status</span>
+                <span
+                  className={`font-semibold text-xs ${
+                    reviewingProjectApp.projectStatus === "Approved"
+                      ? "text-emerald-400"
+                      : reviewingProjectApp.projectStatus === "Under Review"
+                      ? "text-cyan-400"
+                      : reviewingProjectApp.projectStatus === "Needs Revision"
+                      ? "text-rose-400"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {reviewingProjectApp.projectStatus || "Not Submitted"}
+                </span>
+              </div>
+            </div>
+
+            {/* Deliverables Submissions Panel */}
+            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3.5 text-xs">
+              <h4 className="text-[11px] uppercase font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
+                <Code2 className="w-3.5 h-3.5" /> Candidate Submitted Deliverables
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* GitHub Repo */}
+                <div className="p-3 rounded-xl bg-gray-950 border border-white/5 space-y-1">
+                  <span className="text-gray-500 text-[10px] uppercase block font-medium">GitHub Repository</span>
+                  {reviewingProjectApp.githubRepo ? (
+                    <a
+                      href={reviewingProjectApp.githubRepo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-400 hover:text-cyan-300 hover:underline font-mono text-xs flex items-center gap-1.5 truncate"
+                    >
+                      <Terminal className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+                      <span className="truncate">{reviewingProjectApp.githubRepo}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 italic">No repo provided</span>
+                  )}
+                </div>
+
+                {/* Live Demo URL */}
+                <div className="p-3 rounded-xl bg-gray-950 border border-white/5 space-y-1">
+                  <span className="text-gray-500 text-[10px] uppercase block font-medium">Live Deployment URL</span>
+                  {reviewingProjectApp.liveUrl ? (
+                    <a
+                      href={reviewingProjectApp.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:text-emerald-300 hover:underline font-mono text-xs flex items-center gap-1.5 truncate"
+                    >
+                      <Globe className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                      <span className="truncate">{reviewingProjectApp.liveUrl}</span>
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 italic">No live demo provided</span>
+                  )}
+                </div>
+
+                {/* Source Code .ZIP Download */}
+                <div className="p-3 rounded-xl bg-gray-950 border border-amber-500/20 space-y-1">
+                  <span className="text-amber-400 text-[10px] uppercase block font-bold">Source Code .ZIP File</span>
+                  {reviewingProjectApp.projectZipUrl ? (
+                    reviewingProjectApp.projectZipUrl.startsWith("data:") ? (
+                      <a
+                        href={reviewingProjectApp.projectZipUrl}
+                        download={`haque_practicum_${reviewingProjectApp.fullName.replace(/\s+/g, "_")}_${reviewingProjectApp.id}.zip`}
+                        className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5 transition-all w-fit"
+                      >
+                        <Download className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Download Practicum ZIP</span>
+                      </a>
+                    ) : (
+                      <a
+                        href={reviewingProjectApp.projectZipUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-400 hover:text-cyan-300 hover:underline font-mono text-xs flex items-center gap-1.5 truncate"
+                      >
+                        <Download className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+                        <span className="truncate">Open Cloud ZIP Link</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    )
+                  ) : (
+                    <span className="text-gray-500 italic">No .ZIP uploaded</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Candidate Notes */}
+              {reviewingProjectApp.assignmentNotes && (
+                <div className="p-3 rounded-xl bg-gray-950/80 border border-white/5 space-y-1">
+                  <span className="text-gray-400 text-[10px] uppercase font-bold block">
+                    Candidate Architecture & Implementation Notes:
+                  </span>
+                  <p className="text-gray-200 text-xs leading-relaxed font-sans">
+                    {reviewingProjectApp.assignmentNotes}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* AICTE 3 Practical Milestones Benchmark Rubric */}
+            {(() => {
+              const domainData = INTERNSHIP_DOMAINS.find((d) => d.name === reviewingProjectApp.domain);
+              if (!domainData || !domainData.assignments || domainData.assignments.length === 0) return null;
+              return (
+                <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[11px] uppercase font-bold text-cyan-300 tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      AICTE Track Rubric & 3 Mandatory Milestones
+                    </h4>
+                    <span className="text-[10px] text-cyan-400 font-mono">
+                      Total 30 Activity Points &bull; 4 NCrF Credits
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {domainData.assignments.map((asg) => (
+                      <div
+                        key={asg.id}
+                        className="p-3 rounded-xl bg-black/50 border border-white/5 flex flex-col justify-between space-y-2"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono font-bold">
+                              Milestone #{asg.number}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono">
+                              {asg.estimatedHours}h
+                            </span>
+                          </div>
+                          <h5 className="text-white font-bold text-xs line-clamp-1">{asg.title}</h5>
+                          <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed">
+                            {asg.problemStatement}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-400">
+                          <span className="text-cyan-400 font-mono font-semibold">+{asg.points} Points</span>
+                          <span className="text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Mandatory
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Evaluation Form */}
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">
+                    AICTE Practicum Performance Grade *
+                  </label>
+                  <select
+                    value={projectGradeInput}
+                    onChange={(e) => setProjectGradeInput(e.target.value)}
+                    className="w-full bg-black/60 border border-cyan-500/30 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer font-medium"
+                  >
+                    <option value="Distinction (Grade O)">Distinction (Grade O - 10/10 Outstanding)</option>
+                    <option value="Distinction (Grade A+)">Distinction (Grade A+ - 9/10 Exemplary)</option>
+                    <option value="Grade A">Grade A (8/10 - Very Good)</option>
+                    <option value="Grade B">Grade B (7/10 - Good)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Quick Presets for Remarks</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "All 3 domain assignments verified with clean code & architecture.",
+                      "Exemplary practical solution. Meets all AICTE compliance rubrics.",
+                      "Please fix broken deployment link and re-upload ZIP archive.",
+                    ].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setProjectRemarksInput(preset)}
+                        className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-[10px] cursor-pointer truncate max-w-full"
+                        title={preset}
+                      >
+                        {preset.slice(0, 35)}...
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-gray-300 font-semibold block mb-1">
+                  Evaluation Feedback & Institutional Remarks *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={projectRemarksInput}
+                  onChange={(e) => setProjectRemarksInput(e.target.value)}
+                  placeholder="Enter mentor remarks to appear on the AICTE Practicum transcript..."
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400 resize-none font-sans text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setReviewingProjectApp(null)}
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isProcessingProject}
+                    onClick={() => handleApproveProjectSubmit("revision")}
+                    className="px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Request Revisions</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isProcessingProject}
+                    onClick={() => handleApproveProjectSubmit("approve")}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-slate-950 font-bold text-xs transition-all shadow-[0_0_25px_rgba(6,182,212,0.4)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                    <span>{isProcessingProject ? "Approving & Registering..." : "Approve Practicum & Grant AICTE Credits"}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

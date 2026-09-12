@@ -42,6 +42,10 @@ import {
   Briefcase,
   Layers,
   Compass,
+  FolderArchive,
+  FileCode,
+  CheckSquare,
+  HardDrive,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import { CertificateRenderer, type CertificateData } from "@/components/CertificateRenderer";
@@ -49,7 +53,7 @@ import { OfferLetterRenderer, type OfferLetterData } from "@/components/OfferLet
 import { LetterOfRecommendationRenderer, type LORData } from "@/components/LetterOfRecommendationRenderer";
 import { VerifyCredentialActions } from "@/components/VerifyCredentialActions";
 import { IrusCopilotWidget } from "@/components/IrusCopilotWidget";
-import { INTERNSHIP_DOMAINS, type InternshipDomain } from "@/lib/domains";
+import { INTERNSHIP_DOMAINS, type InternshipDomain, type DomainAssignment } from "@/lib/domains";
 import { ACADEMIC_DEGREES, GRADUATION_YEARS } from "@/lib/academic-fields";
 import { getAicteComplianceInfo, generateAicteActivityLog, type ActivityDiaryEntry } from "@/lib/aicte";
 
@@ -66,7 +70,7 @@ const MODE_FEES: Record<string, { amount: number; title: string; subtitle: strin
 const SLIDES_CONFIG = [
   { id: 0, title: "Offer Letter", badge: "Stage 01", icon: FileText, desc: "Letter of Intent & Terms" },
   { id: 1, title: "Sprint Syllabus", badge: "Stage 02", icon: Terminal, desc: "4-Week Milestone Kanban" },
-  { id: 2, title: "Capstone Studio", badge: "Stage 03", icon: Code2, desc: "GitHub & Deployment Review" },
+  { id: 2, title: "AICTE Practicum & ZIP", badge: "Stage 03", icon: Code2, desc: "3 Domain Milestones & ZIP Review" },
   { id: 3, title: "Exit & Clearance", badge: "Stage 04", icon: Award, desc: "Feedback & UPI Verification" },
   { id: 4, title: "Certificate & LOR", badge: "Stage 05", icon: ShieldCheck, desc: "Official Credentials & Ledger" },
 ];
@@ -105,11 +109,16 @@ function ProfileContent() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
 
-  // Project Submission states
+  // AICTE Practicum & Project Submission states
   const [githubRepo, setGithubRepo] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
+  const [projectZipUrl, setProjectZipUrl] = useState("");
+  const [assignmentNotes, setAssignmentNotes] = useState("");
+  const [projectZipFileName, setProjectZipFileName] = useState("");
+  const [projectZipFileSize, setProjectZipFileSize] = useState("");
   const [submittingProject, setSubmittingProject] = useState(false);
   const [projectSubmittedSuccess, setProjectSubmittedSuccess] = useState(false);
+  const [activeAssignmentTab, setActiveAssignmentTab] = useState<number>(0);
 
   // Feedback & Payment states
   const [feedbackRating, setFeedbackRating] = useState<number>(5);
@@ -242,6 +251,8 @@ function ProfileContent() {
             setPortfolioUrl(data.application?.portfolioUrl || "");
             setGithubRepo(data.application?.githubRepo || "");
             setLiveUrl(data.application?.liveUrl || "");
+            setProjectZipUrl(data.application?.projectZipUrl || "");
+            setAssignmentNotes(data.application?.assignmentNotes || "");
 
             const initialPaymentStatus = data.application?.paymentStatus || (data.certificate ? "Approved" : "None");
             setPaymentStatus(initialPaymentStatus);
@@ -313,9 +324,35 @@ function ProfileContent() {
     }
   };
 
+  const handleZipFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      alert("File is larger than 8MB. Please paste your Google Drive / OneDrive / GitHub Release link in the Cloud ZIP URL field below, or email it to haquendsons@gmail.com.");
+      return;
+    }
+
+    setProjectZipFileName(file.name);
+    setProjectZipFileSize((file.size / (1024 * 1024)).toFixed(2) + " MB");
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        setProjectZipUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.email) return;
+
+    if (!githubRepo.trim() && !liveUrl.trim() && !projectZipUrl.trim()) {
+      alert("Please provide at least a GitHub Repository URL, Live Demo URL, or Project ZIP file.");
+      return;
+    }
 
     setSubmittingProject(true);
     try {
@@ -324,8 +361,13 @@ function ProfileContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: session.user.email,
-          githubRepo,
-          liveUrl,
+          githubRepo: githubRepo.trim(),
+          liveUrl: liveUrl.trim(),
+          projectZipUrl: projectZipUrl.trim(),
+          assignmentNotes: assignmentNotes.trim(),
+          assignment1Status: "Submitted",
+          assignment2Status: "Submitted",
+          assignment3Status: "Submitted",
         }),
       });
 
@@ -333,7 +375,10 @@ function ProfileContent() {
         const data = await res.json();
         setApplication(data.application);
         setProjectSubmittedSuccess(true);
-        setTimeout(() => setProjectSubmittedSuccess(false), 4000);
+        setTimeout(() => setProjectSubmittedSuccess(false), 5000);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to submit project.");
       }
     } catch {
       alert("Failed to submit project.");
@@ -621,6 +666,8 @@ function ProfileContent() {
           setPortfolioUrl(data.application.portfolioUrl || "");
           setGithubRepo(data.application.githubRepo || "");
           setLiveUrl(data.application.liveUrl || "");
+          setProjectZipUrl(data.application.projectZipUrl || "");
+          setAssignmentNotes(data.application.assignmentNotes || "");
           setPaymentStatus(data.application.paymentStatus || "None");
           setPaymentUtr(data.application.paymentUtr || "");
           setPaymentScreenshot(data.application.paymentScreenshot || "");
@@ -1418,68 +1465,443 @@ function ProfileContent() {
                   </SpotlightCard>
                 )}
 
-                {/* SLIDE 2: CAPSTONE SUBMISSION STUDIO */}
+                {/* SLIDE 2: AICTE PRACTICUM & 3 DOMAIN ASSIGNMENTS STUDIO */}
                 {currentSlide === 2 && (
-                  <SpotlightCard className="p-6 sm:p-8 border-white/10 space-y-6">
-                    <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Code2 className="w-5 h-5 text-cyan-400" />
-                        <span>Capstone Project Submission & Code Evaluation</span>
-                      </h3>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Submit your public GitHub repository and live deployment URL for review by Nejamul Haque.
-                      </p>
+                  <SpotlightCard className="p-6 sm:p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950 via-[#070d18] to-cyan-950/20 space-y-7">
+                    {/* Header & Badges */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-[10px] font-bold font-mono uppercase tracking-wider flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-cyan-400" />
+                            <span>AICTE NEP 2020 Practicum</span>
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-mono font-bold">
+                            +{currentDomainObj.assignments?.reduce((acc, a) => acc + a.points, 0) || 30} Activity Points
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[10px] font-mono font-bold">
+                            4 NCrF Academic Credits
+                          </span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <FolderArchive className="w-6 h-6 text-cyan-400 shrink-0" />
+                          <span>AICTE Practicum &amp; Domain Assignments</span>
+                        </h3>
+                        <p className="text-xs text-gray-300 mt-1 max-w-2xl leading-relaxed">
+                          Complete the <strong>3 mandatory industry milestones</strong> for <span className="text-cyan-400 font-semibold">{currentDomainObj.name}</span>, upload your complete source code <strong className="text-white">.ZIP archive</strong>, and link your public GitHub repository for direct evaluation by <strong>Nejamul Haque</strong>.
+                        </p>
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-2">
+                        {application?.projectStatus === "Approved" ? (
+                          <div className="px-3.5 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <div>
+                              <span className="block">✓ Approved with Distinction</span>
+                              <span className="text-[10px] text-emerald-400 font-normal">{application.projectGrade || "Grade O"}</span>
+                            </div>
+                          </div>
+                        ) : application?.projectStatus === "Under Review" ? (
+                          <div className="px-3.5 py-2 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-bold font-mono flex items-center gap-2 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                            <Clock className="w-4 h-4 text-yellow-400 shrink-0 animate-spin" />
+                            <div>
+                              <span className="block">⏳ Under Technical Review</span>
+                              <span className="text-[10px] text-yellow-400/80 font-normal">By Nejamul Haque</span>
+                            </div>
+                          </div>
+                        ) : application?.projectStatus === "Needs Revision" ? (
+                          <div className="px-3.5 py-2 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold font-mono flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                            <div>
+                              <span className="block">⚠️ Revision Requested</span>
+                              <span className="text-[10px] text-rose-300/80 font-normal">Check remarks &amp; re-upload</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="px-3.5 py-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-mono font-medium flex items-center gap-2">
+                            <Code2 className="w-4 h-4 text-cyan-400" />
+                            <span>Pending Practicum Upload</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {projectSubmittedSuccess && (
-                      <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>Capstone project submitted! Proceed to Slide 04 for exit feedback & verification.</span>
+                    {/* Evaluator Review Feedback Box if Approved / Needs Revision */}
+                    {application?.projectStatus === "Approved" && (
+                      <div className="p-5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5 text-emerald-300">
+                            <CheckCircle2 className="w-4 h-4" /> AICTE Practicum Evaluator Clearance Note
+                          </span>
+                          <span className="text-[10px] font-mono text-emerald-400/80">
+                            Evaluator: Nejamul Haque (Founder &amp; Lead Systems Engineer)
+                          </span>
+                        </div>
+                        <p className="text-gray-300 italic pl-5 border-l-2 border-emerald-500/50">
+                          &ldquo;{application.projectRemarks || "All 3 domain assignments and project ZIP archive evaluated and approved with Distinction."}&rdquo;
+                        </p>
+                        <div className="flex items-center gap-4 text-[11px] text-emerald-300/90 font-mono pt-1">
+                          <span>Grade Awarded: <strong className="text-white">{application.projectGrade || "Distinction (Grade O)"}</strong></span>
+                          <span>•</span>
+                          <span>NCrF Credits: <strong className="text-white">4.0 Credits Granted</strong></span>
+                          <span>•</span>
+                          <span>AICTE Points: <strong className="text-white">+30 Activity Points</strong></span>
+                        </div>
                       </div>
                     )}
 
-                    <form onSubmit={handleSubmitProject} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          GitHub Repository URL *
-                        </label>
-                        <input
-                          type="url"
-                          required
-                          placeholder="https://github.com/username/capstone-project"
-                          value={githubRepo}
-                          onChange={(e) => setGithubRepo(e.target.value)}
-                          className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                        />
+                    {application?.projectStatus === "Needs Revision" && (
+                      <div className="p-5 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs space-y-2">
+                        <span className="font-bold flex items-center gap-1.5 text-rose-300">
+                          <AlertCircle className="w-4 h-4" /> Mentor Feedback &amp; Required Revisions
+                        </span>
+                        <p className="text-gray-300 italic pl-5 border-l-2 border-rose-500/50">
+                          &ldquo;{application.projectRemarks}&rdquo;
+                        </p>
+                        <p className="text-[11px] text-rose-300/80">
+                          Please update your GitHub repository or re-upload your modified project .ZIP archive using the form below.
+                        </p>
+                      </div>
+                    )}
+
+                    {projectSubmittedSuccess && (
+                      <div className="p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2.5 animate-fadeIn">
+                        <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+                        <div>
+                          <strong className="block">AICTE Practicum &amp; Project ZIP Submitted Successfully!</strong>
+                          <span className="text-emerald-200/80">Nejamul Haque has been notified to evaluate your code and assign official grades.</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SECTION 1: THE 3 AICTE DOMAIN ASSIGNMENTS INTERACTIVE CARDS */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckSquare className="w-4 h-4 text-cyan-400" />
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                            Domain Assignments Rubric ({currentDomainObj.assignments?.length || 3} Milestones)
+                          </h4>
+                        </div>
+                        <span className="text-[11px] font-mono text-gray-400">
+                          Domain: <span className="text-cyan-400">{currentDomainObj.name}</span>
+                        </span>
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                          Live Deployed URL (Vercel / Render / Netlify) *
-                        </label>
-                        <input
-                          type="url"
-                          required
-                          placeholder="https://my-capstone.vercel.app"
-                          value={liveUrl}
-                          onChange={(e) => setLiveUrl(e.target.value)}
-                          className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
-                        />
+                      {/* Milestone Tabs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {(currentDomainObj.assignments || []).map((asg, idx) => {
+                          const isActive = activeAssignmentTab === idx;
+                          const asgStatus =
+                            idx === 0
+                              ? application?.assignment1Status
+                              : idx === 1
+                              ? application?.assignment2Status
+                              : application?.assignment3Status;
+
+                          return (
+                            <button
+                              key={asg.id || idx}
+                              type="button"
+                              onClick={() => setActiveAssignmentTab(idx)}
+                              className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden ${
+                                isActive
+                                  ? "bg-cyan-500/15 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/30"
+                                  : "bg-black/50 border-white/10 hover:border-white/20 hover:bg-white/[0.02]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                                  isActive ? "bg-cyan-500/30 text-cyan-200" : "bg-white/5 text-gray-400"
+                                }`}>
+                                  Milestone 0{asg.number}
+                                </span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                  asgStatus === "Approved"
+                                    ? "bg-emerald-500/20 text-emerald-300"
+                                    : asgStatus === "Submitted"
+                                    ? "bg-yellow-500/20 text-yellow-300"
+                                    : "bg-white/5 text-gray-400"
+                                }`}>
+                                  {asgStatus || "Pending"}
+                                </span>
+                              </div>
+                              <h5 className="text-xs font-bold text-white line-clamp-1">
+                                {asg.title}
+                              </h5>
+                              <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-400 font-mono">
+                                <span>⏱ {asg.estimatedHours}h</span>
+                                <span>•</span>
+                                <span className="text-cyan-400">★ +{asg.points} Pts</span>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      <div className="sm:col-span-2 pt-2">
-                        <button
-                          type="submit"
-                          disabled={submittingProject}
-                          className="px-6 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          <span>{submittingProject ? "Saving..." : "Save & Update Capstone Links"}</span>
-                        </button>
-                      </div>
-                    </form>
+                      {/* Active Assignment Detailed Rubric Card */}
+                      {currentDomainObj.assignments && currentDomainObj.assignments[activeAssignmentTab] && (
+                        <div className="p-5 rounded-2xl bg-black/70 border border-white/10 space-y-4 transition-all">
+                          {(() => {
+                            const asg = currentDomainObj.assignments[activeAssignmentTab];
+                            return (
+                              <>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                                  <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold">
+                                        {asg.badge}
+                                      </span>
+                                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        asg.difficulty.includes("Foundational")
+                                          ? "bg-blue-500/20 text-blue-300"
+                                          : asg.difficulty.includes("Intermediate")
+                                          ? "bg-purple-500/20 text-purple-300"
+                                          : "bg-amber-500/20 text-amber-300"
+                                      }`}>
+                                        Level: {asg.difficulty}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-gray-300 text-[10px] font-mono">
+                                        Estimated Work: {asg.estimatedHours} Hours
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold">
+                                        AICTE Grant: +{asg.points} Points
+                                      </span>
+                                    </div>
+                                    <h4 className="text-base font-bold text-white mt-1.5">
+                                      {asg.number}. {asg.title}
+                                    </h4>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                      {asg.description}
+                                    </p>
+                                  </div>
+                                </div>
 
-                    {/* Email Project ZIP Archive */}
+                                {/* Problem Statement */}
+                                <div className="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5">
+                                  <span className="text-[11px] font-mono font-bold text-cyan-300 uppercase tracking-wider block">
+                                    Industry Problem Statement
+                                  </span>
+                                  <p className="text-xs text-gray-200 leading-relaxed font-sans">
+                                    {asg.problemStatement}
+                                  </p>
+                                </div>
+
+                                {/* Deliverables Checklist */}
+                                <div className="space-y-2">
+                                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider block">
+                                    Mandatory Engineering Deliverables:
+                                  </span>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {asg.deliverables.map((item, dIdx) => (
+                                      <div
+                                        key={dIdx}
+                                        className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 flex items-start gap-2.5 text-xs text-gray-300"
+                                      >
+                                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                        <span>{item}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Tech Requirements Chips */}
+                                <div className="space-y-2">
+                                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider block">
+                                    Recommended Tech Stack &amp; Libraries:
+                                  </span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {asg.techRequirements.map((tech, tIdx) => (
+                                      <span
+                                        key={tIdx}
+                                        className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-200 text-[11px] font-mono"
+                                      >
+                                        {tech}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Submission Guidelines */}
+                                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[11px] text-gray-400 flex items-start gap-2">
+                                  <FileCode className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                                  <span>
+                                    <strong>Submission Guidance:</strong> {asg.submissionGuidelines}
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SECTION 2: PRACTICUM SUBMISSION FORM (GITHUB, LIVE URL & ZIP FILE) */}
+                    <div className="p-6 rounded-3xl bg-black/60 border border-cyan-500/20 space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <Upload className="w-4 h-4 text-cyan-400" />
+                            <span>Submit Practicum Codebase &amp; .ZIP Archive</span>
+                          </h4>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            Upload your project archive or provide cloud repository links for evaluation.
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-mono text-cyan-300 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/20">
+                          Evaluator: Nejamul Haque
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleSubmitProject} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                              GitHub Repository URL *
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="https://github.com/username/capstone-project"
+                              value={githubRepo}
+                              onChange={(e) => setGithubRepo(e.target.value)}
+                              className="w-full bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                            />
+                            {githubRepo && (
+                              <a
+                                href={githubRepo}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 mt-1 font-mono"
+                              >
+                                <span>Verify GitHub link</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                              Live Deployed URL (Vercel / Render / Netlify / Cloud) *
+                            </label>
+                            <input
+                              type="url"
+                              placeholder="https://my-domain-capstone.vercel.app"
+                              value={liveUrl}
+                              onChange={(e) => setLiveUrl(e.target.value)}
+                              className="w-full bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                            />
+                            {liveUrl && (
+                              <a
+                                href={liveUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-emerald-400 hover:underline flex items-center gap-1 mt-1 font-mono"
+                              >
+                                <span>Verify Live demo link</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Project ZIP Upload Box */}
+                        <div className="p-4 rounded-2xl bg-[#090e1a] border border-cyan-500/20 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <label className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                              <FolderArchive className="w-4 h-4 text-cyan-400" />
+                              <span>Attach Project .ZIP File (Source Code, Schemas, Datasets)</span>
+                            </label>
+                            <span className="text-[10px] font-mono text-gray-400">
+                              Max 8MB direct upload (or use Cloud URL below)
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* File Upload Trigger */}
+                            <div className="relative border border-dashed border-cyan-500/40 hover:border-cyan-400 rounded-xl p-3 bg-black/40 text-center transition-all">
+                              <input
+                                type="file"
+                                accept=".zip,.tar.gz,.rar,.7z"
+                                onChange={handleZipFileChange}
+                                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                              />
+                              <div className="flex flex-col items-center justify-center gap-1 pointer-events-none">
+                                <Upload className="w-5 h-5 text-cyan-400" />
+                                <span className="text-xs font-semibold text-gray-200">
+                                  {projectZipFileName || "Click to browse .ZIP archive"}
+                                </span>
+                                <span className="text-[10px] text-gray-400 font-mono">
+                                  {projectZipFileSize ? `${projectZipFileSize} • Attached` : ".zip, .tar.gz, .rar"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Cloud ZIP Link Option */}
+                            <div>
+                              <label className="text-[10px] font-mono text-gray-400 block mb-1">
+                                Or paste Cloud / Drive / GitHub Release ZIP URL:
+                              </label>
+                              <input
+                                type="url"
+                                placeholder="https://drive.google.com/file/d/... or https://github.com/.../archive.zip"
+                                value={projectZipUrl.startsWith("data:") ? "" : projectZipUrl}
+                                onChange={(e) => {
+                                  setProjectZipUrl(e.target.value);
+                                  setProjectZipFileName("");
+                                  setProjectZipFileSize("");
+                                }}
+                                className="w-full bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono"
+                              />
+                              {projectZipUrl && projectZipUrl.startsWith("data:") && (
+                                <p className="text-[10px] text-emerald-400 mt-1 font-mono flex items-center gap-1">
+                                  <Check className="w-3 h-3" /> Base64 ZIP Archive Attached ({projectZipFileName || "project.zip"})
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Candidate Implementation & Architecture Notes */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                            Practicum Architecture &amp; Milestone Implementation Notes
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Describe how you solved Milestone 1, 2, and 3. Mention database schemas, state management, security considerations, and deployment details for reviewer Nejamul Haque..."
+                            value={assignmentNotes}
+                            onChange={(e) => setAssignmentNotes(e.target.value)}
+                            className="w-full bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none font-sans"
+                          />
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                          <button
+                            type="submit"
+                            disabled={submittingProject}
+                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                          >
+                            {submittingProject ? (
+                              <>
+                                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Submitting to Nejamul Haque...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3.5 h-3.5" />
+                                <span>Submit 3 Assignments &amp; ZIP for AICTE Evaluation</span>
+                              </>
+                            )}
+                          </button>
+
+                          <span className="text-[11px] text-gray-400 font-mono">
+                            Admin updates status within 12-24 hours
+                          </span>
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* SECTION 3: EMAIL BACKUP ARCHIVE CHANNEL */}
                     <div className="p-5 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-3">
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex items-start gap-3">
@@ -1488,13 +1910,13 @@ function ProfileContent() {
                           </div>
                           <div>
                             <h4 className="text-xs font-bold text-white flex items-center gap-2 flex-wrap">
-                              <span>Send Project .ZIP File via Email</span>
+                              <span>Alternative: Email Large Project ZIP to Nejamul Haque</span>
                               <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/30">
                                 haquendsons@gmail.com
                               </span>
                             </h4>
                             <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                              If your project has local databases, full-stack bundles, or datasets, bundle your project folder into a <strong>.zip</strong> archive and send it directly to <strong>haquendsons@gmail.com</strong>.
+                              If your project archive exceeds 25MB with local databases or heavy assets, email your ZIP file directly to Founder &amp; Lead Systems Engineer <strong>Nejamul Haque</strong>.
                             </p>
                           </div>
                         </div>
@@ -1502,9 +1924,9 @@ function ProfileContent() {
                         <div className="flex flex-wrap items-center gap-2 shrink-0">
                           <a
                             href={`mailto:haquendsons@gmail.com?subject=${encodeURIComponent(
-                              `Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})`
+                              `AICTE Practicum & ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})`
                             )}&body=${encodeURIComponent(
-                              `Hi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n\n[ATTACH YOUR .ZIP ARCHIVE HERE]\n\nRegards,\n${fullName || "Student"}`
+                              `Hi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my AICTE Practicum & Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n- Practicum Notes: ${assignmentNotes || "N/A"}\n\n[ATTACH YOUR .ZIP ARCHIVE HERE]\n\nRegards,\n${fullName || "Student"}`
                             )}`}
                             className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md cursor-pointer whitespace-nowrap"
                           >
@@ -1515,7 +1937,7 @@ function ProfileContent() {
                           <button
                             type="button"
                             onClick={() => {
-                              const template = `To: haquendsons@gmail.com\nSubject: Project ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})\n\nHi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n\n[Attach your .ZIP file]`;
+                              const template = `To: haquendsons@gmail.com\nSubject: AICTE Practicum & ZIP Submission: ${fullName || "Student"} - ${domain} Track (${offerLetterData.id})\n\nHi Haque & Sons Evaluation Team / Nejamul Haque,\n\nI am attaching my AICTE Practicum & Capstone Project ZIP file for evaluation.\n\nSTUDENT DETAILS:\n- Candidate Name: ${fullName || "Student"}\n- Registered Email: ${session?.user?.email || ""}\n- College: ${college || "N/A"}\n- Domain Track: ${domain}\n- Track Mode: ${mode} Track\n- Offer Ref ID: ${offerLetterData.id}\n\nPROJECT SUBMISSION:\n- GitHub Repo: ${githubRepo || "N/A"}\n- Live Hosted Demo: ${liveUrl || "N/A"}\n- Practicum Notes: ${assignmentNotes || "N/A"}\n\n[Attach your .ZIP file]`;
                               navigator.clipboard.writeText(template);
                               setCopiedEmailTemplate(true);
                               setTimeout(() => setCopiedEmailTemplate(false), 2500);
@@ -2178,23 +2600,69 @@ function ProfileContent() {
                       </p>
                     </div>
 
-                    <div className={`p-4 rounded-2xl border ${githubRepo || application?.githubRepo ? "bg-cyan-950/30 border-cyan-500/40" : "bg-white/[0.02] border-white/10"}`}>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">02 Capstone</span>
-                      <h4 className="text-xs font-bold text-white mt-1">Capstone Project</h4>
-                      <p className="text-[11px] text-gray-400 mt-0.5">Submit GitHub & live link.</p>
+                    <div className={`p-4 rounded-2xl border ${application?.projectStatus === "Approved" ? "bg-emerald-950/30 border-emerald-500/40" : application?.projectStatus === "Under Review" ? "bg-yellow-950/30 border-yellow-500/40" : githubRepo || application?.githubRepo ? "bg-cyan-950/30 border-cyan-500/40" : "bg-white/[0.02] border-white/10"}`}>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">02 Practicum</span>
+                      <h4 className="text-xs font-bold text-white mt-1">AICTE 3 Milestones &amp; ZIP</h4>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        {application?.projectStatus === "Approved" ? "✓ Evaluated & Approved" : application?.projectStatus === "Under Review" ? "⏳ In Evaluation" : "3 assignments + ZIP upload."}
+                      </p>
                     </div>
 
                     <div className={`p-4 rounded-2xl border ${isApproved ? "bg-emerald-950/30 border-emerald-500/40" : isPendingReview ? "bg-yellow-950/30 border-yellow-500/40" : "bg-purple-950/30 border-purple-500/40"}`}>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">03 Clearance</span>
-                      <h4 className="text-xs font-bold text-white mt-1">Exit Form & UPI Fee</h4>
+                      <h4 className="text-xs font-bold text-white mt-1">Exit Form &amp; UPI Fee</h4>
                       <p className="text-[11px] text-gray-400 mt-0.5">Google form + fee to {UPI_ID}.</p>
                     </div>
 
                     <div className={`p-4 rounded-2xl border ${isApproved ? "bg-emerald-950/30 border-emerald-500/40" : "bg-white/[0.02] border-white/10"}`}>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isApproved ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-gray-500"}`}>04 Verified</span>
                       <h4 className="text-xs font-bold text-white mt-1">Verified Certificate</h4>
-                      <p className="text-[11px] text-gray-400 mt-0.5">Cryptographic QR & public ledger.</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Cryptographic QR &amp; public ledger.</p>
                     </div>
+                  </div>
+                </div>
+
+                {/* AICTE Practicum & Assignments Card in Overview */}
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-[#0a0f1d] via-black to-[#071322] border border-cyan-500/30 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                  <div className="space-y-1.5 max-w-2xl">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono font-bold">
+                        AICTE NEP 2020 Practicum
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-mono font-bold">
+                        3 Industry Milestones
+                      </span>
+                      <span className="text-[11px] text-gray-400 font-mono">
+                        Track: <strong className="text-white">{currentDomainObj.name}</strong>
+                      </span>
+                    </div>
+                    <h4 className="text-base font-bold text-white flex items-center gap-2">
+                      <FolderArchive className="w-5 h-5 text-cyan-400 shrink-0" />
+                      <span>Domain Practicum, Assignments &amp; Source Code .ZIP</span>
+                    </h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Complete 3 structured domain assignments ({currentDomainObj.assignments?.map(a => `M${a.number}`).join(", ")}) and attach your project ZIP file for evaluation by <strong>Nejamul Haque</strong>.
+                    </p>
+                    {application?.projectStatus === "Approved" && (
+                      <div className="text-xs text-emerald-300 font-mono pt-1 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>Approved with <strong>{application.projectGrade || "Grade O"}</strong> • 4 NCrF Academic Credits</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode("slides");
+                        goToSlide(2);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-2 cursor-pointer"
+                    >
+                      <Code2 className="w-4 h-4" />
+                      <span>{application?.projectStatus === "Approved" ? "View Practicum Details" : "Open Practicum Studio (Slide 03)"}</span>
+                    </button>
                   </div>
                 </div>
 

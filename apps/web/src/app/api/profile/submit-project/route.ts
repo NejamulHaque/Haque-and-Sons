@@ -8,7 +8,17 @@ export async function POST(req: NextRequest) {
   try {
     await ensureTablesExist();
 
-    const { email, githubRepo, liveUrl } = await req.json();
+    const {
+      email,
+      githubRepo,
+      liveUrl,
+      projectZipUrl,
+      assignmentNotes,
+      assignment1Status,
+      assignment2Status,
+      assignment3Status,
+    } = await req.json();
+
     if (!email) {
       return NextResponse.json({ error: "Email is required." }, { status: 400 });
     }
@@ -31,6 +41,13 @@ export async function POST(req: NextRequest) {
       .set({
         githubRepo: (githubRepo || "").trim(),
         liveUrl: (liveUrl || "").trim(),
+        projectZipUrl: (projectZipUrl || existing[0].projectZipUrl || "").trim(),
+        assignmentNotes: (assignmentNotes || "").trim(),
+        projectStatus: "Under Review",
+        projectSubmittedAt: new Date(),
+        assignment1Status: assignment1Status || "Submitted",
+        assignment2Status: assignment2Status || "Submitted",
+        assignment3Status: assignment3Status || "Submitted",
         status: "Under Review",
       })
       .where(eq(internshipApplications.id, existing[0].id))
@@ -38,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Capstone project submitted successfully.",
+      message: "AICTE Practicum assignments & project ZIP submitted successfully for admin review.",
       application: updated[0],
     });
   } catch (error) {
