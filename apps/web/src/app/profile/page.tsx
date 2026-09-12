@@ -482,91 +482,111 @@ function ProfileContent() {
 
   const handlePrintAicteDiary = () => {
     const node = document.getElementById("aicte-diary-document");
-    if (!node) {
-      window.print();
-      return;
-    }
+    if (!node) return;
 
     setDownloadingDiary(true);
 
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
+    const printWin = window.open("", "_blank", "width=900,height=1100");
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <title>AICTE_Activity_Diary_${(fullName || "Student").replace(/\s+/g, "_")}_${aicteInfo.aicteCode}</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+            <style>
+              @page {
+                size: A4 portrait;
+                margin: 8mm 10mm;
+              }
+              *, *::before, *::after {
+                box-sizing: border-box !important;
+              }
+              html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              .diary-sheet {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+              }
+            </style>
+          </head>
+          <body class="bg-white text-slate-900 p-6">
+            <div class="diary-sheet">
+              ${node.innerHTML}
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.focus();
+                  window.print();
+                  setTimeout(function() {
+                    window.close();
+                  }, 800);
+                }, 400);
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWin.document.close();
+      setTimeout(() => setDownloadingDiary(false), 1200);
+    } else {
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
 
-    const doc = iframe.contentWindow?.document;
-    if (!doc) {
-      window.print();
-      setDownloadingDiary(false);
-      return;
+      const doc = iframe.contentWindow?.document;
+      if (doc && iframe.contentWindow) {
+        doc.open();
+        doc.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>AICTE_Activity_Diary_${(fullName || "Student").replace(/\s+/g, "_")}_${aicteInfo.aicteCode}</title>
+              <script src="https://cdn.tailwindcss.com"></script>
+              <style>
+                @page { size: A4 portrait; margin: 8mm 10mm; }
+                html, body { background: #fff !important; color: #0f172a !important; font-family: sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; padding: 0; }
+              </style>
+            </head>
+            <body style="padding: 16px;">
+              <div>${node.innerHTML}</div>
+            </body>
+          </html>
+        `);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setDownloadingDiary(false);
+          setTimeout(() => {
+            try { document.body.removeChild(iframe); } catch(e) {}
+          }, 2000);
+        }, 500);
+      } else {
+        setDownloadingDiary(false);
+      }
     }
-
-    doc.open();
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>AICTE_Activity_Diary_${(fullName || "Student").replace(/\\s+/g, "_")}_${aicteInfo.aicteCode}</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <link rel="preconnect" href="https://fonts.googleapis.com">
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-          <style>
-            @page {
-              size: A4 portrait;
-              margin: 0;
-            }
-            *, *::before, *::after {
-              box-sizing: border-box;
-            }
-            html, body {
-              background: #ffffff !important;
-              color: #0f172a !important;
-              font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            .page-break {
-              page-break-before: always !important;
-              break-before: page !important;
-            }
-            .diary-sheet {
-              width: 100% !important;
-              max-width: 100% !important;
-              padding: 12mm 14mm !important;
-              margin: 0 auto !important;
-              background: #ffffff !important;
-              color: #0f172a !important;
-              box-sizing: border-box !important;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="diary-sheet">
-            ${node.innerHTML}
-          </div>
-          <script>
-            setTimeout(() => {
-              window.focus();
-              window.print();
-              setTimeout(() => {
-                try {
-                  window.parent.document.body.removeChild(window.frameElement);
-                } catch(e) {}
-              }, 1200);
-            }, 600);
-          </script>
-        </body>
-      </html>
-    `);
-    doc.close();
-    setTimeout(() => setDownloadingDiary(false), 1500);
   };
 
   const offerLetterData: OfferLetterData = {
@@ -2977,9 +2997,9 @@ function ProfileContent() {
 
       {/* OFFER LETTER MODAL */}
       {isOfferLetterOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
-          <div className="relative w-full max-w-4xl bg-gray-950 border border-cyan-500/40 rounded-3xl shadow-[0_0_80px_rgba(6,182,212,0.25)] my-2 sm:my-4 pb-28">
-            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-gray-950 border border-cyan-500/40 rounded-3xl shadow-[0_0_80px_rgba(6,182,212,0.25)] overflow-hidden">
+            <div className="shrink-0 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4 z-20 print:hidden">
               <div className="flex items-center gap-2.5">
                 <span className={`w-2.5 h-2.5 rounded-full ${isApplicationApproved ? "bg-cyan-400" : "bg-yellow-400"} animate-pulse`} />
                 <div>
@@ -3002,7 +3022,7 @@ function ProfileContent() {
               </button>
             </div>
 
-            <div className="p-3 sm:p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 overscroll-contain">
               {isApplicationApproved ? (
                 <OfferLetterRenderer
                   data={offerLetterData}
@@ -3047,9 +3067,9 @@ function ProfileContent() {
 
       {/* LOR MODAL */}
       {isLorModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
-          <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
-            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] overflow-hidden">
+            <div className="shrink-0 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4 z-20 print:hidden">
               <div className="flex items-center gap-2.5">
                 <span className={`w-2.5 h-2.5 rounded-full ${isLorApproved ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
                 <div>
@@ -3072,7 +3092,7 @@ function ProfileContent() {
               </button>
             </div>
 
-            <div className="p-3 sm:p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 overscroll-contain">
               {isLorApproved ? (
                 <LetterOfRecommendationRenderer
                   lorData={lorData}
@@ -3165,10 +3185,10 @@ function ProfileContent() {
 
       {/* AICTE ACTIVITY DIARY & WEEKLY LOGBOOK MODAL */}
       {isAicteDiaryOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex justify-center items-start">
-          <div className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] my-2 sm:my-4 pb-28">
-            {/* Sticky Header */}
-            <div className="sticky top-0 z-30 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 rounded-t-3xl shadow-xl flex items-center justify-between gap-4 print:hidden">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-gray-950 border border-amber-500/40 rounded-3xl shadow-[0_0_80px_rgba(245,158,11,0.25)] overflow-hidden">
+            {/* Pinned Header */}
+            <div className="shrink-0 bg-gray-950/95 backdrop-blur-xl border-b border-white/10 px-5 sm:px-6 py-3.5 flex items-center justify-between gap-4 z-20 print:hidden">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
                 <div>
@@ -3208,7 +3228,7 @@ function ProfileContent() {
             </div>
 
             {/* AICTE Activity Diary Printable Document Container */}
-            <div className="p-3 sm:p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 overscroll-contain">
               <div
                 id="aicte-diary-document"
                 className="bg-white text-slate-900 p-6 sm:p-10 rounded-2xl shadow-2xl space-y-6 font-sans text-xs border border-slate-200"

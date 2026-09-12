@@ -663,14 +663,7 @@ export function CertificateRenderer({
       {/* Embedded print CSS for direct browser printing */}
       <style jsx global>{`
         @media print {
-          @page {
-            size: A4 landscape;
-            margin: 0;
-          }
-          *, *::before, *::after {
-            box-sizing: border-box !important;
-          }
-          html, body {
+          body.printing-certificate {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
@@ -681,10 +674,15 @@ export function CertificateRenderer({
             print-color-adjust: exact !important;
             overflow: hidden !important;
           }
-          nav, header, footer, aside, .print\\:hidden, [role="navigation"] {
+          body.printing-certificate nav,
+          body.printing-certificate header,
+          body.printing-certificate footer,
+          body.printing-certificate aside,
+          body.printing-certificate .print\\:hidden,
+          body.printing-certificate [role="navigation"] {
             display: none !important;
           }
-          #certificate-node {
+          body.printing-certificate #certificate-node {
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
