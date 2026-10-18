@@ -6,22 +6,20 @@ import {
   Share2,
   Printer,
   CheckCircle2,
-  Award,
   Copy,
   Sun,
   Moon,
   Sparkles,
   ShieldCheck,
-  Star,
-  Check,
   Building2,
-  Code2,
-  CheckSquare,
-  Cpu,
-  Flame,
-  GraduationCap,
+  ExternalLink,
+  ChevronDown,
+  Info,
 } from "lucide-react";
 import { getAicteComplianceInfo } from "@/lib/aicte";
+import { AicteLogo } from "./certificate/AicteLogo";
+import { GoldRosetteSeal } from "./certificate/GoldRosetteSeal";
+import { CertificateFrame } from "./certificate/CertificateFrame";
 
 export interface CertificateData {
   id: string;
@@ -36,6 +34,45 @@ export interface CertificateData {
   issueDate: string | Date;
   signatoryTitle?: string;
   status?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+function getOrdinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function formatDurationDays(durationStr?: string): string {
+  const dur = (durationStr || "").toLowerCase();
+  if (dur.includes("12") || dur.includes("90")) return "90 days";
+  if (dur.includes("8") || dur.includes("60")) return "60 days";
+  if (dur.includes("4") || dur.includes("30")) return "30 days";
+  return durationStr || "90 days";
+}
+
+function formatConductedDates(issueDateInput: string | Date, durationStr?: string): string {
+  const end = new Date(issueDateInput || Date.now());
+  const dur = (durationStr || "").toLowerCase();
+  let days = 90;
+  if (dur.includes("12") || dur.includes("90")) days = 90;
+  else if (dur.includes("8") || dur.includes("60")) days = 60;
+  else if (dur.includes("4") || dur.includes("30")) days = 30;
+
+  const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+
+  const startDay = getOrdinal(start.getDate());
+  const startMonth = start.toLocaleDateString("en-US", { month: "long" });
+
+  const endDay = getOrdinal(end.getDate());
+  const endMonth = end.toLocaleDateString("en-US", { month: "long" });
+  const endYear = end.getFullYear();
+
+  if (start.getFullYear() === endYear) {
+    return `${startDay} ${startMonth} – ${endDay} ${endMonth}, ${endYear}`;
+  }
+  return `${startDay} ${startMonth}, ${start.getFullYear()} – ${endDay} ${endMonth}, ${endYear}`;
 }
 
 export function CertificateRenderer({
@@ -45,33 +82,40 @@ export function CertificateRenderer({
   certificate: CertificateData;
   showActions?: boolean;
 }) {
-  const [theme, setTheme] = useState<"night" | "day">("day");
+  const [theme, setTheme] = useState<"day" | "night">("day");
   const [copied, setCopied] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
   const certRef = useRef<HTMLDivElement>(null);
 
   const aicte = getAicteComplianceInfo(certificate.duration);
   const isDay = theme === "day";
 
-  const formattedDate = new Date(certificate.issueDate || Date.now()).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const durationDays = formatDurationDays(certificate.duration);
+  const conductedDates =
+    certificate.startDate && certificate.endDate
+      ? `${certificate.startDate} – ${certificate.endDate}`
+      : formatConductedDates(certificate.issueDate, certificate.duration);
+
+  const signatoryDesignation =
+    !certificate.signatoryTitle || certificate.signatoryTitle.includes("Founder")
+      ? "CEO & Director"
+      : certificate.signatoryTitle.replace(/^Nejamul Haque,?\s*/i, "");
 
   const verificationUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/verify/${certificate.id}`
       : `https://haqueandsons.vercel.app/verify/${certificate.id}`;
 
-  const originUrl = typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
+  const originUrl =
+    typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
 
   const qrCodeUrl = isDay
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
         verificationUrl
-      )}&bgcolor=ffffff&color=0f172a&margin=1`
-    : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+      )}&bgcolor=ffffff&color=0a2240&margin=0`
+    : `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
         verificationUrl
-      )}&bgcolor=030712&color=06b6d4&margin=2`;
+      )}&bgcolor=030712&color=22d3ee&margin=0`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(verificationUrl);
@@ -79,20 +123,7 @@ export function CertificateRenderer({
     setTimeout(() => setCopied(false), 3000);
   };
 
-  // Derive domain-specific verified skill badges
-  const domainLower = certificate.domain?.toLowerCase() || "";
-  const domainSkills = domainLower.includes("data")
-    ? ["Python & SQL Analytics", "ETL Architecture", "Predictive Modeling", "PowerBI & Dashboards", "Statistical Modeling"]
-    : domainLower.includes("ai") || domainLower.includes("intelligence") || domainLower.includes("machine")
-    ? ["LLM Orchestration", "Neural Networks", "PyTorch / TensorFlow", "Vector Databases", "Prompt Engineering"]
-    : domainLower.includes("cyber") || domainLower.includes("security")
-    ? ["Vulnerability Audits", "Zero-Trust Architecture", "Cryptographic Protocols", "Penetration Testing", "SOC Hardening"]
-    : domainLower.includes("cloud") || domainLower.includes("devops")
-    ? ["Kubernetes & Docker", "Terraform & IaC", "CI/CD Pipelines", "AWS / GCP Architecture", "System Resiliency"]
-    : ["Next.js 16 & React 19", "TypeScript Architecture", "PostgreSQL & Drizzle", "Cloud CI/CD Pipelines", "System Scalability"];
-
   const handleDownloadPDF = () => {
-    // Generate clean isolated zero-margin print document
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
     iframe.style.right = "0";
@@ -110,13 +141,12 @@ export function CertificateRenderer({
 
     const isDayTheme = theme === "day";
     const bg = isDayTheme ? "#ffffff" : "#040714";
-    const textColor = isDayTheme ? "#0f172a" : "#ffffff";
-    const borderOuter = isDayTheme ? "#0f172a" : "rgba(6, 182, 212, 0.5)";
-    const borderInner = isDayTheme ? "rgba(180, 83, 9, 0.45)" : "rgba(255, 255, 255, 0.15)";
-    const cardBg = isDayTheme ? "#f8fafc" : "rgba(255, 255, 255, 0.04)";
-    const cardBorder = isDayTheme ? "#cbd5e1" : "rgba(255, 255, 255, 0.12)";
-    const highlightColor = isDayTheme ? "#0369a1" : "#22d3ee";
-    const accentGold = isDayTheme ? "#b45309" : "#facc15";
+    const textColor = isDayTheme ? "#0a2240" : "#ffffff";
+    const navyDark = isDayTheme ? "#0a2240" : "#081b33";
+    const navyDeep = isDayTheme ? "#061528" : "#040e1c";
+    const subText = isDayTheme ? "#334155" : "#94a3b8";
+    const nameColor = isDayTheme ? "#0f172a" : "#ffffff";
+    const signatureSrc = `${originUrl}/signature.png`;
 
     doc.open();
     doc.write(`
@@ -127,7 +157,7 @@ export function CertificateRenderer({
           <title>Certificate_${(certificate.studentName || "Candidate").replace(/\\s+/g, "_")}_${certificate.id}</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
           <style>
             @page {
               size: A4 landscape;
@@ -154,7 +184,7 @@ export function CertificateRenderer({
               height: 210mm;
               max-width: 297mm;
               max-height: 210mm;
-              padding: 6.5mm 9mm;
+              padding: 12mm 18mm;
               margin: 0;
               box-sizing: border-box;
               display: flex;
@@ -164,465 +194,281 @@ export function CertificateRenderer({
               color: ${textColor};
               overflow: hidden;
             }
-            .guilloche-outer {
-              position: absolute;
-              inset: 3.5mm 4.5mm;
-              border: 1.8pt solid ${borderOuter};
-              border-radius: 4.5mm;
-              pointer-events: none;
-            }
-            .guilloche-inner {
-              position: absolute;
-              inset: 5mm 6mm;
-              border: 0.8pt dashed ${borderInner};
-              border-radius: 3.5mm;
-              pointer-events: none;
-            }
-            .corner-bracket {
-              position: absolute;
-              width: 6mm;
-              height: 6mm;
-              border-color: ${isDayTheme ? "#0f172a" : "#22d3ee"};
-            }
-            .corner-tl { top: 4mm; left: 5mm; border-top: 2pt solid; border-left: 2pt solid; }
-            .corner-tr { top: 4mm; right: 5mm; border-top: 2pt solid; border-right: 2pt solid; }
-            .corner-bl { bottom: 4mm; left: 5mm; border-bottom: 2pt solid; border-left: 2pt solid; }
-            .corner-br { bottom: 4mm; right: 5mm; border-bottom: 2pt solid; border-right: 2pt solid; }
-            
-            .watermark-bg {
+            .frame-svg {
               position: absolute;
               inset: 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              opacity: ${isDayTheme ? "0.03" : "0.045"};
+              width: 297mm;
+              height: 210mm;
               pointer-events: none;
+              z-index: 1;
             }
-            .watermark-bg img {
-              width: 95mm;
-              height: 95mm;
-              object-fit: contain;
-            }
-            
-            .header-bar {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              border-bottom: 0.8pt solid ${isDayTheme ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.12)"};
-              padding-bottom: 1.8mm;
+            .content-wrapper {
               position: relative;
-              z-index: 2;
-            }
-            .flank-left { text-align: left; font-family: 'JetBrains Mono', monospace; }
-            .flank-right { text-align: right; font-family: 'JetBrains Mono', monospace; }
-            .center-brand {
-              display: flex;
-              align-items: center;
-              gap: 2.5mm;
-              text-align: center;
-            }
-            .center-brand img {
-              width: 8.5mm;
-              height: 8.5mm;
-              object-fit: contain;
-            }
-            
-            .title-banner {
-              text-align: center;
-              padding-top: 1.5mm;
-              position: relative;
-              z-index: 2;
-            }
-            .grand-title {
-              font-family: 'Playfair Display', serif;
-              font-size: 19pt;
-              font-weight: 900;
-              letter-spacing: 0.04em;
-              text-transform: uppercase;
-              line-height: 1.1;
-              color: ${isDayTheme ? "#0f172a" : "#ffffff"};
-              margin: 0;
-            }
-            .subtitle-badge {
-              font-family: 'JetBrains Mono', monospace;
-              font-size: 6.8pt;
-              font-weight: 700;
-              letter-spacing: 0.28em;
-              text-transform: uppercase;
-              color: ${accentGold};
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 3mm;
-              margin-top: 0.8mm;
-            }
-            .divider-line {
-              height: 0.75pt;
-              width: 25mm;
-              background-color: ${isDayTheme ? "rgba(180, 83, 9, 0.4)" : "rgba(6, 182, 212, 0.4)"};
-            }
-            
-            .recipient-section {
-              text-align: center;
-              margin: 1.5mm 0;
-              position: relative;
-              z-index: 2;
-            }
-            .pre-text {
-              font-family: 'JetBrains Mono', monospace;
-              font-size: 7.2pt;
-              letter-spacing: 0.25em;
-              text-transform: uppercase;
-              color: ${isDayTheme ? "#475569" : "#94a3b8"};
-              margin: 0 0 1mm 0;
-            }
-            .candidate-name {
-              font-family: 'Playfair Display', serif;
-              font-size: 24pt;
-              font-weight: 900;
-              letter-spacing: 0.03em;
-              text-transform: uppercase;
-              color: ${isDayTheme ? "#0f172a" : "#ffffff"};
-              margin: 0 0 1.2mm 0;
-              line-height: 1.05;
-              text-decoration: underline;
-              text-decoration-color: ${isDayTheme ? "rgba(180, 83, 9, 0.45)" : "rgba(6, 182, 212, 0.5)"};
-              text-underline-offset: 1.5mm;
-            }
-            .scholar-chip {
-              display: inline-flex;
-              align-items: center;
-              gap: 1.5mm;
-              padding: 0.6mm 3.5mm;
-              border-radius: 12mm;
-              font-size: 8pt;
-              background-color: ${cardBg};
-              border: 0.75pt solid ${cardBorder};
-              color: ${textColor};
-              margin-bottom: 1.2mm;
-            }
-            .citation-text {
-              font-size: 8.8pt;
-              line-height: 1.45;
-              max-width: 240mm;
-              margin: 0 auto;
-              color: ${isDayTheme ? "#1e293b" : "#cbd5e1"};
-            }
-            
-            .matrix-grid {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 2.2mm;
-              position: relative;
-              z-index: 2;
-            }
-            .matrix-card {
-              padding: 2mm 2.8mm;
-              border-radius: 2.5mm;
-              background-color: ${cardBg};
-              border: 0.75pt solid ${cardBorder};
-              text-align: left;
+              z-index: 10;
+              height: 100%;
               display: flex;
               flex-direction: column;
               justify-content: space-between;
-              min-height: 15mm;
             }
-            .matrix-label {
-              font-family: 'JetBrains Mono', monospace;
-              font-size: 5.8pt;
-              font-weight: 700;
-              text-transform: uppercase;
-              color: ${isDayTheme ? "#64748b" : "#94a3b8"};
-            }
-            .matrix-val {
-              font-size: 8.5pt;
-              font-weight: 900;
-              line-height: 1.2;
-              margin-top: 0.4mm;
-              color: ${isDayTheme ? "#0f172a" : "#ffffff"};
-            }
-            .matrix-sub {
-              font-family: 'JetBrains Mono', monospace;
-              font-size: 6.2pt;
-              margin-top: 0.6mm;
-            }
-            
-            .competencies-bar {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 1.5mm;
-              flex-wrap: wrap;
-              padding-top: 1mm;
+            .header-section {
+              text-align: center;
               position: relative;
-              z-index: 2;
+              padding-top: 2mm;
             }
-            .comp-chip {
-              font-family: 'JetBrains Mono', monospace;
-              font-size: 6.6pt;
-              font-weight: 600;
-              padding: 0.4mm 2.2mm;
-              border-radius: 1.5mm;
-              background-color: ${cardBg};
-              border: 0.6pt solid ${cardBorder};
-              color: ${isDayTheme ? "#1e293b" : "#a5f3fc"};
+            .company-name {
+              font-size: 13.5pt;
+              font-weight: 700;
+              color: ${textColor};
+              letter-spacing: 0.04em;
+              margin: 0;
             }
-            
-            .footer-grid {
+            .cert-title {
+              font-size: 38pt;
+              font-weight: 900;
+              color: ${navyDark};
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+              line-height: 1.05;
+              margin: 1.5mm 0 2.5mm 0;
+            }
+            .ribbon-bar {
+              display: inline-block;
+              background-color: ${navyDark};
+              color: #ffffff;
+              padding: 2.2mm 24mm;
+              font-size: 10pt;
+              font-weight: 800;
+              letter-spacing: 0.35em;
+              text-transform: uppercase;
+              border-radius: 0.5mm;
+            }
+            .aicte-seal {
+              position: absolute;
+              top: 0;
+              right: 6mm;
+              width: 22mm;
+              height: 22mm;
+            }
+            .recipient-section {
+              text-align: center;
+              margin: 4mm 0 2mm 0;
+            }
+            .awarded-to {
+              font-size: 11.5pt;
+              color: ${subText};
+              font-weight: 500;
+              margin: 0 0 2mm 0;
+            }
+            .candidate-name {
+              font-family: 'Playfair Display', Georgia, serif;
+              font-size: 34pt;
+              font-weight: 700;
+              color: ${nameColor};
+              line-height: 1.1;
+              margin: 0;
+              padding-bottom: 2mm;
+              border-bottom: 1.5pt solid ${navyDark};
+              display: inline-block;
+              min-width: 140mm;
+            }
+            .college-name {
+              font-family: 'Playfair Display', Georgia, serif;
+              font-style: italic;
+              font-size: 13pt;
+              color: ${nameColor};
+              margin: 2.5mm 0 3mm 0;
+            }
+            .citation-line {
+              font-size: 10.5pt;
+              color: ${subText};
+              line-height: 1.5;
+              margin: 0.8mm 0;
+            }
+            .domain-title {
+              font-size: 14pt;
+              font-weight: 800;
+              color: ${navyDark};
+              margin: 2mm 0 1mm 0;
+            }
+            .conducted-dates {
+              font-size: 10.5pt;
+              color: ${subText};
+              font-weight: 500;
+              margin: 0;
+            }
+            .footer-row {
               display: grid;
               grid-template-columns: 1fr auto 1fr;
               align-items: end;
-              border-top: 0.8pt solid ${isDayTheme ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.15)"};
-              padding-top: 1.8mm;
-              position: relative;
-              z-index: 2;
+              padding-bottom: 3mm;
             }
-            .qr-block {
+            .qr-col {
               display: flex;
               align-items: center;
-              gap: 2.5mm;
+              gap: 3mm;
             }
             .qr-box {
-              width: 14mm;
-              height: 14mm;
-              padding: 0.6mm;
-              border-radius: 2mm;
-              background-color: ${isDayTheme ? "#ffffff" : "#030712"};
-              border: 0.75pt solid ${isDayTheme ? "#94a3b8" : "rgba(6, 182, 212, 0.4)"};
-              display: flex;
-              align-items: center;
-              justify-content: center;
+              width: 24mm;
+              height: 24mm;
+              border: 1pt solid ${navyDark};
+              padding: 0.8mm;
+              background: #ffffff;
             }
             .qr-box img {
-              width: 12.8mm;
-              height: 12.8mm;
+              width: 100%;
+              height: 100%;
               object-fit: contain;
             }
-            .qr-info {
+            .qr-meta {
               font-family: 'JetBrains Mono', monospace;
-              text-align: left;
-              line-height: 1.25;
+              font-size: 6.5pt;
+              color: ${subText};
+              line-height: 1.35;
             }
-            
-            .seal-center {
+            .seal-col {
               display: flex;
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-              padding: 0 4mm;
-            }
-            .seal-badge {
-              width: 13.5mm;
-              height: 13.5mm;
-              border-radius: 50%;
-              border: 1.2pt solid ${accentGold};
-              background: ${isDayTheme ? "radial-gradient(circle, #fef3c7 0%, #fde68a 100%)" : "radial-gradient(circle, rgba(250,204,21,0.25) 0%, rgba(6,182,212,0.2) 100%)"};
-              display: flex;
-              flex-direction: column;
-              align-items: center;
               justify-content: center;
-              font-size: 4.8pt;
-              font-weight: 900;
-              text-transform: uppercase;
-              color: ${isDayTheme ? "#78350f" : "#fef08a"};
-              box-shadow: 0 0 4mm rgba(245, 158, 11, 0.2);
+              align-items: center;
+              padding-bottom: 1mm;
             }
-            
-            .signatory-block {
+            .seal-img {
+              width: 24mm;
+              height: 32mm;
+            }
+            .sig-col {
               display: flex;
               flex-direction: column;
               align-items: flex-end;
               text-align: right;
             }
-            .sig-img-wrap {
+            .sig-img {
               width: 32mm;
-              height: 9mm;
-              display: flex;
-              align-items: center;
-              justify-content: flex-end;
-            }
-            .sig-img-wrap img {
-              width: 30mm;
-              height: 8.5mm;
+              height: 14mm;
               object-fit: contain;
+              margin-bottom: 0.5mm;
               ${isDayTheme ? "" : "filter: invert(1) brightness(1.5);"}
             }
             .sig-line {
-              width: 34mm;
-              height: 0.75pt;
-              background-color: ${isDayTheme ? "#475569" : "#22d3ee"};
-              margin: 0.4mm 0 0.8mm 0;
+              width: 44mm;
+              height: 1.2pt;
+              background-color: ${navyDark};
+              margin-bottom: 1.8mm;
+            }
+            .sig-name {
+              font-size: 11pt;
+              font-weight: 800;
+              color: ${nameColor};
+              line-height: 1.1;
+              margin: 0;
+            }
+            .sig-title {
+              font-style: italic;
+              font-size: 9.5pt;
+              color: ${subText};
+              margin-top: 0.5mm;
             }
           </style>
         </head>
         <body>
           <div class="cert-page">
-            <!-- Guilloché Framing -->
-            <div class="guilloche-outer"></div>
-            <div class="guilloche-inner"></div>
-            <div class="corner-bracket corner-tl"></div>
-            <div class="corner-bracket corner-tr"></div>
-            <div class="corner-bracket corner-bl"></div>
-            <div class="corner-bracket corner-br"></div>
-            
-            <!-- Watermark Crest -->
-            <div class="watermark-bg">
-              <img src="${originUrl}/logo.svg" alt="Haque & Sons Crest" />
-            </div>
+            <!-- Vector Geometric Framing -->
+            <svg class="frame-svg" viewBox="0 0 1000 707" preserveAspectRatio="none">
+              <!-- Top-Left -->
+              <polygon points="0,0 400,0 365,22 0,22" fill="${navyDark}" />
+              <polygon points="0,0 28,0 28,340 0,380" fill="${navyDark}" />
+              <line x1="22" y1="22" x2="22" y2="360" stroke="${navyDark}" stroke-width="1.5" />
 
-            <!-- 1. Executive Top Header & Accreditation Masthead -->
-            <div class="header-bar">
-              <div class="flank-left">
-                <span style="font-size: 5.6pt; font-weight: 800; color: ${highlightColor}; text-transform: uppercase; letter-spacing: 0.1em; display: block;">
-                  ★ AICTE NEP 2020 PRACTICUM • ${aicte.activityPoints} ACTIVITY PTS
-                </span>
-                <span style="font-size: 7.2pt; font-weight: 800; color: ${textColor}; display: block; margin-top: 0.2mm;">
-                  ${aicte.aicteCode}
-                </span>
-              </div>
+              <!-- Bottom-Left -->
+              <polygon points="0,707 0,380 180,707" fill="${navyDark}" />
+              <polygon points="0,707 0,470 120,707" fill="${navyDeep}" />
+              <line x1="22" y1="707" x2="22" y2="380" stroke="${navyDark}" stroke-width="1.5" opacity="0.4" />
 
-              <div class="center-brand">
-                <img src="${originUrl}/logo.svg" alt="Logo" />
-                <div>
-                  <span style="font-family: 'Playfair Display', serif; font-size: 11pt; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; display: block; line-height: 1;">
-                    HAQUE &amp; SONS
-                  </span>
-                  <span style="font-size: 6.2pt; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: ${highlightColor}; display: block; margin-top: 0.4mm;">
-                    SOFTWARE STUDIO &amp; ENGINEERING RESEARCH LABS
-                  </span>
+              <!-- Top-Right -->
+              <polygon points="780,0 1000,0 1000,140" fill="${navyDark}" />
+              <polygon points="815,0 1000,0 1000,115" fill="${navyDeep}" />
+              <polygon points="976,0 1000,0 1000,350 976,320" fill="${navyDark}" opacity="0.9" />
+              <line x1="976" y1="140" x2="976" y2="660" stroke="${navyDark}" stroke-width="1.5" />
+
+              <!-- Bottom-Right -->
+              <polygon points="600,707 1000,707 1000,665 640,665" fill="${navyDark}" />
+              <polygon points="960,665 1000,665 1000,580 960,620" fill="${navyDark}" />
+              <line x1="180" y1="685" x2="600" y2="685" stroke="${navyDark}" stroke-width="1.5" opacity="0.6" />
+              <line x1="400" y1="22" x2="780" y2="22" stroke="${navyDark}" stroke-width="1.5" opacity="0.6" />
+            </svg>
+
+            <div class="content-wrapper">
+              <!-- Header -->
+              <div class="header-section">
+                <!-- AICTE Emblem -->
+                <div class="aicte-seal">
+                  <svg viewBox="0 0 100 100" fill="none">
+                    ${Array.from({ length: 24 })
+                      .map((_, i) => `<rect x="47" y="1" width="6" height="8" rx="1" fill="#f59e0b" transform="rotate(${i * 15} 50 50)" />`)
+                      .join("")}
+                    <circle cx="50" cy="50" r="44" fill="#f59e0b" stroke="#d97706" stroke-width="1.5" />
+                    <circle cx="50" cy="50" r="39" fill="#0b2341" stroke="#fbbf24" stroke-width="1" />
+                    <circle cx="50" cy="50" r="30" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" />
+                    <text x="50" y="44" fill="#0b2341" font-size="7.5" font-weight="900" letter-spacing="0.2em" text-anchor="middle" font-family="sans-serif">AICTE</text>
+                    <text x="50" y="66" fill="#d97706" font-size="4" font-weight="700" letter-spacing="0.05em" text-anchor="middle" font-family="sans-serif">योगः कर्मसु कौशलम्</text>
+                    <path d="M 37 57 C 37 62 63 62 63 57 Z" fill="#d97706" />
+                    <path d="M 50 36 C 44 43 43 50 50 54 C 57 50 56 43 50 36 Z" fill="#ea580c" />
+                    <path d="M 50 40 C 46 45 46 49 50 52 C 54 49 54 45 50 40 Z" fill="#fef08a" />
+                  </svg>
                 </div>
+
+                <p class="company-name">Haque &amp; Sons Co.</p>
+                <h1 class="cert-title">CERTIFICATE</h1>
+                <div class="ribbon-bar">OF INTERNSHIP</div>
               </div>
 
-              <div class="flank-right">
-                <span style="font-size: 5.6pt; font-weight: 800; color: ${accentGold}; text-transform: uppercase; letter-spacing: 0.1em; display: block;">
-                  ★ MSME UDYAM: ${aicte.msmeUdyamId}
-                </span>
-                <span style="font-size: 7.2pt; font-weight: 800; color: ${textColor}; display: block; margin-top: 0.2mm;">
-                  ISO 9001:2015 CERTIFIED
-                </span>
+              <!-- Recipient Honors -->
+              <div class="recipient-section">
+                <p class="awarded-to">This certificate awarded to</p>
+                <h2 class="candidate-name">${certificate.studentName}</h2>
+                <p class="college-name">${certificate.college}</p>
+                <p class="citation-line">In recognition of his/her efforts and achievements in completing the</p>
+                <p class="citation-line">${durationDays} internship program in</p>
+                <h3 class="domain-title">${certificate.domain}</h3>
+                <p class="conducted-dates">Conducted from ${conductedDates}</p>
               </div>
-            </div>
 
-            <!-- 2. Grand Title & Division -->
-            <div class="title-banner">
-              <h1 class="grand-title">Certificate of Excellence &amp; Completion</h1>
-              <div class="subtitle-badge">
-                <div class="divider-line"></div>
-                <span>HONORIS CAUSA • AICTE CATEGORY-B PRACTICUM DIVISION (${aicte.credits} NCrF CREDITS)</span>
-                <div class="divider-line"></div>
-              </div>
-            </div>
-
-            <!-- 3. Recipient Honors & Citation -->
-            <div class="recipient-section">
-              <p class="pre-text">This official institutional credential is conferred upon</p>
-              <h2 class="candidate-name">${certificate.studentName}</h2>
-              <div class="scholar-chip">
-                <span style="color: ${isDayTheme ? "#475569" : "#94a3b8"};">Institutional Scholar:</span>
-                <strong style="font-weight: 800;">${certificate.college}</strong>
-              </div>
-              <p class="citation-text">
-                for demonstrating extraordinary architectural discipline, algorithmic aptitude, and successfully completing the intensive
-                <strong style="color: ${textColor}; font-weight: 800;">${certificate.duration || "4-Week"} Technical Practicum</strong> in
-                <strong style="color: ${highlightColor}; font-weight: 800; text-decoration: underline;">${certificate.domain}</strong>,
-                earning <strong style="color: ${textColor}; font-weight: 800;">${aicte.activityPoints} AICTE Activity Points</strong> and <strong style="color: ${textColor}; font-weight: 800;">${aicte.credits} Academic Credits</strong> under the National Credit Framework (NCrF), engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
-              </p>
-            </div>
-
-            <!-- 4. 4-Pillar Performance Matrix -->
-            <div>
-              <div class="matrix-grid">
-                <div class="matrix-card">
-                  <div>
-                    <span class="matrix-label">1. Specialization Track</span>
-                    <span class="matrix-val" style="color: ${highlightColor};">${certificate.domain}</span>
+              <!-- Footer -->
+              <div class="footer-row">
+                <!-- QR Code -->
+                <div class="qr-col">
+                  <div class="qr-box">
+                    <img src="${qrCodeUrl}" alt="QR Verification" />
                   </div>
-                  <span class="matrix-sub" style="color: ${isDayTheme ? "#64748b" : "#94a3b8"};">Architecture &amp; Core Systems</span>
-                </div>
-
-                <div class="matrix-card">
-                  <div>
-                    <span class="matrix-label">2. Practicum Tenure</span>
-                    <span class="matrix-val">${certificate.duration || "4 Weeks"} (${aicte.totalHours}+ Hours)</span>
+                  <div class="qr-meta">
+                    <strong style="color: ${navyDark}; font-size: 7.2pt; display: block;">ID: ${certificate.id}</strong>
+                    <span>AICTE NEP 2020 (${aicte.activityPoints} Pts)</span><br />
+                    <span>Scan to verify public ledger</span>
                   </div>
-                  <span class="matrix-sub" style="color: ${isDayTheme ? "#15803d" : "#4ade80"}; font-weight: 700;">✓ ${aicte.activityPoints} AICTE Activity Points</span>
                 </div>
 
-                <div class="matrix-card" style="border-color: ${isDayTheme ? "rgba(245,158,11,0.5)" : "rgba(250,204,21,0.3)"}; background-color: ${isDayTheme ? "#fefce8" : "rgba(250,204,21,0.06)"};">
-                  <div>
-                    <span class="matrix-label" style="color: ${accentGold};">3. Performance &amp; Credits</span>
-                    <span class="matrix-val" style="color: ${accentGold}; text-transform: uppercase;">${certificate.grade || "Distinction (9.8 / 10)"}</span>
-                  </div>
-                  <span class="matrix-sub" style="color: ${accentGold}; font-weight: 700;">${aicte.credits} Academic Credits (${aicte.nepLevel.split(' ')[0]} Level)</span>
+                <!-- Gold Rosette Seal -->
+                <div class="seal-col">
+                  <svg class="seal-img" viewBox="0 0 100 135" fill="none">
+                    <polygon points="38,65 18,128 29,116 45,125 48,65" fill="#d97706" stroke="#b45309" stroke-width="1" />
+                    <polygon points="52,65 55,125 71,116 82,128 62,65" fill="#f59e0b" stroke="#b45309" stroke-width="1" />
+                    ${Array.from({ length: 24 })
+                      .map((_, i) => `<circle cx="50" cy="9" r="4.2" fill="#f59e0b" stroke="#d97706" stroke-width="0.8" transform="rotate(${i * 15} 50 48)" />`)
+                      .join("")}
+                    <circle cx="50" cy="48" r="39" fill="#f59e0b" stroke="#b45309" stroke-width="1.5" />
+                    <circle cx="50" cy="48" r="36" fill="#fef08a" stroke="#fbbf24" stroke-width="1.2" />
+                    <circle cx="50" cy="48" r="30" fill="none" stroke="#b45309" stroke-width="1" stroke-dasharray="2 1.5" opacity="0.75" />
+                    <circle cx="50" cy="48" r="26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" />
+                    <circle cx="50" cy="48" r="21" fill="none" stroke="#fef08a" stroke-width="0.8" opacity="0.8" />
+                  </svg>
                 </div>
 
-                <div class="matrix-card" style="border-color: ${isDayTheme ? "rgba(16,185,129,0.5)" : "rgba(52,211,153,0.3)"}; background-color: ${isDayTheme ? "#f0fdf4" : "rgba(52,211,153,0.06)"};">
-                  <div>
-                    <span class="matrix-label" style="color: ${isDayTheme ? "#15803d" : "#4ade80"};">4. Verification Status</span>
-                    <span class="matrix-val" style="color: ${isDayTheme ? "#166534" : "#86efac"};">Cryptographically Signed</span>
-                  </div>
-                  <span class="matrix-sub" style="color: ${isDayTheme ? "#15803d" : "#4ade80"}; font-weight: 700;">SHA-256 Ledger Verified</span>
+                <!-- Signatory -->
+                <div class="sig-col">
+                  <img class="sig-img" src="${signatureSrc}" alt="Signature" />
+                  <div class="sig-line"></div>
+                  <p class="sig-name">Nejamul Haque</p>
+                  <p class="sig-title">${signatoryDesignation}</p>
                 </div>
-              </div>
-
-              <!-- Verified Competencies Chips -->
-              <div class="competencies-bar">
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 6.2pt; font-weight: 800; text-transform: uppercase; color: ${isDayTheme ? "#475569" : "#94a3b8"}; margin-right: 1mm;">
-                  VERIFIED COMPETENCIES:
-                </span>
-                ${domainSkills.map((skill) => `<span class="comp-chip">✓ ${skill}</span>`).join("")}
-              </div>
-            </div>
-
-            <!-- 5. Cryptographic Footer, Seal & Authorized Signatory -->
-            <div class="footer-grid">
-              <!-- QR Code & ID -->
-              <div class="qr-block">
-                <div class="qr-box">
-                  <img src="${qrCodeUrl}" alt="QR Verification" />
-                </div>
-                <div class="qr-info">
-                  <span style="font-size: 5.6pt; font-weight: 800; color: ${isDayTheme ? "#64748b" : "#94a3b8"}; text-transform: uppercase; display: block;">
-                    CERTIFICATE IDENTIFIER
-                  </span>
-                  <span style="font-size: 7.8pt; font-weight: 800; color: ${highlightColor}; display: block; margin: 0.2mm 0;">
-                    ${certificate.id}
-                  </span>
-                  <span style="font-size: 5.8pt; color: ${isDayTheme ? "#475569" : "#94a3b8"}; display: block;">
-                    Issue Date: ${formattedDate}
-                  </span>
-                  <span style="font-size: 5.2pt; color: ${isDayTheme ? "#94a3b8" : "#64748b"}; display: block;">
-                    SHA256: 7f83b1657ff1fc53b92dc...
-                  </span>
-                </div>
-              </div>
-
-              <!-- Official 3D Medallion Seal -->
-              <div class="seal-center">
-                <div class="seal-badge">
-                  <span>★ SEAL ★</span>
-                  <span style="font-size: 3.8pt; letter-spacing: 0.1em; margin-top: 0.3mm;">OFFICIAL</span>
-                </div>
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 5.8pt; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: ${isDayTheme ? "#475569" : "#cbd5e1"}; margin-top: 0.8mm; display: block;">
-                  HAQUE &amp; SONS CREDENTIAL
-                </span>
-              </div>
-
-              <!-- Authorized Executive Signatory -->
-              <div class="signatory-block">
-                <div class="sig-img-wrap">
-                  <img src="${originUrl}/signature.png" alt="Signature" />
-                </div>
-                <div class="sig-line"></div>
-                <span style="font-size: 8.5pt; font-weight: 900; color: ${textColor}; display: block; line-height: 1;">
-                  Nejamul Haque
-                </span>
-                <span style="font-size: 6.2pt; font-weight: 700; color: ${highlightColor}; display: block; margin-top: 0.3mm;">
-                  Founder &amp; Lead Systems Architect
-                </span>
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 5.4pt; color: ${isDayTheme ? "#64748b" : "#94a3b8"}; display: block;">
-                  Haque &amp; Sons Software Studio
-                </span>
               </div>
             </div>
           </div>
@@ -636,7 +482,7 @@ export function CertificateRenderer({
                   window.parent.document.body.removeChild(window.frameElement);
                 } catch(e) {}
               }, 1200);
-            }, 500);
+            }, 600);
           </script>
         </body>
       </html>
@@ -649,64 +495,18 @@ export function CertificateRenderer({
   };
 
   const linkedInShareUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(
-    `Engineering Practicum - ${certificate.domain}`
+    `Internship Certification - ${certificate.domain}`
   )}&organizationName=${encodeURIComponent(
-    "Haque & Sons Software Studio"
+    "Haque & Sons Co."
   )}&issueYear=${new Date(certificate.issueDate || Date.now()).getFullYear()}&issueMonth=${
     new Date(certificate.issueDate || Date.now()).getMonth() + 1
-  }&certUrl=${encodeURIComponent(verificationUrl)}&certId=${encodeURIComponent(
-    certificate.id
-  )}`;
+  }&certUrl=${encodeURIComponent(verificationUrl)}&certId=${encodeURIComponent(certificate.id)}`;
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto items-center">
-      {/* Embedded print CSS for direct browser printing */}
-      <style jsx global>{`
-        @media print {
-          body.printing-certificate {
-            width: 297mm !important;
-            height: 210mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: ${isDay ? "#ffffff" : "#040714"} !important;
-            color: ${isDay ? "#0f172a" : "#ffffff"} !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            overflow: hidden !important;
-          }
-          body.printing-certificate nav,
-          body.printing-certificate header,
-          body.printing-certificate footer,
-          body.printing-certificate aside,
-          body.printing-certificate .print\\:hidden,
-          body.printing-certificate [role="navigation"] {
-            display: none !important;
-          }
-          body.printing-certificate #certificate-node {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 297mm !important;
-            height: 210mm !important;
-            max-width: 297mm !important;
-            max-height: 210mm !important;
-            padding: 6.5mm 9mm !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            background-color: ${isDay ? "#ffffff" : "#040714"} !important;
-            color: ${isDay ? "#0f172a" : "#ffffff"} !important;
-            overflow: hidden !important;
-            box-sizing: border-box !important;
-            z-index: 999999 !important;
-          }
-        }
-      `}</style>
-
       {/* Top action toolbar (hidden during print) */}
       {showActions && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-950/90 border border-white/10 rounded-2xl backdrop-blur-md print:hidden shadow-xl w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-gray-950/90 border border-white/10 rounded-2xl backdrop-blur-md print:hidden shadow-xl w-full">
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
             <div>
@@ -714,7 +514,7 @@ export function CertificateRenderer({
                 Cryptographically Verified Credential
               </span>
               <span className="text-[10px] text-gray-400 font-mono">
-                ID: {certificate.id} • Signatory: Nejamul Haque
+                ID: {certificate.id} • Signatory: Nejamul Haque (CEO &amp; Director)
               </span>
             </div>
           </div>
@@ -730,10 +530,10 @@ export function CertificateRenderer({
                     ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 shadow-sm"
                     : "text-gray-400 hover:text-white"
                 }`}
-                title="Switch to Day Classic Executive Theme (Default for Print/PDF)"
+                title="Switch to Executive Light Theme (Matches Official Certificate)"
               >
                 <Sun className="w-3.5 h-3.5 text-yellow-400" />
-                <span>Day</span>
+                <span>Executive Light</span>
               </button>
 
               <button
@@ -744,10 +544,10 @@ export function CertificateRenderer({
                     ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
                     : "text-gray-400 hover:text-white"
                 }`}
-                title="Switch to Night Cyber Obsidian Theme"
+                title="Switch to Cyber Dark Theme"
               >
                 <Moon className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Night</span>
+                <span>Cyber Dark</span>
               </button>
             </div>
 
@@ -755,7 +555,11 @@ export function CertificateRenderer({
               onClick={handleCopyLink}
               className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-cyan-400" />}
+              {copied ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5 text-cyan-400" />
+              )}
               <span>{copied ? "Link Copied!" : "Copy URL"}</span>
             </button>
 
@@ -782,412 +586,290 @@ export function CertificateRenderer({
               className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>PDF ({isDay ? "Day" : "Night"})</span>
+              <span>Download PDF</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Mobile Swipe Guidance Notice (Hidden on desktop & print) */}
+      {/* Mobile Swipe Guidance Notice */}
       <div className="md:hidden flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-[11px] font-mono text-cyan-300 w-full text-center print:hidden shadow-sm">
         <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
         <span>Swipe horizontally to view full high-res certificate</span>
       </div>
 
-      {/* Mobile Scroll Container for Crisp High-Res Certificate Rendering */}
-      <div className="w-full overflow-x-auto pb-2 overscroll-x-contain sm:overflow-visible flex justify-start md:justify-center">
-        {/* The Printable / Downloadable Certificate Card */}
+      {/* Certificate Container */}
+      <div className="w-full overflow-x-auto pb-4 overscroll-x-contain sm:overflow-visible flex justify-start md:justify-center">
         <div
           ref={certRef}
           id="certificate-node"
-          className={`relative w-full min-w-[740px] md:min-w-0 max-w-5xl mx-auto aspect-[1.414/1] p-5 sm:p-7 md:p-8 rounded-3xl border-2 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border shrink-0 ${
+          className={`relative w-full min-w-[760px] md:min-w-0 max-w-4xl mx-auto aspect-[1.414/1] p-8 sm:p-10 md:p-12 shadow-2xl flex flex-col justify-between overflow-hidden select-none transition-colors duration-300 box-border shrink-0 ${
             isDay
-              ? "bg-[#ffffff] text-slate-900 border-slate-900 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
-              : "bg-[#040714] text-white border-cyan-500/40 shadow-[0_0_80px_rgba(6,182,212,0.18)]"
+              ? "bg-[#ffffff] text-[#0a2240] shadow-[0_20px_60px_rgba(10,34,64,0.18)]"
+              : "bg-[#040714] text-white shadow-[0_0_80px_rgba(6,182,212,0.18)]"
           }`}
-          style={{
-            backgroundImage: isDay
-              ? `radial-gradient(circle at 50% 50%, rgba(217,119,6,0.03) 0%, #ffffff 80%), radial-gradient(circle at 10% 10%, rgba(3,105,161,0.02) 0%, transparent 50%), linear-gradient(135deg, rgba(15,23,42,0.015) 0%, transparent 100%)`
-              : `radial-gradient(circle at 50% 50%, rgba(6,182,212,0.08) 0%, #030712 80%), radial-gradient(circle at 90% 90%, rgba(168,85,247,0.05) 0%, transparent 50%), linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%)`,
-          }}
         >
-          {/* Intricate Guilloché Double Framing & Corner Medallions */}
-          <div
-            className={`absolute inset-2 sm:inset-2.5 border rounded-2xl pointer-events-none ${
-              isDay ? "border-slate-400/80" : "border-cyan-500/30"
-            }`}
-          />
-          <div
-            className={`absolute inset-3.5 sm:inset-4 border border-dashed rounded-xl pointer-events-none ${
-              isDay ? "border-amber-600/40" : "border-white/15"
-            }`}
-          />
-
-          {/* Ornate Corner Brackets */}
-          <div className={`absolute top-2.5 left-2.5 w-7 h-7 border-t-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-          <div className={`absolute top-2.5 right-2.5 w-7 h-7 border-t-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-          <div className={`absolute bottom-2.5 left-2.5 w-7 h-7 border-b-2 border-l-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-          <div className={`absolute bottom-2.5 right-2.5 w-7 h-7 border-b-2 border-r-2 ${isDay ? "border-slate-900" : "border-cyan-400"}`} />
-
-          {/* Background Watermark Crest */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none">
-            <div style={{ width: "340px", height: "340px" }} className="relative flex items-center justify-center">
-              <img src="/logo.svg" alt="Watermark" style={{ width: "280px", height: "280px", objectFit: "contain" }} />
-            </div>
-          </div>
+          {/* Vector Geometric Corner Frames */}
+          <CertificateFrame isDay={isDay} />
 
           {/* =========================================================================
-              1. EXECUTIVE TOP HEADER & MASTHEAD
+              1. HEADER: Haque & Sons Co. + CERTIFICATE + OF INTERNSHIP + AICTE Seal
           ========================================================================= */}
-          <div className="relative z-10 w-full">
-            <div
-              className="flex items-center justify-between border-b pb-2"
-              style={{ borderColor: isDay ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.12)" }}
-            >
-              {/* Left Flank Badge */}
-              <div className="text-left font-mono">
-                <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-sky-800" : "text-cyan-400"}`}>
-                  ★ AICTE NEP 2020 PRACTICUM • {aicte.activityPoints} ACTIVITY PTS
-                </span>
-                <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
-                  {aicte.aicteCode}
-                </span>
-              </div>
-
-              {/* Center Studio Crest */}
-              <div className="flex items-center gap-2.5">
-                <div
-                  style={{ width: "32px", height: "32px" }}
-                  className={`rounded-xl overflow-hidden p-1 flex items-center justify-center shadow-md ${
-                    isDay ? "bg-slate-950 text-white" : "bg-gradient-to-br from-cyan-500 to-blue-600"
-                  }`}
-                >
-                  <img src="/logo.svg" alt="Haque & Sons" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
-                </div>
-                <div className="text-center">
-                  <span
-                    className={`font-extrabold tracking-[0.2em] text-xs sm:text-sm uppercase font-serif block ${
-                      isDay ? "text-slate-950" : "text-white"
-                    }`}
-                  >
-                    HAQUE &amp; SONS
-                  </span>
-                  <span
-                    className={`text-[8px] sm:text-[8.5px] uppercase tracking-[0.25em] font-bold block ${
-                      isDay ? "text-sky-800" : "text-cyan-400"
-                    }`}
-                  >
-                    Software Studio &amp; Engineering Research Labs
-                  </span>
-                </div>
-              </div>
-
-              {/* Right Flank Badge */}
-              <div className="text-right font-mono">
-                <span className={`text-[7px] sm:text-[7.5px] uppercase font-bold tracking-wider block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
-                  ★ MSME UDYAM: {aicte.msmeUdyamId}
-                </span>
-                <span className={`text-[8.5px] sm:text-[9px] font-extrabold block ${isDay ? "text-slate-900" : "text-gray-200"}`}>
-                  ISO 9001:2015 CERTIFIED
-                </span>
-              </div>
+          <div className="relative z-10 w-full text-center pt-1">
+            {/* AICTE Logo in Top-Right */}
+            <div className="absolute top-0 right-4 sm:right-6">
+              <AicteLogo className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20" />
             </div>
 
-            {/* Grand Title Banner */}
-            <div className="text-center pt-2">
-              <h1
-                className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight uppercase font-serif leading-tight ${
-                  isDay
-                    ? "text-slate-950"
-                    : "text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-cyan-400"
+            {/* Company Name */}
+            <p
+              className={`text-sm sm:text-base md:text-lg font-bold tracking-wide ${
+                isDay ? "text-[#0a2240]" : "text-gray-200"
+              }`}
+            >
+              Haque &amp; Sons Co.
+            </p>
+
+            {/* Grand Certificate Title */}
+            <h1
+              className={`text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-wider leading-none mt-1.5 mb-2 font-sans ${
+                isDay ? "text-[#0a2240]" : "text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]"
+              }`}
+            >
+              CERTIFICATE
+            </h1>
+
+            {/* Navy Solid Banner Ribbon */}
+            <div className="inline-flex items-center justify-center">
+              <span
+                className={`px-8 sm:px-14 md:px-20 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm font-extrabold tracking-[0.35em] uppercase text-white rounded-[2px] shadow-sm ${
+                  isDay ? "bg-[#0a2240]" : "bg-gradient-to-r from-cyan-900 via-blue-900 to-indigo-950 border border-cyan-500/40 text-cyan-200"
                 }`}
               >
-                Certificate of Excellence &amp; Completion
-              </h1>
-              <div className="flex items-center justify-center gap-2 mt-1">
-                <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
-                <span className={`text-[7.5px] sm:text-[8px] font-mono uppercase tracking-[0.3em] font-bold ${isDay ? "text-amber-800" : "text-yellow-300"}`}>
-                  HONORIS CAUSA • AICTE CATEGORY-B PRACTICUM DIVISION ({aicte.credits} NCrF CREDITS)
-                </span>
-                <div className={`h-[1px] w-20 sm:w-28 ${isDay ? "bg-amber-600/50" : "bg-cyan-500/40"}`} />
-              </div>
+                OF INTERNSHIP
+              </span>
             </div>
           </div>
 
           {/* =========================================================================
-              2. RECIPIENT HONORS & CITATION SECTION
+              2. RECIPIENT & CITATION SECTION
           ========================================================================= */}
-          <div className="relative z-10 text-center space-y-1 sm:space-y-1.5 my-1">
+          <div className="relative z-10 w-full text-center my-auto py-2 space-y-1 sm:space-y-1.5">
             <p
-              className={`text-[8.5px] sm:text-[9.5px] uppercase tracking-[0.25em] font-mono font-semibold ${
+              className={`text-xs sm:text-sm md:text-base font-medium ${
+                isDay ? "text-slate-600" : "text-gray-300"
+              }`}
+            >
+              This certificate awarded to
+            </p>
+
+            {/* Candidate Name with Underline */}
+            <div className="inline-block px-4">
+              <h2
+                className={`text-2xl sm:text-3xl md:text-4xl font-bold font-serif pb-1.5 border-b-2 inline-block min-w-[280px] sm:min-w-[380px] md:min-w-[440px] leading-tight ${
+                  isDay
+                    ? "text-[#0f172a] border-[#0a2240]"
+                    : "text-white border-cyan-400 drop-shadow-[0_2px_10px_rgba(255,255,255,0.25)]"
+                }`}
+              >
+                {certificate.studentName}
+              </h2>
+            </div>
+
+            {/* College Name */}
+            <p
+              className={`text-xs sm:text-sm md:text-base font-serif italic pt-0.5 ${
+                isDay ? "text-[#0f172a]" : "text-cyan-200"
+              }`}
+            >
+              {certificate.college}
+            </p>
+
+            {/* Recognition Text */}
+            <p
+              className={`text-[11px] sm:text-xs md:text-sm leading-snug max-w-2xl mx-auto pt-1 ${
+                isDay ? "text-slate-600" : "text-gray-300"
+              }`}
+            >
+              In recognition of his/her efforts and achievements in completing the
+              <br />
+              {durationDays} internship program in
+            </p>
+
+            {/* Domain Specialization */}
+            <h3
+              className={`text-sm sm:text-base md:text-lg font-extrabold uppercase tracking-wide pt-0.5 ${
+                isDay ? "text-[#0a2240]" : "text-cyan-300"
+              }`}
+            >
+              {certificate.domain}
+            </h3>
+
+            {/* Conducted Dates */}
+            <p
+              className={`text-[10px] sm:text-xs md:text-sm font-medium ${
                 isDay ? "text-slate-600" : "text-gray-400"
               }`}
             >
-              This official institutional credential is conferred upon
-            </p>
-
-            {/* Candidate Name */}
-            <h2
-              className={`text-2xl sm:text-3xl md:text-[34px] font-black tracking-wide uppercase font-serif ${
-                isDay
-                  ? "text-slate-950 underline decoration-amber-600/50 underline-offset-4"
-                  : "text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)] underline decoration-cyan-500/50 underline-offset-4"
-              }`}
-            >
-              {certificate.studentName}
-            </h2>
-
-            {/* Institutional Affiliation Badge */}
-            <div
-              className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold mx-auto border"
-              style={{
-                backgroundColor: isDay ? "#f8fafc" : "rgba(255, 255, 255, 0.05)",
-                borderColor: isDay ? "#cbd5e1" : "rgba(255, 255, 255, 0.15)",
-                color: isDay ? "#0f172a" : "#e2e8f0",
-              }}
-            >
-              <Building2 className={`w-3.5 h-3.5 ${isDay ? "text-sky-700" : "text-cyan-400"}`} />
-              <span className={isDay ? "text-slate-600 font-normal text-[11px]" : "text-gray-400 font-normal text-[11px]"}>Institutional Scholar:</span>
-              <strong className="text-[11.5px] font-bold">{certificate.college}</strong>
-            </div>
-
-            {/* Detailed Practicum Citation */}
-            <p
-              className={`text-[10.5px] sm:text-[11.5px] leading-relaxed max-w-3xl mx-auto pt-0.5 ${
-                isDay ? "text-slate-800" : "text-gray-300"
-              }`}
-            >
-              for demonstrating extraordinary architectural discipline, algorithmic aptitude, and successfully completing the intensive{" "}
-              <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>
-                {certificate.duration || "4-Week"} Technical Practicum
-              </strong>{" "}
-              in{" "}
-              <strong className={isDay ? "text-sky-900 font-bold underline decoration-sky-400" : "text-cyan-300 font-bold underline decoration-cyan-500"}>
-                {certificate.domain}
-              </strong>
-              , earning <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>{aicte.activityPoints} AICTE Activity Points</strong> and <strong className={isDay ? "text-slate-950 font-bold" : "text-white font-bold"}>{aicte.credits} Academic Credits</strong> under the National Credit Framework (NCrF), engineering production-grade software artifacts adhering strictly to modern industry engineering standards.
+              Conducted from {conductedDates}
             </p>
           </div>
 
           {/* =========================================================================
-              3. FULL-SPANNING 4-PILLAR TECHNICAL & CAPSTONE MATRIX
+              3. FOOTER: QR CODE + GOLD ROSETTE SEAL + SIGNATURE
           ========================================================================= */}
-          <div className="relative z-10 w-full space-y-1.5">
-            <div className="grid grid-cols-4 gap-2 w-full">
-              {/* Pillar 1 */}
-              <div
-                className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
-                  isDay ? "bg-slate-50/95 border-slate-300 shadow-sm" : "bg-white/[0.04] border-white/15"
-                }`}
-              >
-                <div>
-                  <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                    1. Specialization Track
-                  </span>
-                  <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-sky-950" : "text-cyan-300"}`}>
-                    {certificate.domain}
-                  </span>
-                </div>
-                <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-slate-600" : "text-gray-400"}`}>
-                  Architecture &amp; Core Systems
-                </span>
-              </div>
-
-              {/* Pillar 2 */}
-              <div
-                className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
-                  isDay ? "bg-slate-50/95 border-slate-300 shadow-sm" : "bg-white/[0.04] border-white/15"
-                }`}
-              >
-                <div>
-                  <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                    2. Practicum Tenure
-                  </span>
-                  <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-slate-950" : "text-white"}`}>
-                    {certificate.duration || "4 Weeks"} ({aicte.totalHours}+ Hours)
-                  </span>
-                </div>
-                <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-emerald-700 font-semibold" : "text-emerald-400"}`}>
-                  ✓ {aicte.activityPoints} AICTE Activity Points
-                </span>
-              </div>
-
-              {/* Pillar 3 */}
-              <div
-                className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
-                  isDay ? "bg-amber-50/95 border-amber-400/80 shadow-sm" : "bg-yellow-500/10 border-yellow-500/30"
-                }`}
-              >
-                <div>
-                  <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-amber-800" : "text-yellow-400"}`}>
-                    3. Performance &amp; Credits
-                  </span>
-                  <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 uppercase ${isDay ? "text-amber-950" : "text-yellow-300"}`}>
-                    {certificate.grade || "Distinction (9.8 / 10)"}
-                  </span>
-                </div>
-                <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-amber-800 font-semibold" : "text-yellow-300"}`}>
-                  {aicte.credits} Academic Credits ({aicte.nepLevel.split(' ')[0]} Level)
-                </span>
-              </div>
-
-              {/* Pillar 4 */}
-              <div
-                className={`p-2 rounded-xl border text-left flex flex-col justify-between ${
-                  isDay ? "bg-emerald-50/95 border-emerald-400/80 shadow-sm" : "bg-emerald-500/10 border-emerald-500/30"
-                }`}
-              >
-                <div>
-                  <span className={`text-[7px] sm:text-[7.5px] uppercase font-mono font-bold block ${isDay ? "text-emerald-800" : "text-emerald-400"}`}>
-                    4. Verification Status
-                  </span>
-                  <span className={`text-[10px] sm:text-[10.5px] font-black block leading-tight mt-0.5 ${isDay ? "text-emerald-950" : "text-emerald-300"}`}>
-                    Cryptographically Signed
-                  </span>
-                </div>
-                <span className={`text-[7.5px] block mt-1 font-mono ${isDay ? "text-emerald-700 font-semibold" : "text-emerald-400"}`}>
-                  SHA-256 Ledger Verified
-                </span>
-              </div>
-            </div>
-
-            {/* Verified Technical Competencies Chips */}
-            <div className="flex items-center justify-center gap-1.5 flex-wrap pt-0.5">
-              <span className={`text-[8px] font-mono font-bold uppercase mr-1 ${isDay ? "text-slate-600" : "text-gray-400"}`}>
-                Verified Competencies:
-              </span>
-              {domainSkills.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className={`text-[8px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
-                    isDay
-                      ? "bg-slate-100 border-slate-300 text-slate-800"
-                      : "bg-white/5 border-white/10 text-cyan-200"
-                  }`}
-                >
-                  ✓ {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* =========================================================================
-              4. CRYPTOGRAPHIC LEDGER, SEAL & DUAL-SIGNATORY FOOTER
-          ========================================================================= */}
-          <div
-            className={`relative z-10 pt-2 border-t grid grid-cols-3 items-end ${
-              isDay ? "border-slate-300" : "border-cyan-500/30"
-            }`}
-          >
-            {/* Left Column: QR Code + Certificate ID + SHA-256 Hash */}
+          <div className="relative z-10 w-full grid grid-cols-3 items-end pt-2 pb-1">
+            {/* Left: Dynamic QR Code according to intern details */}
             <div className="flex items-center gap-2.5">
               <div
-                style={{ width: "54px", height: "54px" }}
-                className={`p-1 rounded-xl border overflow-hidden shadow-sm shrink-0 flex items-center justify-center ${
-                  isDay ? "bg-white border-slate-400" : "bg-black border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 p-1 rounded-sm border shrink-0 flex items-center justify-center bg-white shadow-sm ${
+                  isDay ? "border-[#0a2240]" : "border-cyan-500/50"
                 }`}
               >
                 <img
                   src={qrCodeUrl}
-                  alt="Verification QR"
-                  style={{ width: "46px", height: "46px", objectFit: "contain" }}
+                  alt={`Verification QR for ${certificate.id}`}
+                  className="w-full h-full object-contain"
                 />
               </div>
-              <div className="text-left font-mono leading-tight space-y-0.5">
-                <span className={`text-[7.5px] uppercase block font-bold ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                  CERTIFICATE IDENTIFIER
-                </span>
+              <div className="hidden sm:flex flex-col text-left font-mono leading-tight space-y-0.5">
                 <span
-                  className={`text-[10px] font-extrabold block truncate max-w-[150px] ${
-                    isDay ? "text-sky-950" : "text-cyan-300"
+                  className={`text-[8px] sm:text-[9px] uppercase font-bold block ${
+                    isDay ? "text-[#0a2240]" : "text-cyan-300"
                   }`}
                 >
-                  {certificate.id}
+                  ID: {certificate.id}
                 </span>
-                <span className={`text-[7.5px] block ${isDay ? "text-slate-600" : "text-gray-400"}`}>
-                  Issue Date: {formattedDate}
+                <span className={`text-[7px] sm:text-[8px] block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
+                  AICTE NEP 2020: {aicte.activityPoints} Pts
                 </span>
-                <span className={`text-[6.5px] block font-mono truncate max-w-[150px] ${isDay ? "text-slate-400" : "text-gray-500"}`}>
-                  SHA256: 7f83b1657ff1fc53b92dc...
+                <span className={`text-[7px] sm:text-[8px] block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
+                  Scan to verify authenticity
                 </span>
               </div>
             </div>
 
-            {/* Center Column: 3D Holographic Metallic Medallion Seal */}
-            <div className="flex flex-col items-center justify-center text-center">
-              <div
-                style={{ width: "52px", height: "52px" }}
-                className={`rounded-full border-2 p-0.5 flex items-center justify-center shadow-lg ${
-                  isDay
-                    ? "bg-gradient-to-tr from-amber-100 via-amber-50 to-amber-200 border-amber-600 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                    : "bg-gradient-to-tr from-cyan-500/20 via-yellow-500/20 to-cyan-500/40 border-yellow-400/80 shadow-[0_0_25px_rgba(250,204,21,0.3)]"
-                }`}
-              >
-                <div
-                  className={`w-full h-full rounded-full border-2 border-dashed flex flex-col items-center justify-center text-[6px] font-black uppercase tracking-tighter ${
-                    isDay
-                      ? "border-amber-700/60 text-amber-950"
-                      : "border-yellow-400/60 text-yellow-200"
-                  }`}
-                >
-                  <ShieldCheck className={`w-4 h-4 ${isDay ? "text-amber-800" : "text-yellow-400"}`} />
-                  <span className="leading-tight mt-0.5">OFFICIAL SEAL</span>
-                </div>
-              </div>
-              <span
-                className={`text-[7.5px] uppercase tracking-[0.2em] font-mono font-bold mt-0.5 ${
-                  isDay ? "text-slate-700" : "text-gray-300"
-                }`}
-              >
-                HAQUE &amp; SONS CREDENTIAL
-              </span>
+            {/* Center: Golden Rosette Medal with Ribbon Tails */}
+            <div className="flex flex-col items-center justify-center">
+              <GoldRosetteSeal className="w-16 h-22 sm:w-20 sm:h-28 md:w-24 md:h-32" />
             </div>
 
-            {/* Right Column: Authorized Executive Signature */}
+            {/* Right: Signature of Nejamul Haque (CEO & Director) */}
             <div className="flex flex-col items-end text-right">
-              <div style={{ width: "135px", height: "36px" }} className="flex items-center justify-end">
+              <div className="w-28 sm:w-36 md:w-44 h-10 sm:h-12 md:h-14 flex items-center justify-end">
                 <img
                   src="/signature.png"
                   alt="Signature of Nejamul Haque"
-                  style={{ width: "125px", height: "34px", objectFit: "contain" }}
-                  className={isDay ? "" : "filter invert brightness-150 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"}
+                  className={`max-h-full max-w-full object-contain ${
+                    isDay ? "" : "filter invert brightness-150 drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"
+                  }`}
                 />
               </div>
               <div
-                style={{ width: "135px", height: "1.5px" }}
-                className={`my-0.5 ${
-                  isDay
-                    ? "bg-slate-500"
-                    : "bg-gradient-to-l from-cyan-400 to-transparent"
+                className={`w-32 sm:w-40 md:w-48 h-[1.5px] my-1 ${
+                  isDay ? "bg-[#0a2240]" : "bg-cyan-400"
                 }`}
               />
               <span
-                className={`text-[10px] sm:text-[10.5px] font-extrabold block leading-tight ${
-                  isDay ? "text-slate-950" : "text-white"
+                className={`text-xs sm:text-sm md:text-base font-bold block leading-tight ${
+                  isDay ? "text-[#0f172a]" : "text-white"
                 }`}
               >
                 Nejamul Haque
               </span>
               <span
-                className={`text-[8px] font-semibold block ${
-                  isDay ? "text-sky-900" : "text-cyan-300"
+                className={`text-[10px] sm:text-xs md:text-sm italic block ${
+                  isDay ? "text-slate-600" : "text-cyan-200"
                 }`}
               >
-                Founder &amp; Lead Systems Architect
-              </span>
-              <span
-                className={`text-[7px] block font-mono ${
-                  isDay ? "text-slate-500" : "text-gray-400"
-                }`}
-              >
-                Haque &amp; Sons Software Studio
+                {signatoryDesignation}
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Expandable Academic & Cryptographic Security Panel (Suggestions for User) */}
+      <div className="w-full max-w-4xl bg-gray-950/70 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setShowMetadata(!showMetadata)}
+          className="w-full flex items-center justify-between text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs sm:text-sm font-semibold text-white">
+              Institutional Accreditation &amp; AICTE NEP 2020 Credit Matrix
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <span>{showMetadata ? "Hide details" : "View compliance metadata"}</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                showMetadata ? "rotate-180 text-cyan-400" : ""
+              }`}
+            />
+          </div>
+        </button>
+
+        {showMetadata && (
+          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
+                AICTE Activity Points
+              </span>
+              <span className="text-base font-bold text-emerald-400 block">
+                +{aicte.activityPoints} Points
+              </span>
+              <span className="text-[11px] text-gray-400 block">
+                Category-B Practicum ({aicte.aicteCode})
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
+                NCrF Academic Credits
+              </span>
+              <span className="text-base font-bold text-cyan-400 block">
+                {aicte.credits} Credits ({aicte.totalHours} Hours)
+              </span>
+              <span className="text-[11px] text-gray-400 block">
+                {aicte.nepLevel}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
+                MSME Registration
+              </span>
+              <span className="text-base font-bold text-amber-300 block">
+                {aicte.msmeUdyamId}
+              </span>
+              <span className="text-[11px] text-gray-400 block">
+                Ministry of MSME, Govt of India
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
+                Verification Ledger
+              </span>
+              <span className="text-base font-bold text-purple-300 block truncate">
+                SHA-256 Ledger
+              </span>
+              <a
+                href={verificationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1"
+              >
+                <span>Live Record</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-

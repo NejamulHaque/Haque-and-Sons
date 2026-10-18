@@ -214,7 +214,7 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
               Signatory Authority
             </span>
             <span className="text-xs font-bold text-white block">
-              {certData.signatoryTitle || "Nejamul Haque, Founder & Lead Engineer"}
+              {certData.signatoryTitle || "Nejamul Haque, CEO & Director"}
             </span>
           </div>
         </div>
