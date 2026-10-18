@@ -8,6 +8,7 @@ import { Features } from "@/components/Features";
 import { Process } from "@/components/Process";
 import { TechStack } from "@/components/TechStack";
 import { Testimonials } from "@/components/Testimonials";
+import { InternshipTeaser } from "@/components/InternshipTeaser";
 import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
 
@@ -23,6 +24,7 @@ export default function Home() {
       <Features />
       <Process />
       <TechStack />
+      <InternshipTeaser />
       <Testimonials />
       <FAQ />
       <CTA />

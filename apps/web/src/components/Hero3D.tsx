@@ -13,7 +13,8 @@ import {
 import { EffectComposer, Bloom, ChromaticAberration, Vignette } from "@react-three/postprocessing";
 import { motion } from "framer-motion";
 import * as THREE from "three";
-import { ArrowRight, Sparkles as SparklesIcon, Terminal, Shield, Zap } from "lucide-react";
+import { ArrowRight, Sparkles as SparklesIcon, Terminal, Shield, Zap, GraduationCap } from "lucide-react";
+import Link from "next/link";
 
 function AnimatedOrb() {
   const meshRef = useRef<THREE.Mesh>(null!);
@@ -198,6 +199,15 @@ export function Hero3D() {
           transition={{ duration: 0.8, delay: 0.7 }}
           className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
+          <Link
+            href="/internships"
+            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold rounded-full transition-all shadow-[0_0_35px_rgba(168,85,247,0.4)] hover:shadow-[0_0_55px_rgba(168,85,247,0.7)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2.5 group cursor-pointer"
+          >
+            <GraduationCap className="w-4 h-4 text-cyan-200" />
+            <span>Internship Program</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+
           <button
             onClick={() =>
               document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })

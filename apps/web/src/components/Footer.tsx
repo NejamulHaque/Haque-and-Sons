@@ -54,6 +54,7 @@ export function Footer() {
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">Company</h3>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link href="/#about" className="hover:text-cyan-400 transition-colors">About Us</Link></li>
+              <li><Link href="/internships" className="hover:text-cyan-400 text-cyan-300 font-medium transition-colors">Internship Program</Link></li>
               <li><Link href="/blog" className="hover:text-cyan-400 transition-colors">Blog</Link></li>
               <li><Link href="/#contact" className="hover:text-cyan-400 transition-colors">Contact</Link></li>
             </ul>
