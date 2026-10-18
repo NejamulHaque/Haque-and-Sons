@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  User,
+  Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import { SpotlightCard } from "@/components/SpotlightCard";
 import Link from "next/link";
@@ -22,9 +25,6 @@ import { isValidEmail } from "@/lib/academic-fields";
 function StudentSignInContent() {
   const searchParams = useSearchParams();
   const domainParam = searchParams.get("domain") || "";
-  const modeParam = searchParams.get("mode") || "Online";
-  const typeParam = searchParams.get("type") || "Free";
-  const durationParam = searchParams.get("duration") || "4 Weeks";
   const redirectParam = searchParams.get("redirect") || "/profile";
 
   const { data: session, isPending } = useSession();
@@ -35,6 +35,8 @@ function StudentSignInContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [showHelpNote, setShowHelpNote] = useState(false);
 
   // Brute force protection
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -54,10 +56,12 @@ function StudentSignInContent() {
     return () => clearInterval(interval);
   }, [lockoutRemaining]);
 
-  // If already logged in and not in the process of resolving, route straight to profile
+  // If already logged in, route to profile
   useEffect(() => {
     if (!isPending && session?.user) {
-      const dest = domainParam ? `/profile?domain=${encodeURIComponent(domainParam)}` : redirectParam;
+      const dest = domainParam
+        ? `/profile?domain=${encodeURIComponent(domainParam)}`
+        : redirectParam;
       router.push(dest);
     }
   }, [session, isPending, domainParam, redirectParam, router]);
@@ -72,7 +76,12 @@ function StudentSignInContent() {
     }
 
     if (!isValidEmail(email)) {
-      setError("Please enter a valid email address (e.g. candidate@college.edu).");
+      setError("Please enter a valid email address (e.g. student@college.edu).");
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter your password.");
       return;
     }
 
@@ -90,39 +99,41 @@ function StudentSignInContent() {
 
         if (nextAttempts >= 5) {
           setLockoutRemaining(30);
-          setError("Maximum failed attempts reached. For security, sign in is locked for 30 seconds.");
+          setError("Maximum attempts reached. For security, sign in is locked for 30 seconds.");
         } else {
           setError(
-            res.error.message ||
-              `Invalid credentials. (${5 - nextAttempts} attempts remaining before temporary lockout)`
+            res.error.message?.includes("Invalid") || res.error.message?.includes("credential")
+              ? `Invalid email or password. (${5 - nextAttempts} attempts remaining before temporary lockout)`
+              : res.error.message || "Authentication request failed. Please check your credentials."
           );
         }
+        setLoading(false);
       } else {
         setFailedAttempts(0);
         setLockoutRemaining(0);
+        setSuccess(true);
         const dest = domainParam
           ? `/profile?domain=${encodeURIComponent(domainParam)}`
           : redirectParam;
-        router.push(dest);
-        router.refresh();
+
+        setTimeout(() => {
+          router.push(dest);
+          router.refresh();
+        }, 500);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication request failed.");
-    } finally {
       setLoading(false);
     }
   };
 
-
   const signupUrl = `/auth/signup${
-    domainParam
-      ? `?domain=${encodeURIComponent(domainParam)}&mode=${encodeURIComponent(modeParam)}&type=${encodeURIComponent(typeParam)}&duration=${encodeURIComponent(durationParam)}`
-      : ""
+    domainParam ? `?domain=${encodeURIComponent(domainParam)}` : ""
   }`;
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background glow effects */}
+    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+      {/* Background ambient lighting */}
       <div className="fixed top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
 
@@ -131,14 +142,14 @@ function StudentSignInContent() {
         <div className="text-center space-y-2">
           <Link href="/internships" className="inline-flex items-center gap-3 group">
             <div className="relative w-11 h-11 rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 p-1 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.4)] group-hover:scale-105 transition-all">
-              <Image src="/logo.svg" alt="Haque & Sons" fill className="p-1 object-cover" unoptimized />
+              <Image src="/logo.svg" alt="Haque & Sons" fill className="p-1 object-contain" unoptimized />
             </div>
             <div className="text-left">
               <span className="font-extrabold text-white text-lg tracking-tight block">
-                Haque & Sons
+                Haque &amp; Sons
               </span>
               <span className="text-[10px] text-cyan-400 font-mono block">
-                Student & Intern Portal
+                Student &amp; Intern Portal
               </span>
             </div>
           </Link>
@@ -146,69 +157,102 @@ function StudentSignInContent() {
 
         {/* Selected domain banner */}
         {domainParam && (
-          <div className="p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 text-center space-y-0.5 shadow-lg">
+          <div className="p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-center space-y-0.5 shadow-md">
             <div className="flex items-center justify-center gap-1.5 text-[10px] uppercase font-bold text-cyan-400 tracking-wider">
               <GraduationCap className="w-3.5 h-3.5" />
               <span>Target Track</span>
             </div>
             <span className="text-xs font-bold text-white capitalize block">
-              {domainParam.replace(/-/g, " ")} • {modeParam} ({durationParam})
+              {domainParam.replace(/-/g, " ")}
             </span>
           </div>
         )}
 
         {/* Login Card */}
-        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-gray-950/80 backdrop-blur-xl shadow-2xl">
+        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl rounded-3xl">
           <div className="mb-6 space-y-1">
-            <h2 className="text-xl font-bold text-white">Student Sign In</h2>
-            <p className="text-xs text-gray-400">
-              Enter your credentials to access your active sprint milestones, project submission, and verified certificates.
+            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+              <User className="w-5 h-5 text-cyan-400" />
+              <span>Student Sign In</span>
+            </h1>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Enter your student credentials to access your roadmap, active milestones, and verified certificates.
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-950/50 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+            <div className="mb-5 p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+              <div className="flex-1">
+                <span>{error}</span>
+                {error.includes("Invalid") && (
+                  <Link
+                    href={signupUrl}
+                    className="text-cyan-300 font-bold underline hover:text-cyan-200 mt-1 block"
+                  >
+                    Need an account? Register here &rarr;
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-5 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+              <span>Authenticated! Redirecting to your dashboard...</span>
             </div>
           )}
 
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+              <label className="text-xs font-semibold text-gray-300 block mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@college.edu"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-medium"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-gray-300 block mb-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-gray-300">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowHelpNote(!showHelpNote)}
+                  className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                  <span>Need help?</span>
+                </button>
+              </div>
+
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 transition-all font-mono"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all font-medium font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
                   title={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -216,18 +260,31 @@ function StudentSignInContent() {
               </div>
             </div>
 
+            {showHelpNote && (
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-[11px] text-gray-400 leading-relaxed">
+                Forgot your password or credentials? Contact{" "}
+                <a
+                  href="mailto:nejamulhaque.works@gmail.com"
+                  className="text-cyan-400 underline font-mono"
+                >
+                  nejamulhaque.works@gmail.com
+                </a>{" "}
+                with your registered candidate email.
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading || lockoutRemaining > 0}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 active:scale-[0.98]"
             >
               {loading ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : lockoutRemaining > 0 ? (
                 <span>Security Lockout ({lockoutRemaining}s)</span>
               ) : (
                 <>
-                  <span>Sign In to Dashboard</span>
+                  <span>Sign In to Portal</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -237,10 +294,10 @@ function StudentSignInContent() {
           {/* Switch to Sign Up */}
           <div className="mt-6 pt-5 border-t border-white/10 text-center">
             <p className="text-xs text-gray-400">
-              New to Haque & Sons Internship Program?{" "}
+              New to Haque &amp; Sons Internship Program?{" "}
               <Link
                 href={signupUrl}
-                className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors"
+                className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors underline"
               >
                 Create Student Account
               </Link>
@@ -249,13 +306,13 @@ function StudentSignInContent() {
         </SpotlightCard>
 
         {/* Security & Zero-Trust Notice */}
-        <div className="flex items-center justify-center gap-4 text-[11px] text-gray-500 font-mono">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-4 text-[11px] text-gray-400 font-mono">
+          <span className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             Better Auth Protected
           </span>
           <span>•</span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
             256-bit Encrypted
           </span>
@@ -270,7 +327,7 @@ export default function StudentSignInPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
-          Loading student sign in...
+          Loading student portal...
         </div>
       }
     >
