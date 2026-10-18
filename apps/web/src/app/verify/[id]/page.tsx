@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: VerifyPageProps) {
   const { id } = await params;
   return {
     title: `Verify Certificate ${id.toUpperCase()} | AICTE Approved | Haque & Sons`,
-    description: `Official cryptographic verification of Haque & Sons Certificate of Internship Completion (${id.toUpperCase()}) with AICTE Activity Points & NEP 2020 compliance.`,
+    description: `Official cryptographic verification of Haque & Sons Certificate of Internship Completion (${id.toUpperCase()}) with verified industry competencies and ISO 9001:2015 standards.`,
   };
 }
 
@@ -115,7 +115,7 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
                   Status: {certData.status || "Valid"}
                 </span>
                 <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  AICTE {aicte.activityPoints} Activity Points
+                  Industry Practicum
                 </span>
               </div>
               <p className="text-xs text-gray-300 mt-0.5">
@@ -136,18 +136,18 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
           </div>
         </div>
 
-        {/* AICTE NEP 2020 Accreditation Breakdown Card */}
+        {/* Accreditation & Practicum Immersion Breakdown Card */}
         <div className="p-5 rounded-3xl bg-gray-950/80 border border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
           <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1">
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold font-mono">
               <GraduationCap className="w-4 h-4" />
-              <span>AICTE ACTIVITY POINTS</span>
+              <span>TECHNICAL IMMERSION</span>
             </div>
             <span className="text-xl font-extrabold text-white block">
-              {aicte.activityPoints} Points Granted
+              {aicte.totalHours}+ Hours
             </span>
             <span className="text-[11px] text-gray-400 block font-mono">
-              {aicte.credits} Credits • {aicte.nepLevel}
+              {certData.duration || "90 days"} • {certData.mode || "Online"} Practicum
             </span>
           </div>
 

@@ -323,16 +323,16 @@ export function OfferLetterRenderer({
             </div>
           </div>
 
-          {/* AICTE NEP 2020 Accreditation Ribbon */}
+          {/* Industry Practicum Immersion Ribbon */}
           <div className="my-3 p-2.5 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4 text-emerald-700 shrink-0" />
               <span className="text-[11px] font-bold text-emerald-950 uppercase font-mono tracking-wide">
-                AICTE NEP 2020 Practicum Allocation: {aicteInfo.activityPoints} Activity Points • {aicteInfo.credits} Academic Credits ({aicteInfo.totalHours} Hours)
+                Industry Practicum Immersion • {aicteInfo.totalHours}+ Engineering Hours • Category-B R&amp;D
               </span>
             </div>
             <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded shrink-0">
-              Category-B Practicum
+              ISO 9001:2015
             </span>
           </div>
 
@@ -406,10 +406,10 @@ export function OfferLetterRenderer({
                   </tr>
                   <tr className="border-b border-slate-200">
                     <td className="p-2.5 font-semibold text-slate-600 border-r border-slate-200 bg-slate-50">
-                      AICTE Activity Points & Credits
+                      Practicum Immersion
                     </td>
                     <td className="p-2.5 font-bold text-emerald-800">
-                      {aicteInfo.activityPoints} AICTE Activity Points • {aicteInfo.credits} Academic Credits ({aicteInfo.nepLevel})
+                      {aicteInfo.totalHours}+ Engineering Clock Hours • Production Capstone R&amp;D
                     </td>
                   </tr>
                   <tr className="border-b border-slate-200 bg-slate-50">
@@ -490,13 +490,13 @@ export function OfferLetterRenderer({
               </p>
             </div>
 
-            {/* Section 5: AICTE Activity Points & Evaluation Protocol */}
+            {/* Section 5: Evaluation & Recommendation Protocol */}
             <div className="space-y-1.5">
               <h4 className="font-bold text-slate-950 uppercase tracking-wider text-xs text-sky-900">
-                2. Evaluation, AICTE Activity Points ({aicteInfo.activityPoints} Pts) & Recommendation
+                2. Evaluation, Capstone Delivery &amp; Recommendation
               </h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haqueandsons.vercel.app/verify</code>) granting <strong>{aicteInfo.activityPoints} AICTE Activity Points</strong>. High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
+                Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haqueandsons.vercel.app/verify</code>). High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
               </p>
             </div>
 

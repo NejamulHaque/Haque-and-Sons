@@ -449,7 +449,7 @@ function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white pt-24 pb-24 px-4 sm:px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white pt-24 pb-24 px-4 sm:px-6 relative overflow-x-clip">
       {/* Background ambient lighting */}
       <div className="fixed top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
@@ -537,7 +537,7 @@ function ProfileContent() {
                 className="px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
               >
                 <BookOpen className="w-4 h-4 text-amber-400" />
-                <span>AICTE Logbook</span>
+                <span>Activity Logbook</span>
               </button>
 
               {isLorApproved ? (
@@ -578,47 +578,47 @@ function ProfileContent() {
             </div>
           </div>
 
-          {/* Academic Accreditation Matrix */}
+          {/* Candidate Sprint & Practicum Matrix */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-6 mt-6 border-t border-white/5">
             <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-amber-400" />
-                  <span>AICTE Activity Points</span>
+                <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-cyan-400" />
+                  <span>Sprint Milestone Progress</span>
                 </span>
-                <span className="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                  +{aicteInfo.activityPoints} Pts
+                <span className="text-xs font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                  {completedSprintTasks} / {totalSprintTasks} Tasks
                 </span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (aicteInfo.activityPoints / 100) * 100)}%` }}
+                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${sprintPercentage}%` }}
                 />
               </div>
               <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono">
-                <span>{aicteInfo.activityPoints} / 100 Mandate</span>
-                <span className="text-emerald-400 font-bold">{Math.round((aicteInfo.activityPoints / 100) * 100)}% Complete</span>
+                <span>{domain} Curriculum</span>
+                <span className="text-cyan-400 font-bold">{sprintPercentage}% Complete</span>
               </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-cyan-400" />
-                  <span>NCrF Academic Credits</span>
+                <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>Practicum Immersion</span>
                 </span>
-                <span className="text-xs font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
-                  {aicteInfo.credits} Credits
+                <span className="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                  {duration}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-300 font-mono">
-                <span className="text-white font-bold">{aicteInfo.totalHours} Clock Hours</span>
+                <span className="text-white font-bold">{aicteInfo.totalHours}+ Clock Hours</span>
                 <span className="text-gray-500">•</span>
-                <span className="text-cyan-300">{mode} Practicum</span>
+                <span className="text-amber-300">{mode} Practicum</span>
               </div>
               <p className="text-[11px] text-gray-400 truncate">
-                Category-B Industry Practicum ({aicteInfo.aicteCode})
+                Category-B Industry Practicum Immersion
               </p>
             </div>
 
@@ -626,10 +626,10 @@ function ProfileContent() {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Accreditation</span>
+                  <span>Accreditation &amp; Standards</span>
                 </span>
                 <span className="text-xs font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                  AICTE Compliant
+                  Verified
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono">
@@ -638,7 +638,7 @@ function ProfileContent() {
                 <span className="text-purple-300 font-semibold">ISO 9001:2015</span>
               </div>
               <p className="text-[11px] text-gray-400">
-                AICTE NEP 2020 Guidelines Clause 4.1-4.3
+                Cryptographically Signed Verification Ledger
               </p>
             </div>
           </div>
@@ -1417,12 +1417,17 @@ function ProfileContent() {
       {/* 1. Offer Letter Modal */}
       <AnimatePresence>
         {isOfferLetterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div
+            onClick={() => setIsOfferLetterOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto cursor-pointer"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              className="relative w-full max-w-4xl bg-gray-950 border border-white/15 rounded-3xl overflow-hidden my-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-4xl bg-gray-950 border border-white/15 rounded-3xl overflow-hidden my-6 shadow-2xl cursor-default"
             >
               <div className="p-4 bg-black/60 border-b border-white/10 flex items-center justify-between">
                 <span className="text-xs font-bold text-white flex items-center gap-2">
@@ -1436,7 +1441,7 @@ function ProfileContent() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto overscroll-contain">
                 <OfferLetterRenderer data={offerLetterData} showActions={true} />
               </div>
             </motion.div>
@@ -1447,12 +1452,17 @@ function ProfileContent() {
       {/* 2. Official LOR Modal */}
       <AnimatePresence>
         {isLorModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div
+            onClick={() => setIsLorModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto cursor-pointer"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              className="relative w-full max-w-4xl bg-gray-950 border border-white/15 rounded-3xl overflow-hidden my-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-4xl bg-gray-950 border border-white/15 rounded-3xl overflow-hidden my-6 shadow-2xl cursor-default"
             >
               <div className="p-4 bg-black/60 border-b border-white/10 flex items-center justify-between">
                 <span className="text-xs font-bold text-white flex items-center gap-2">
@@ -1466,7 +1476,7 @@ function ProfileContent() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 max-h-[82vh] overflow-y-auto overscroll-contain">
                 <LetterOfRecommendationRenderer lorData={lorData} showActions={true} />
               </div>
             </motion.div>
@@ -1477,12 +1487,17 @@ function ProfileContent() {
       {/* 3. Apply LOR Modal */}
       <AnimatePresence>
         {isApplyLorModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
+          <div
+            onClick={() => setIsApplyLorModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl cursor-pointer"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              className="relative w-full max-w-md bg-gray-950 border border-amber-500/30 rounded-3xl p-6 shadow-2xl space-y-4"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-md bg-gray-950 border border-amber-500/30 rounded-3xl p-6 shadow-2xl space-y-4 cursor-default"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-base font-bold text-white flex items-center gap-2">
@@ -1528,21 +1543,26 @@ function ProfileContent() {
         )}
       </AnimatePresence>
 
-      {/* 4. AICTE Activity Logbook Modal */}
+      {/* 4. Activity Logbook Modal */}
       <AnimatePresence>
         {isAicteDiaryOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div
+            onClick={() => setIsAicteDiaryOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl overflow-y-auto cursor-pointer"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/30 rounded-3xl overflow-hidden my-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.94, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-4xl bg-gray-950 border border-amber-500/30 rounded-3xl overflow-hidden my-6 shadow-2xl cursor-default"
             >
               <div className="p-4 bg-black/60 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-bold text-white">
-                    AICTE Activity Logbook &amp; Practicum Diary ({aicteInfo.aicteCode})
+                    Engineering Activity Logbook &amp; Practicum Diary
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1562,7 +1582,7 @@ function ProfileContent() {
                 </div>
               </div>
 
-              <div className="p-6 max-h-[80vh] overflow-y-auto space-y-6">
+              <div className="p-6 max-h-[82vh] overflow-y-auto overscroll-contain space-y-6">
                 {/* Meta summary card */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/10 text-xs font-mono">
                   <div>
@@ -1574,12 +1594,12 @@ function ProfileContent() {
                     <span className="font-bold text-cyan-300 truncate block">{college || "Partner College"}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase block">Activity Code</span>
-                    <span className="font-bold text-amber-400">{aicteInfo.aicteCode}</span>
+                    <span className="text-[10px] text-gray-500 uppercase block">Practicum Track</span>
+                    <span className="font-bold text-amber-400 truncate block">{domain}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-gray-500 uppercase block">Credits Granted</span>
-                    <span className="font-bold text-emerald-400">+{aicteInfo.activityPoints} Pts ({aicteInfo.credits} Credits)</span>
+                    <span className="text-[10px] text-gray-500 uppercase block">Engineering Hours</span>
+                    <span className="font-bold text-emerald-400">{aicteInfo.totalHours}+ Hours Completed</span>
                   </div>
                 </div>
 
@@ -1619,11 +1639,11 @@ function ProfileContent() {
                 <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
                   <div className="space-y-0.5 text-center sm:text-left">
                     <span className="font-bold text-white block">Haque &amp; Sons Technical Directorate</span>
-                    <span className="text-gray-400 text-[11px] block">Accredited under AICTE NEP 2020 Clause 4.1-4.3 • MSME {aicteInfo.msmeUdyamId}</span>
+                    <span className="text-gray-400 text-[11px] block">MSME Registration: {aicteInfo.msmeUdyamId} • ISO 9001:2015</span>
                   </div>
                   <div className="text-center sm:text-right">
                     <span className="text-cyan-300 font-bold block">Nejamul Haque</span>
-                    <span className="text-gray-500 text-[10px] block">Lead Systems Architect &amp; Founder</span>
+                    <span className="text-gray-500 text-[10px] block">CEO &amp; Director, Haque &amp; Sons</span>
                   </div>
                 </div>
               </div>

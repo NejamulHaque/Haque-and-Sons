@@ -441,7 +441,7 @@ export function CertificateRenderer({
                   </div>
                   <div class="qr-meta">
                     <strong style="color: ${navyDark}; font-size: 7.2pt; display: block;">ID: ${certificate.id}</strong>
-                    <span>AICTE NEP 2020 (${aicte.activityPoints} Pts)</span><br />
+                    <span>Verified Industry Credential</span><br />
                     <span>Scan to verify public ledger</span>
                   </div>
                 </div>
@@ -741,7 +741,7 @@ export function CertificateRenderer({
                   ID: {certificate.id}
                 </span>
                 <span className={`text-[7px] sm:text-[8px] block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
-                  AICTE NEP 2020: {aicte.activityPoints} Pts
+                  Verified Industry Credential
                 </span>
                 <span className={`text-[7px] sm:text-[8px] block ${isDay ? "text-slate-500" : "text-gray-400"}`}>
                   Scan to verify authenticity
@@ -799,7 +799,7 @@ export function CertificateRenderer({
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span className="text-xs sm:text-sm font-semibold text-white">
-              Institutional Accreditation &amp; AICTE NEP 2020 Credit Matrix
+              Institutional Accreditation &amp; Quality Verification Standards
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -816,25 +816,25 @@ export function CertificateRenderer({
           <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
               <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
-                AICTE Activity Points
+                Engineering Immersion
               </span>
               <span className="text-base font-bold text-emerald-400 block">
-                +{aicte.activityPoints} Points
+                {aicte.totalHours}+ Hours
               </span>
               <span className="text-[11px] text-gray-400 block">
-                Category-B Practicum ({aicte.aicteCode})
+                {certificate.duration || "90 days"} Practicum
               </span>
             </div>
 
             <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
               <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">
-                NCrF Academic Credits
+                Specialization Track
               </span>
-              <span className="text-base font-bold text-cyan-400 block">
-                {aicte.credits} Credits ({aicte.totalHours} Hours)
+              <span className="text-base font-bold text-cyan-400 block truncate">
+                {certificate.domain}
               </span>
               <span className="text-[11px] text-gray-400 block">
-                {aicte.nepLevel}
+                Production Capstone R&amp;D
               </span>
             </div>
 

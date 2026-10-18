@@ -266,7 +266,7 @@ export function LetterOfRecommendationRenderer({
             <div className="pt-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-800 mb-2 uppercase tracking-wider font-mono">
                 <GraduationCap className="w-3.5 h-3.5 text-sky-800" />
-                <span>AICTE Category-B Practicum • National Credit Framework (NCrF) Endorsement</span>
+                <span>Category-B Industry Practicum • Professional Engineering Endorsement</span>
               </div>
               <p className="text-[11px] text-slate-700">
                 <strong>TO WHOM IT MAY CONCERN / DEANS, ACADEMIC COMMITTEES &amp; HIRING PANELS,</strong>
@@ -280,9 +280,7 @@ export function LetterOfRecommendationRenderer({
                 <strong className="text-slate-950 underline decoration-sky-500 underline-offset-2">{lorData.studentName}</strong>,
                 a dedicated scholar from <strong className="text-slate-950">{lorData.college}</strong>, who has successfully completed an intensive{" "}
                 <strong>{lorData.duration}</strong> ({aicte.totalHours}+ Engineering Hours) technical immersion as an Engineering Intern in our{" "}
-                <strong className="text-sky-800 font-bold">{lorData.domain}</strong> practicum track at Haque &amp; Sons, earning{" "}
-                <strong className="text-emerald-800 font-bold">{aicte.activityPoints} AICTE Activity Points</strong> and{" "}
-                <strong className="text-emerald-800 font-bold">{aicte.credits} Academic Credits</strong> under the AICTE NEP 2020 National Credit Framework.
+                <strong className="text-sky-800 font-bold">{lorData.domain}</strong> practicum track at Haque &amp; Sons, demonstrating exceptional full-lifecycle engineering rigor, architectural excellence, and delivering production-grade capstone systems.
               </p>
 
               <p>
@@ -299,10 +297,10 @@ export function LetterOfRecommendationRenderer({
               <div className="flex items-center justify-between border-b border-slate-200 pb-1">
                 <span className="text-[10px] font-bold text-slate-900 uppercase font-mono tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-sky-700" />
-                  <span>AICTE 5-Pillar Competency Appraisal Matrix ({aicte.activityPoints} Activity Pts)</span>
+                  <span>5-Pillar Professional Engineering Competency Appraisal</span>
                 </span>
                 <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-mono">
-                  Overall Rating: {lorData.grade || "Distinction (9.8 / 10)"} • {aicte.credits} Credits
+                  Overall Rating: {lorData.grade || "Distinction (Top 1%)"}
                 </span>
               </div>
 
@@ -371,7 +369,7 @@ export function LetterOfRecommendationRenderer({
                   AICTE VERIFIED
                 </span>
               </div>
-              <p className="text-[7.5px] font-mono text-slate-500">{aicte.activityPoints} Activity Points Certified</p>
+              <p className="text-[7.5px] font-mono text-slate-500">ISO 9001:2015 &bull; MSME Verified</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, Bot, X, Send, ChevronDown, ChevronUp, Terminal, Code2, Zap, ArrowRight, CheckCircle2 } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, Bot, X, Send, Code2, CheckCircle2, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
@@ -13,9 +13,14 @@ interface Message {
 
 const QUICK_PROMPTS = [
   {
-    title: "Next.js 16 & Neon DB",
-    prompt: "How should I structure my database schema and API routes in Next.js 16 with Neon PostgreSQL?",
-    reply: "For production architectures at Haque & Sons:\n1. Keep your Drizzle schema in `src/db/schema.ts` with strict typed constraints.\n2. Use `@neondatabase/serverless` connection pooler with WebSocket support for fast edge queries.\n3. Always validate incoming request bodies with zero-trust checks.\n4. Separate business logic from API handlers into isolated service functions.",
+    title: "How to Submit Capstone?",
+    prompt: "How do I submit my capstone project and what is required?",
+    reply: "To submit your Capstone project at Haque & Sons:\n1. Switch to the 'Capstone & Submission' tab.\n2. Ensure your GitHub repo is public with a comprehensive README.\n3. Provide your Live Production URL (Vercel/Render) and optional cloud ZIP backup.\n4. Click 'Submit Final Capstone' — our automated validator will run syntax and repository checks.",
+  },
+  {
+    title: "Offer Letter & LOR",
+    prompt: "How do I view my Offer Letter or request an official LOR?",
+    reply: "Offer Letter & LOR Access:\n• Offer Letter: Click the 'Offer Letter' button in your profile HUD (or Roadmap Step 01) to view, print, or download.\n• Official LOR: High performers who complete their milestones can click 'Apply LOR' to receive an executive recommendation letter signed by CEO Nejamul Haque.",
   },
   {
     title: "Deployment Checklist",
@@ -23,9 +28,9 @@ const QUICK_PROMPTS = [
     reply: "Capstone Pre-Flight Checklist:\n✓ 0 TypeScript compilation errors (`pnpm check-types`)\n✓ Clean Lighthouse performance score (>90)\n✓ Configured production environment variables on Vercel/Render\n✓ Working SSL/HTTPS certificate on live URL\n✓ Comprehensive `README.md` with system architecture diagrams.",
   },
   {
-    title: "GitHub README Guide",
-    prompt: "How do I make my GitHub capstone repository look top 1% to recruiters?",
-    reply: "Recruiter-Ready README Structure:\n1. Project Banner + Haque & Sons Verified SVG Badge.\n2. Live Demo URL & Test Credentials.\n3. Core Architectural Highlights (Tech Stack, DB ERD).\n4. Step-by-Step Local Setup (`pnpm install && pnpm dev`).\n5. API Endpoints Reference Matrix & Security Practices.",
+    title: "Next.js 16 & Neon DB",
+    prompt: "How should I structure my database schema and API routes in Next.js 16 with Neon PostgreSQL?",
+    reply: "For production architectures at Haque & Sons:\n1. Keep your Drizzle schema in `src/db/schema.ts` with strict typed constraints.\n2. Use `@neondatabase/serverless` connection pooler with WebSocket support for fast edge queries.\n3. Always validate incoming request bodies with zero-trust checks.\n4. Separate business logic from API handlers into isolated service functions.",
   },
 ];
 
@@ -35,12 +40,20 @@ export function IrusCopilotWidget() {
     {
       id: "init",
       sender: "irus",
-      text: "Hello! I am Irus AI, your Studio Copilot. How can I assist with your capstone architecture or milestone verification today?",
+      text: "Hello! I am Irus AI, your Studio Engineering Copilot. How can I assist with your capstone architecture, offer letter, or milestone verification today?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom of chat smoothly
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isTyping, isOpen]);
 
   const handleSend = (textToSend?: string) => {
     const query = textToSend || input.trim();
@@ -57,15 +70,26 @@ export function IrusCopilotWidget() {
     if (!textToSend) setInput("");
     setIsTyping(true);
 
-    // Look for matching pre-defined response or provide contextual engineering response
+    const lowerQuery = query.toLowerCase();
     const matchedPrompt = QUICK_PROMPTS.find(
-      (p) => p.prompt.toLowerCase() === query.toLowerCase() || query.toLowerCase().includes(p.title.toLowerCase())
+      (p) =>
+        lowerQuery === p.prompt.toLowerCase() ||
+        lowerQuery.includes(p.title.toLowerCase()) ||
+        (p.title.includes("Offer") && (lowerQuery.includes("offer") || lowerQuery.includes("lor"))) ||
+        (p.title.includes("Submit") && (lowerQuery.includes("submit") || lowerQuery.includes("capstone")))
     );
 
     setTimeout(() => {
-      const responseText = matchedPrompt
-        ? matchedPrompt.reply
-        : `To achieve enterprise-grade results in ${query.slice(0, 30)}...: Maintain modular component boundaries, enforce strict TypeScript typing, implement parameterized queries to prevent SQL injection, and verify zero hydration errors in your Next.js application.`;
+      let responseText = "";
+      if (matchedPrompt) {
+        responseText = matchedPrompt.reply;
+      } else if (lowerQuery.includes("certificate") || lowerQuery.includes("verify")) {
+        responseText = "Once your capstone deliverables and clearance review are completed, your official Certificate of Completion will be generated with a cryptographic QR code and public verification URL at haqueandsons.vercel.app/verify/[id].";
+      } else if (lowerQuery.includes("scroll") || lowerQuery.includes("help")) {
+        responseText = "You can navigate all sections of your profile via the top segmented bar (Overview, Curriculum, Capstone, Certificate, Profile). All tabs feature smooth animated transitions and responsive scrolling.";
+      } else {
+        responseText = `Regarding "${query.slice(0, 35)}...": Maintain modular component boundaries, enforce strict TypeScript typing, adhere to trunk-based Git workflows, and verify zero hydration errors in your deployment.`;
+      }
 
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -76,19 +100,19 @@ export function IrusCopilotWidget() {
 
       setMessages((prev) => [...prev, botMsg]);
       setIsTyping(false);
-    }, 700);
+    }, 600);
   };
 
   return (
-    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 print:hidden">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 print:hidden select-none">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="w-[calc(100vw-32px)] sm:w-[400px] h-[480px] sm:h-[520px] max-h-[82vh] rounded-3xl bg-gray-950/95 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_50px_rgba(6,182,212,0.25)] flex flex-col overflow-hidden mb-3"
+            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            className="w-[calc(100vw-32px)] sm:w-[420px] h-[520px] max-h-[84vh] rounded-3xl bg-gray-950/95 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_60px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden mb-3"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-gray-950 via-gray-900 to-black border-b border-white/10 flex items-center justify-between">
@@ -101,16 +125,34 @@ export function IrusCopilotWidget() {
                     <span>Irus AI Copilot</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   </h4>
-                  <p className="text-[10px] text-gray-400 font-mono">Haque &amp; Sons Capstone Assistant</p>
+                  <p className="text-[10px] text-gray-400 font-mono">Haque &amp; Sons Studio Assistant</p>
                 </div>
               </div>
 
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() =>
+                    setMessages([
+                      {
+                        id: Date.now().toString(),
+                        sender: "irus",
+                        text: "Chat context cleared. How else can I assist with your engineering practicum?",
+                        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                      },
+                    ])
+                  }
+                  className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  title="Reset Conversation"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Quick Prompts Carousel */}
@@ -128,16 +170,16 @@ export function IrusCopilotWidget() {
             </div>
 
             {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 font-sans text-xs">
+            <div className="flex-1 p-4 overflow-y-auto overscroll-contain space-y-3 font-sans text-xs">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] p-3 rounded-2xl whitespace-pre-wrap leading-relaxed ${
+                    className={`max-w-[85%] p-3 rounded-2xl whitespace-pre-wrap leading-relaxed shadow-sm ${
                       msg.sender === "user"
-                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-br-xs shadow-md"
+                        ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-br-xs"
                         : "bg-white/[0.06] border border-white/10 text-gray-200 rounded-bl-xs"
                     }`}
                   >
@@ -158,9 +200,10 @@ export function IrusCopilotWidget() {
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" />
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.2s]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.4s]" />
-                  <span className="text-[10px] text-gray-500 ml-1">Irus is thinking...</span>
+                  <span className="text-[10px] text-gray-500 ml-1">Irus is computing...</span>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Footer */}
