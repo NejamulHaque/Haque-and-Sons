@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
                 </p>
 
                 <div class="cta-box">
-                  <strong style="color: #15803d; font-size: 14px;">📄 Your 2-Page Official Offer Letter is Ready!</strong>
+                  <strong style="color: #15803d; font-size: 14px;">📄 Your Official 1-Page Offer Letter is Ready!</strong>
                   <p style="color: #475569; font-size: 12.5px; margin: 6px 0 0 0;">
                     Your formal Letter of Intent & Appointment document has been unlocked in your Candidate Dashboard. Please visit your profile to download your official signed PDF copy.
                   </p>
