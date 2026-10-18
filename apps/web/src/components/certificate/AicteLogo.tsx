@@ -1,6 +1,6 @@
 import React from "react";
 
-export function AicteLogo({ className = "w-16 h-16" }: { className?: string }) {
+export function AicteLogo({ className = "w-18 h-18" }: { className?: string }) {
   // Generate 24 gear teeth for the outer cogwheel
   const teethCount = 24;
   const teeth = Array.from({ length: teethCount }).map((_, i) => {
@@ -20,7 +20,7 @@ export function AicteLogo({ className = "w-16 h-16" }: { className?: string }) {
   });
 
   return (
-    <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
+    <div className={`relative flex flex-col items-center justify-center shrink-0 ${className}`}>
       <svg
         viewBox="0 0 100 100"
         fill="none"
@@ -34,71 +34,64 @@ export function AicteLogo({ className = "w-16 h-16" }: { className?: string }) {
         <circle cx="50" cy="50" r="44" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5" />
 
         {/* Middle Ring with Deep Navy Base */}
-        <circle cx="50" cy="50" r="39" fill="#0b2341" stroke="#fbbf24" strokeWidth="1" />
+        <circle cx="50" cy="50" r="40" fill="#0b2341" stroke="#fbbf24" strokeWidth="1" />
 
-        {/* Inner White/Cream Ring */}
-        <circle cx="50" cy="50" r="30" fill="#ffffff" stroke="#f59e0b" strokeWidth="1.2" />
+        {/* Inner White Disc with Gold Border for Maximum Text Contrast */}
+        <circle cx="50" cy="50" r="33" fill="#ffffff" stroke="#f59e0b" strokeWidth="1.8" />
 
-        {/* Top Text Arc: AICTE */}
-        <path
-          id="aicte-top-arc"
-          d="M 23 50 A 27 27 0 0 1 77 50"
-          fill="none"
-          stroke="none"
-        />
+        {/* CLEAR, BOLD, PROMINENT "AICTE" TEXT */}
         <text
+          x="50"
+          y="34"
+          textAnchor="middle"
           fill="#0b2341"
-          fontSize="7.5"
+          fontSize="12.5"
           fontWeight="900"
-          letterSpacing="0.22em"
-          fontFamily="system-ui, sans-serif"
-        >
-          <textPath href="#aicte-top-arc" startOffset="50%" textAnchor="middle">
-            AICTE
-          </textPath>
-        </text>
-
-        {/* Bottom Arc Text: योगः कर्मसु कौशलम् */}
-        <path
-          id="aicte-bot-arc"
-          d="M 78 51 A 28 28 0 0 1 22 51"
-          fill="none"
-          stroke="none"
-        />
-        <text
-          fill="#d97706"
-          fontSize="4.2"
-          fontWeight="700"
           letterSpacing="0.08em"
-          fontFamily="sans-serif"
+          fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
         >
-          <textPath href="#aicte-bot-arc" startOffset="50%" textAnchor="middle">
-            योगः कर्मसु कौशलम्
-          </textPath>
+          AICTE
         </text>
 
-        {/* Sacred Flame / Lamp Motif in Center */}
-        {/* Base of Lamp / Diya */}
+        {/* Underline beneath AICTE */}
+        <line x1="32" y1="37" x2="68" y2="37" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" />
+
+        {/* Sacred Flame / Lamp (Diya) in Center */}
+        {/* Lamp Base */}
         <path
-          d="M 37 60 C 37 65 63 65 63 60 C 63 58 37 58 37 60 Z"
+          d="M 36 64 C 36 70 64 70 64 64 C 64 62 36 62 36 64 Z"
           fill="#d97706"
         />
-        <ellipse cx="50" cy="58.5" rx="10" ry="2" fill="#f59e0b" />
+        <ellipse cx="50" cy="62.5" rx="11" ry="2.2" fill="#f59e0b" />
 
         {/* Outer Flame (Orange) */}
         <path
-          d="M 50 36 C 44 45 43 53 50 57 C 57 53 56 45 50 36 Z"
+          d="M 50 40 C 43 49 43 57 50 61 C 57 57 57 49 50 40 Z"
           fill="#ea580c"
         />
 
-        {/* Inner Flame (Yellow/Bright Gold) */}
+        {/* Inner Flame (Gold) */}
         <path
-          d="M 50 40 C 46 47 46 52 50 55 C 54 52 54 47 50 40 Z"
+          d="M 50 44 C 45 50 45 56 50 59 C 55 56 55 50 50 44 Z"
           fill="#fef08a"
         />
 
-        {/* Small Core Flame (Cyan/White) */}
-        <ellipse cx="50" cy="51" rx="2" ry="3.5" fill="#ffffff" />
+        {/* Flame Core Highlight */}
+        <ellipse cx="50" cy="54" rx="2" ry="3.5" fill="#ffffff" />
+
+        {/* Bottom Sanskrit Motto: योगः कर्मसु कौशलम् */}
+        <text
+          x="50"
+          y="76"
+          textAnchor="middle"
+          fill="#92400e"
+          fontSize="4"
+          fontWeight="700"
+          letterSpacing="0.02em"
+          fontFamily="sans-serif"
+        >
+          योगः कर्मसु कौशलम्
+        </text>
       </svg>
     </div>
   );

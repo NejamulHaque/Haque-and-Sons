@@ -406,13 +406,15 @@ export function CertificateRenderer({
                       .map((_, i) => `<rect x="47" y="1" width="6" height="8" rx="1" fill="#f59e0b" transform="rotate(${i * 15} 50 50)" />`)
                       .join("")}
                     <circle cx="50" cy="50" r="44" fill="#f59e0b" stroke="#d97706" stroke-width="1.5" />
-                    <circle cx="50" cy="50" r="39" fill="#0b2341" stroke="#fbbf24" stroke-width="1" />
-                    <circle cx="50" cy="50" r="30" fill="#ffffff" stroke="#f59e0b" stroke-width="1.2" />
-                    <text x="50" y="44" fill="#0b2341" font-size="7.5" font-weight="900" letter-spacing="0.2em" text-anchor="middle" font-family="sans-serif">AICTE</text>
-                    <text x="50" y="66" fill="#d97706" font-size="4" font-weight="700" letter-spacing="0.05em" text-anchor="middle" font-family="sans-serif">योगः कर्मसु कौशलम्</text>
-                    <path d="M 37 57 C 37 62 63 62 63 57 Z" fill="#d97706" />
-                    <path d="M 50 36 C 44 43 43 50 50 54 C 57 50 56 43 50 36 Z" fill="#ea580c" />
-                    <path d="M 50 40 C 46 45 46 49 50 52 C 54 49 54 45 50 40 Z" fill="#fef08a" />
+                    <circle cx="50" cy="50" r="40" fill="#0b2341" stroke="#fbbf24" stroke-width="1" />
+                    <circle cx="50" cy="50" r="33" fill="#ffffff" stroke="#f59e0b" stroke-width="1.8" />
+                    <text x="50" y="34" fill="#0b2341" font-size="12.5" font-weight="900" letter-spacing="0.08em" text-anchor="middle" font-family="sans-serif">AICTE</text>
+                    <line x1="32" y1="37" x2="68" y2="37" stroke="#f59e0b" stroke-width="1" stroke-linecap="round" />
+                    <path d="M 36 64 C 36 70 64 70 64 64 C 64 62 36 62 36 64 Z" fill="#d97706" />
+                    <ellipse cx="50" cy="62.5" rx="11" ry="2.2" fill="#f59e0b" />
+                    <path d="M 50 40 C 43 49 43 57 50 61 C 57 57 57 49 50 40 Z" fill="#ea580c" />
+                    <path d="M 50 44 C 45 50 45 56 50 59 C 55 56 55 50 50 44 Z" fill="#fef08a" />
+                    <text x="50" y="76" fill="#92400e" font-size="4" font-weight="700" letter-spacing="0.02em" text-anchor="middle" font-family="sans-serif">योगः कर्मसु कौशलम्</text>
                   </svg>
                 </div>
 
@@ -434,7 +436,7 @@ export function CertificateRenderer({
 
               <!-- Footer -->
               <div class="footer-row">
-                <!-- QR Code -->
+                <!-- QR Code (Left) -->
                 <div class="qr-col">
                   <div class="qr-box">
                     <img src="${qrCodeUrl}" alt="QR Verification" />
@@ -446,8 +448,16 @@ export function CertificateRenderer({
                   </div>
                 </div>
 
-                <!-- Gold Rosette Seal -->
-                <div class="seal-col">
+                <!-- Signatory (Center) -->
+                <div class="sig-col" style="align-items: center; text-align: center;">
+                  <img class="sig-img" src="${signatureSrc}" alt="Signature" style="margin: 0 auto 0.5mm auto;" />
+                  <div class="sig-line" style="margin: 0 auto 1.8mm auto;"></div>
+                  <p class="sig-name">Nejamul Haque</p>
+                  <p class="sig-title">${signatoryDesignation}</p>
+                </div>
+
+                <!-- Gold Rosette Seal (Right) -->
+                <div class="seal-col" style="justify-content: flex-end; align-items: center;">
                   <svg class="seal-img" viewBox="0 0 100 135" fill="none">
                     <polygon points="38,65 18,128 29,116 45,125 48,65" fill="#d97706" stroke="#b45309" stroke-width="1" />
                     <polygon points="52,65 55,125 71,116 82,128 62,65" fill="#f59e0b" stroke="#b45309" stroke-width="1" />
@@ -460,14 +470,6 @@ export function CertificateRenderer({
                     <circle cx="50" cy="48" r="26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" />
                     <circle cx="50" cy="48" r="21" fill="none" stroke="#fef08a" stroke-width="0.8" opacity="0.8" />
                   </svg>
-                </div>
-
-                <!-- Signatory -->
-                <div class="sig-col">
-                  <img class="sig-img" src="${signatureSrc}" alt="Signature" />
-                  <div class="sig-line"></div>
-                  <p class="sig-name">Nejamul Haque</p>
-                  <p class="sig-title">${signatoryDesignation}</p>
                 </div>
               </div>
             </div>
@@ -749,14 +751,9 @@ export function CertificateRenderer({
               </div>
             </div>
 
-            {/* Center: Golden Rosette Medal with Ribbon Tails */}
-            <div className="flex flex-col items-center justify-center">
-              <GoldRosetteSeal className="w-16 h-22 sm:w-20 sm:h-28 md:w-24 md:h-32" />
-            </div>
-
-            {/* Right: Signature of Nejamul Haque (CEO & Director) */}
-            <div className="flex flex-col items-end text-right">
-              <div className="w-28 sm:w-36 md:w-44 h-10 sm:h-12 md:h-14 flex items-center justify-end">
+            {/* Center: Signature of Nejamul Haque (CEO & Director) */}
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="w-28 sm:w-36 md:w-44 h-10 sm:h-12 md:h-14 flex items-center justify-center">
                 <img
                   src="/signature.png"
                   alt="Signature of Nejamul Haque"
@@ -766,7 +763,7 @@ export function CertificateRenderer({
                 />
               </div>
               <div
-                className={`w-32 sm:w-40 md:w-48 h-[1.5px] my-1 ${
+                className={`w-32 sm:w-40 md:w-48 h-[1.5px] my-1 mx-auto ${
                   isDay ? "bg-[#0a2240]" : "bg-cyan-400"
                 }`}
               />
@@ -784,6 +781,11 @@ export function CertificateRenderer({
               >
                 {signatoryDesignation}
               </span>
+            </div>
+
+            {/* Right: Golden Rosette Medal with Ribbon Tails */}
+            <div className="flex flex-col items-center sm:items-end justify-center pr-2 sm:pr-4">
+              <GoldRosetteSeal className="w-16 h-22 sm:w-20 sm:h-28 md:w-24 md:h-32" />
             </div>
           </div>
         </div>
