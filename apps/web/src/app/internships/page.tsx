@@ -8,28 +8,67 @@ import { InternTestimonials } from "@/components/InternTestimonials";
 import { InternshipFAQ } from "@/components/InternshipFAQ";
 import { InternshipFinalCTA } from "@/components/InternshipFinalCTA";
 
+// ✅ SEO OPTIMIZED METADATA
 export const metadata: Metadata = {
-  title: "Internship Programs | Haque & Sons",
+  title: "Remote Tech Internships 2026 | Web Dev, AI & Cybersecurity | Haque Studio",
   description:
-    "Launch your tech career with structured internship programs in Web Development, AI/ML, Cybersecurity, and more. Get certified, build portfolio, and get hired.",
+    "Launch your tech career with Haque Studio's structured remote internships. Master Next.js 16, AI/ML, and DevSecOps. Build real projects, get certified, and land your dream job.",
   keywords: [
-    "internship",
+    "remote internship 2026",
     "web development internship",
-    "AI internship",
-    "coding internship",
-    "tech internship",
+    "AI internship for students",
+    "Next.js internship",
+    "coding internship with certificate",
     "software engineering internship",
+    "Haque Studio internships",
+    "tech internship India",
   ],
   openGraph: {
-    title: "Internship Programs | Haque & Sons",
-    description: "11 domain tracks, real projects, industry certification",
-    images: ["/logo.svg"],
+    title: "Remote Tech Internships 2026 | Haque Studio",
+    description: "10+ Domain Tracks. Real Projects. Industry Certification. Apply now for the 2026 batch.",
+    images: ["/og-image.png"], // ✅ Uses your new custom OG image
+    url: "https://haquestudio.me/internships",
+    siteName: "Haque Studio",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Remote Tech Internships 2026 | Haque Studio",
+    description: "Master Next.js, AI & Cloud with our structured internship program.",
+    images: ["/og-image.png"],
+  },
+  alternates: {
+    canonical: "https://haquestudio.me/internships",
+  },
+};
+
+// ✅ SCHEMA MARKUP FOR GOOGLE RICH RESULTS
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOccupationalProgram",
+  "name": "Haque Studio Tech Internship Program",
+  "description": "Structured remote internship programs in Web Development, AI/ML, and Cybersecurity for students.",
+  "provider": {
+    "@type": "Organization",
+    "name": "Haque Studio",
+    "sameAs": "https://haquestudio.me"
+  },
+  "educationalLevel": "Beginner to Intermediate",
+  "timeToComplete": "P4W", // 4 Weeks
+  "offers": {
+    "@type": "Offer",
+    "category": "Internship with Certification"
+  }
 };
 
 export default function InternshipsPage() {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white">
+      {/* ✅ Inject Schema for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* 1. Hero Section */}
       <InternshipHero />
 
