@@ -194,7 +194,6 @@ export default function RootLayout({
             }
           `}
         </Script>
-
         {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === "production" && (
           <>
             <Script
@@ -211,6 +210,13 @@ export default function RootLayout({
             </Script>
           </>
         )}
+
+        <Script 
+          src="https://scripts.simpleanalyticscdn.com/latest.js" 
+          strategy="lazyOnload" 
+          data-auto-collect="true"
+        />
+
       </body>
     </html>
   );
