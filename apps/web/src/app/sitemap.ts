@@ -8,6 +8,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 1 },
     { url: `${baseUrl}/internships`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+    { url: `${baseUrl}/internships/btech-computer-science`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+    { url: `${baseUrl}/internships/delhi-ncr`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+    { url: `${baseUrl}/internships/web-development`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
+    { url: `${baseUrl}/internships/artificial-intelligence`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
     { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.3 },
