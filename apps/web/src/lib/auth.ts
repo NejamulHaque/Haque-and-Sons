@@ -41,5 +41,6 @@ export const auth = betterAuth({
     "http://127.0.0.1:3000",
     "https://haqueandsons.vercel.app",
     "https://haqueandsons.in",
+    "https://haquestudio.me",
   ],
 });

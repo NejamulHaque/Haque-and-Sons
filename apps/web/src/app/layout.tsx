@@ -10,51 +10,55 @@ import { AuthModal } from "@/components/AuthModal";
 import Script from "next/script";
 import { Tracker } from "@/components/Tracker";
 
-const baseUrl = "https://haqueandsons.vercel.app";
+// ✅ UPDATED: New domain
+const baseUrl = "https://haquestudio.me";
 
+// ✅ FIXED: Clean metadata object (removed duplicates and broken syntax)
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Haque & Sons | Next-Gen Software & AI Studio",
-    template: "%s | Haque & Sons",
+    default: "Haque Studio | Software Engineering & Internships",
+    template: "%s | Haque Studio",
   },
   description:
-    "Experience the future of digital engineering. Haque & Sons architects enterprise-grade AI, 3D interactive platforms, and financial software using Next.js 16.",
+    "Haque Studio architects enterprise-grade AI, 3D interactive platforms, and financial software using Next.js 16. Launch your tech career with our structured internship programs.",
   keywords: [
+    "Haque Studio",
     "Nejamul Haque",
-    "Haque and Sons",
     "Next.js 16",
     "React 19",
     "Three.js",
-    "Web Development",
-    "AI Solutions",
+    "Web Development Internship",
+    "AI Internship",
     "DevSecOps",
-    "Full-Stack Engineer",
-    "Portfolio",
+    "Software Engineering",
+    "Tech Internship 2026",
   ],
   authors: [{ name: "Nejamul Haque", url: "https://github.com/NejamulHaque" }],
+  creator: "Nejamul Haque",
+  publisher: "Haque Studio",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: baseUrl,
-    siteName: "Haque & Sons",
-    title: "Haque & Sons | Building the Future of Software",
+    siteName: "Haque Studio",
+    title: "Haque Studio | Building the Future of Software",
     description:
-      "Interactive 3D portfolio & AI software studio by Nejamul Haque. Built with Next.js 16, React Three Fiber, and Tailwind CSS.",
+      "Enterprise-grade AI, 3D platforms & structured internship programs. Launch your tech career with Haque Studio.",
     images: [
       {
-        url: "/logo.svg",
+        url: "/og-image.png", // ⚠️ Create a 1200x630 image at public/og-image.png
         width: 1200,
         height: 630,
-        alt: "Haque & Sons Studio Preview",
+        alt: "Haque Studio - Software Engineering & Internships",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Haque & Sons | Next-Gen Software Studio",
-    description: "Interactive 3D portfolio & AI software studio by Nejamul Haque.",
-    images: ["/logo.svg"],
+    title: "Haque Studio | Next-Gen Software Studio",
+    description: "Enterprise AI, 3D platforms & internship programs for students.",
+    images: ["/og-image.png"],
     creator: "@Nejamul_Haque_",
   },
   robots: {
@@ -76,39 +80,58 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  alternates: {
+    canonical: baseUrl,
+  },
 };
 
+// ✅ UPDATED: JSON-LD with new domain URLs
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://haqueandsons.vercel.app/#organization",
-      "name": "Haque & Sons",
-      "url": "https://haqueandsons.vercel.app",
-      "logo": "https://haqueandsons.vercel.app/logo.svg",
+      "@id": `${baseUrl}/#organization`,
+      "name": "Haque Studio",
+      "url": baseUrl,
+      "logo": `${baseUrl}/logo.svg`,
+      "description": "Software engineering studio specializing in AI, 3D platforms, and structured tech internship programs.",
       "founder": {
         "@type": "Person",
         "name": "Nejamul Haque",
         "jobTitle": "Lead Full-Stack Engineer & Founder",
-        "url": "https://github.com/NejamulHaque"
+        "url": "https://github.com/NejamulHaque",
       },
       "sameAs": [
         "https://github.com/NejamulHaque",
         "https://www.linkedin.com/in/nejamulhaque",
-        "https://x.com/Nejamul_Haque_"
-      ]
+        "https://x.com/Nejamul_Haque_",
+      ],
     },
     {
       "@type": "WebSite",
-      "@id": "https://haqueandsons.vercel.app/#website",
-      "url": "https://haqueandsons.vercel.app",
-      "name": "Haque & Sons Software Studio",
+      "@id": `${baseUrl}/#website`,
+      "url": baseUrl,
+      "name": "Haque Studio",
       "publisher": {
-        "@id": "https://haqueandsons.vercel.app/#organization"
-      }
-    }
-  ]
+        "@id": `${baseUrl}/#organization`,
+      },
+    },
+    {
+      "@type": "EducationalOccupationalProgram",
+      "name": "Haque Studio Internship Program",
+      "description": "Structured remote internship programs in Web Development, AI/ML, and Cybersecurity for students.",
+      "provider": {
+        "@id": `${baseUrl}/#organization`,
+      },
+      "educationalLevel": "Beginner to Intermediate",
+      "timeToComplete": "P4W",
+      "offers": {
+        "@type": "Offer",
+        "category": "Internship with Certification",
+      },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -119,7 +142,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="canonical" href={baseUrl} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

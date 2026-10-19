@@ -266,7 +266,7 @@ function StudentSignUpContent() {
                     autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Rahul Sharma"
+                    placeholder="Nejamul Haque"
                     className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-3 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all font-medium"
                   />
                 </div>
