@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     }
 
     const cert = inserted[0];
-    const verificationUrl = `https://haqueandsons.vercel.app/verify/${certificateId}`;
+    const verificationUrl = `https://haquestudio.me/verify/${certificateId}`;
 
     // Send email to student with their certificate
     await sendEmail({

@@ -50,7 +50,7 @@ export function OfferLetterRenderer({
   const verificationUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/verify/${data.id}`
-      : `https://haqueandsons.vercel.app/verify/${data.id}`;
+      : `https://haquestudio.me/verify/${data.id}`;
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
     verificationUrl
@@ -677,7 +677,7 @@ export function OfferLetterRenderer({
               {/* Corporate Legal Footer */}
               <div className="mt-2 pt-1.5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[8.5px] text-slate-400 font-mono gap-1">
                 <span>Official Appointment • Strictly Confidential</span>
-                <span>Verify: haqueandsons.vercel.app/verify</span>
+                <span>Verify: haquestudio.me/verify</span>
                 <span>Haque &amp; Sons © 2026</span>
               </div>
             </div>
@@ -877,7 +877,7 @@ export function OfferLetterRenderer({
                     2. Evaluation, Capstone Delivery &amp; Recommendation
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haqueandsons.vercel.app/verify</code>). High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
+                    Upon timely delivery of the assigned capstone, repository submission, and completion of the mandatory feedback evaluation form, you will be awarded an official cryptographic <strong>Certificate of Completion</strong> verified on our public ledger (<code className="text-sky-700 font-mono">haquestudio.me/verify</code>). High performers will receive an executive <strong>Letter of Recommendation (LOR)</strong> signed by Nejamul Haque.
                   </p>
                 </div>
 
@@ -960,7 +960,7 @@ export function OfferLetterRenderer({
 
               <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-400 font-mono gap-2">
                 <span>Page 2 of 2 • Strictly Confidential</span>
-                <span>Verify at: haqueandsons.vercel.app/verify</span>
+                <span>Verify at: haquestudio.me/verify</span>
                 <span>Haque &amp; Sons © 2026</span>
               </div>
             </div>

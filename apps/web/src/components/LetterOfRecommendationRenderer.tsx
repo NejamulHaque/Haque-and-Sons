@@ -258,7 +258,7 @@ export function LetterOfRecommendationRenderer({
                 <p><strong className="text-slate-800 font-semibold">Ref:</strong> {refNumber}</p>
                 <p><strong className="text-slate-800 font-semibold">Date:</strong> {formattedDate}</p>
                 <p><strong className="text-slate-800 font-semibold">AICTE Code:</strong> <span className="font-mono text-emerald-800 font-bold">{aicte.aicteCode}</span></p>
-                <p><strong className="text-slate-800 font-semibold">Web:</strong> haqueandsons.vercel.app</p>
+                <p><strong className="text-slate-800 font-semibold">Web:</strong> haquestudio.me</p>
               </div>
             </div>
 

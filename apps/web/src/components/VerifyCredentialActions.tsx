@@ -23,7 +23,7 @@ export function VerifyCredentialActions({
   const issueYear = certDate.getFullYear();
   const issueMonth = certDate.getMonth() + 1;
 
-  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
+  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://haquestudio.me";
   const certUrl = `${currentOrigin}/verify/${certId}`;
   const badgeUrl = `${currentOrigin}/api/badges/${certId}`;
   const badgeMarkdown = `[![Haque & Sons Certified: ${domain}](${badgeUrl})](${certUrl})`;

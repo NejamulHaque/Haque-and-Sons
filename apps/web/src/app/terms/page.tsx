@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Our terms of service outline the rules and guidelines for using our website and services.",
-  alternates: { canonical: "https://haqueandsons.vercel.app/terms" },
+  alternates: { canonical: "https://haquestudio.me/terms" },
 };
 
 export default function TermsPage() {

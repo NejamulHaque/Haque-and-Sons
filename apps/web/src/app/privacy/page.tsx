@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Our privacy policy explains how we collect, use, and protect your data.",
-  alternates: { canonical: "https://haqueandsons.vercel.app/privacy" },
+  alternates: { canonical: "https://haquestudio.me/privacy" },
 };
 
 export default function PrivacyPage() {

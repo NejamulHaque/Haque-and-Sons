@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
           <div style="background: #111; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #333; font-size: 14px; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">${message}</div>
           <p style="font-size: 12px; color: #64748b; margin-top: 24px;">
             Sent by Nejamul Haque, Founder & Lead Engineer &bull; Haque & Sons Studio OS<br />
-            <a href="https://haqueandsons.vercel.app" style="color: #06b6d4;">haqueandsons.vercel.app</a>
+            <a href="https://haquestudio.me" style="color: #06b6d4;">haquestudio.me</a>
           </p>
         </div>
       `,

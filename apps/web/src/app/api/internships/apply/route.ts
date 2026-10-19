@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
               ` : ""}
 
               <p style="font-size: 12px; color: #6b7280; text-align: center; margin-top: 24px;">
-                Review and issue certificates from the <a href="https://haqueandsons.vercel.app/admin" style="color: #06b6d4;">Admin Command OS</a>.
+                Review and issue certificates from the <a href="https://haquestudio.me/admin" style="color: #06b6d4;">Admin Command OS</a>.
               </p>
             </div>
           `,
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
               
               <p style="font-size: 12px; color: #6b7280; text-align: center; margin-top: 30px; border-top: 1px solid #222; padding-top: 16px;">
                 Haque & Sons — Next-Gen Software Studio<br />
-                <a href="https://haqueandsons.vercel.app" style="color: #06b6d4;">haqueandsons.vercel.app</a>
+                <a href="https://haquestudio.me" style="color: #06b6d4;">haquestudio.me</a>
               </p>
             </div>
           `,

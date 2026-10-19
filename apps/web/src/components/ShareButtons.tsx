@@ -28,7 +28,7 @@ const WhatsappIcon = ({ className }: { className?: string }) => (
 export function ShareButtons() {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const [shareUrl, setShareUrl] = useState("https://haqueandsons.vercel.app");
+  const [shareUrl, setShareUrl] = useState("https://haquestudio.me");
   const shareText = "Check out Haque & Sons - Next-Gen Software Studio! 🚀";
 
   useEffect(() => {

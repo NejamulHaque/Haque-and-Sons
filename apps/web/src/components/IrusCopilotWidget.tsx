@@ -84,7 +84,7 @@ export function IrusCopilotWidget() {
       if (matchedPrompt) {
         responseText = matchedPrompt.reply;
       } else if (lowerQuery.includes("certificate") || lowerQuery.includes("verify")) {
-        responseText = "Once your capstone deliverables and clearance review are completed, your official Certificate of Completion will be generated with a cryptographic QR code and public verification URL at haqueandsons.vercel.app/verify/[id].";
+        responseText = "Once your capstone deliverables and clearance review are completed, your official Certificate of Completion will be generated with a cryptographic QR code and public verification URL at haquestudio.me/verify/[id].";
       } else if (lowerQuery.includes("scroll") || lowerQuery.includes("help")) {
         responseText = "You can navigate all sections of your profile via the top segmented bar (Overview, Curriculum, Capstone, Certificate, Profile). All tabs feature smooth animated transitions and responsive scrolling.";
       } else {

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Mandatory completion form confirmed. Certificate unlocked!",
       certificate: cert,
-      verificationUrl: `https://haqueandsons.vercel.app/verify/${cert.id}`,
+      verificationUrl: `https://haquestudio.me/verify/${cert.id}`,
     });
   } catch (error) {
     console.error("Complete form verification error:", error);

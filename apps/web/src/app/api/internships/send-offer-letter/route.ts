@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
                   <p style="color: #475569; font-size: 12.5px; margin: 6px 0 0 0;">
                     Your formal Letter of Intent & Appointment document has been unlocked in your Candidate Dashboard. Please visit your profile to download your official signed PDF copy.
                   </p>
-                  <a href="https://haqueandsons.vercel.app/profile" class="cta-btn">👉 Download Offer Letter From Your Profile</a>
+                  <a href="https://haquestudio.me/profile" class="cta-btn">👉 Download Offer Letter From Your Profile</a>
                 </div>
 
                 <table class="matrix-table">
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
                 <div class="responsibilities">
                   <strong style="color: #0f172a;">Internship Scope & Next Steps:</strong>
                   <ul>
-                    <li>Log into your student profile at <a href="https://haqueandsons.vercel.app/profile" style="color: #0284c7;">haqueandsons.vercel.app/profile</a> to download your Offer Letter.</li>
+                    <li>Log into your student profile at <a href="https://haquestudio.me/profile" style="color: #0284c7;">haquestudio.me/profile</a> to download your Offer Letter.</li>
                     <li>Follow the 4-week Sprint Syllabus and build your capstone project repository.</li>
                     <li>Submit your project links and complete exit verification to receive your verified digital certificate & Letter of Recommendation.</li>
                   </ul>
@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
 
               <div class="footer">
                 Haque & Sons Software Studio Pvt. Ltd. • New Delhi, India<br />
-                Official Verification: <a href="https://haqueandsons.vercel.app/verify" style="color: #0284c7; text-decoration: none;">haqueandsons.vercel.app/verify</a> • Strictly Confidential
+                Official Verification: <a href="https://haquestudio.me/verify" style="color: #0284c7; text-decoration: none;">haquestudio.me/verify</a> • Strictly Confidential
               </div>
             </div>
           </body>

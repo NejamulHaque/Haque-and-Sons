@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
           </div>
 
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://haqueandsons.vercel.app/admin" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
+            <a href="https://haquestudio.me/admin" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
               Review & Approve LOR in Admin Command OS
             </a>
           </div>

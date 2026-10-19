@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
           </div>
 
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://haqueandsons.vercel.app/profile" style="display: inline-block; background: #06b6d4; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px;">
+            <a href="https://haquestudio.me/profile" style="display: inline-block; background: #06b6d4; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px;">
               Download Certificate & Add to LinkedIn
             </a>
           </div>

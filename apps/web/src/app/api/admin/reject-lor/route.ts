@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
           </p>
 
           <div style="text-align: center; margin-top: 24px;">
-            <a href="https://haqueandsons.vercel.app/profile" style="display: inline-block; background: #38bdf8; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
+            <a href="https://haquestudio.me/profile" style="display: inline-block; background: #38bdf8; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
               Open Candidate Profile
             </a>
           </div>

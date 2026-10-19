@@ -104,10 +104,10 @@ export function CertificateRenderer({
   const verificationUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/verify/${certificate.id}`
-      : `https://haqueandsons.vercel.app/verify/${certificate.id}`;
+      : `https://haquestudio.me/verify/${certificate.id}`;
 
   const originUrl =
-    typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
+    typeof window !== "undefined" ? window.location.origin : "https://haquestudio.me";
 
   const qrCodeUrl = isDay
     ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(

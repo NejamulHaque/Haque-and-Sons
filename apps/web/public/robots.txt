@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /admin/
 
-Sitemap: https://haqueandsons.vercel.app/sitemap.xml
+Sitemap: https://haquestudio.me/sitemap.xml

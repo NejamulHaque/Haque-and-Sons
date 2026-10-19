@@ -138,7 +138,7 @@ const PROJECTS: EcosystemProject[] = [
   {
     name: "Haque & Sons",
     description: "Next-Gen Software Studio Portfolio with 3D interactions, Command Palette, and Estimator.",
-    url: "https://haqueandsons.vercel.app",
+    url: "https://haquestudio.me",
     githubUrl: "https://github.com/NejamulHaque/Haque-and-Sons",
     tech: ["Next.js 16", "Three.js", "Better Auth", "Neon DB", "Tailwind"],
     status: "Live",
@@ -816,7 +816,7 @@ export function AdminDashboardClient({
     ];
 
     const rows = applications.map((app) => {
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://haqueandsons.vercel.app";
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://haquestudio.me";
       const cert = certificates.find((c) => c.studentEmail === app.email || c.id === app.certificateId);
       const hours = app.duration?.includes("12") ? "240 Hours" : app.duration?.includes("8") ? "160 Hours" : "120 Hours";
       const certId = app.certificateId || cert?.id || "Pending";
