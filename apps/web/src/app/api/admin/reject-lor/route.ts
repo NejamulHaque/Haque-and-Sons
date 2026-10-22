@@ -42,50 +42,58 @@ export async function POST(req: NextRequest) {
       .where(eq(internshipApplications.id, app.id))
       .returning();
 
-    // Dispatch webhook notification
-    await dispatchWebhook({
-      event: "lor.rejected",
-      title: `LOR Request Rejected: ${app.fullName}`,
-      description: `Admin rejected LOR request for ${app.fullName}. Reason: ${rejectionReason}`,
-      data: {
-        student: app.fullName,
-        email: app.email,
-        reason: rejectionReason,
-      },
-    });
+    // Dispatch webhook notification (safe & non-blocking)
+    try {
+      await dispatchWebhook({
+        event: "lor.rejected",
+        title: `LOR Request Rejected: ${app.fullName}`,
+        description: `Admin rejected LOR request for ${app.fullName}. Reason: ${rejectionReason}`,
+        data: {
+          student: app.fullName,
+          email: app.email,
+          reason: rejectionReason,
+        },
+      });
+    } catch (whErr) {
+      console.error("[reject-lor] Webhook error:", whErr);
+    }
 
-    // Send email notification to student
-    await sendEmail({
-      fromName: "Haque & Sons Engineering Team",
-      to: app.email,
-      subject: `Notice Regarding Your LOR Request: ${app.fullName} | Haque & Sons`,
-      html: `
-        <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #f43f5e; margin-top: 0;">Notice Regarding LOR Request</h2>
-          <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
-          <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
-            Thank you for submitting your request for an official Letter of Recommendation (LOR) for the <strong>${app.domain}</strong> track.
-          </p>
-          <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
-            After technical evaluation by our engineering team, your request cannot be approved at this stage for the following reason:
-          </p>
+    // Send email notification to student (safe & non-blocking)
+    try {
+      await sendEmail({
+        fromName: "Haque & Sons Engineering Team",
+        to: app.email,
+        subject: `Notice Regarding Your LOR Request: ${app.fullName} | Haque & Sons`,
+        html: `
+          <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #f43f5e; margin-top: 0;">Notice Regarding LOR Request</h2>
+            <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
+              Thank you for submitting your request for an official Letter of Recommendation (LOR) for the <strong>${app.domain}</strong> track.
+            </p>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
+              After technical evaluation by our engineering team, your request cannot be approved at this stage for the following reason:
+            </p>
 
-          <div style="background: #1e1014; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #881337; font-size: 13px; color: #fda4af;">
-            <strong>Review Feedback:</strong> ${rejectionReason}
+            <div style="background: #1e1014; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #881337; font-size: 13px; color: #fda4af;">
+              <strong>Review Feedback:</strong> ${rejectionReason}
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">
+              You may update your capstone repository, complete outstanding milestone tasks, and submit a re-application directly from your profile dashboard once resolved.
+            </p>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://haquestudio.me/profile" style="display: inline-block; background: #38bdf8; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
+                Open Candidate Profile
+              </a>
+            </div>
           </div>
-
-          <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">
-            You may update your capstone repository, complete outstanding milestone tasks, and submit a re-application directly from your profile dashboard once resolved.
-          </p>
-
-          <div style="text-align: center; margin-top: 24px;">
-            <a href="https://haquestudio.me/profile" style="display: inline-block; background: #38bdf8; color: #000; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
-              Open Candidate Profile
-            </a>
-          </div>
-        </div>
-      `,
-    });
+        `,
+      });
+    } catch (emailErr) {
+      console.error("[reject-lor] Email delivery error:", emailErr);
+    }
 
     return NextResponse.json({
       success: true,

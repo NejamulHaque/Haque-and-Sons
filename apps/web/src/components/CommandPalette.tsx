@@ -81,7 +81,7 @@ export function CommandPalette() {
       title: "Explore Studio Services",
       category: "Navigation",
       icon: Layers,
-      action: () => scrollTo("services"),
+      action: () => router.push("/services"),
     },
     {
       id: "nav-calculator",

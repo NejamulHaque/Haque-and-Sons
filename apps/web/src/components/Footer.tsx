@@ -44,9 +44,10 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white">Services</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/#services" className="hover:text-cyan-400 transition-colors">Web Development</Link></li>
-              <li><Link href="/#services" className="hover:text-cyan-400 transition-colors">AI Solutions</Link></li>
-              <li><Link href="/#services" className="hover:text-cyan-400 transition-colors">Cloud Architecture</Link></li>
+              <li><Link href="/services" className="hover:text-cyan-400 transition-colors">Software Services</Link></li>
+              <li><Link href="/services" className="hover:text-cyan-400 transition-colors">Full-Stack Development</Link></li>
+              <li><Link href="/services" className="hover:text-cyan-400 transition-colors">AI &amp; LLM Solutions</Link></li>
+              <li><Link href="/services" className="hover:text-cyan-400 transition-colors">DevSecOps &amp; Cloud</Link></li>
             </ul>
           </div>
 

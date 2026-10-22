@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanDuration = String(duration || "4 Weeks")
+      .replace(/^(Online|Hybrid|Offline|\s|•)+/gi, "")
+      .trim() || "4 Weeks";
+
+    let cleanMode = String(mode || "Online").trim();
+    if (/offline/i.test(cleanMode)) cleanMode = "Offline";
+    else if (/hybrid/i.test(cleanMode)) cleanMode = "Hybrid";
+    else cleanMode = "Online";
+
     // Generate unique Certificate ID e.g., HS-INT-2026-A8F9B2
     const randomHex = crypto.randomBytes(3).toString("hex").toUpperCase();
     const currentYear = new Date().getFullYear();
@@ -42,10 +51,10 @@ export async function POST(req: NextRequest) {
         studentName: studentName.trim(),
         studentEmail: studentEmail.trim().toLowerCase(),
         domain: domain.trim(),
-        mode: mode.trim(),
+        mode: cleanMode,
         internshipType: internshipType.trim(),
         college: college.trim(),
-        duration: duration.trim(),
+        duration: cleanDuration,
         grade: grade.trim(),
         signatoryTitle: "Nejamul Haque, Founder & Lead Engineer",
         status: "Valid",

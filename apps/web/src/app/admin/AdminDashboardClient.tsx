@@ -859,14 +859,43 @@ export function AdminDashboardClient({
     document.body.removeChild(link);
   };
 
+  const openEditAppModal = (app: InternshipAppRow) => {
+    let mode = (app.mode || "Online").trim();
+    if (/offline/i.test(mode)) mode = "Offline";
+    else if (/hybrid/i.test(mode)) mode = "Hybrid";
+    else mode = "Online";
+
+    let duration = (app.duration || "4 Weeks").trim();
+    duration = duration.replace(/\b(Online|Hybrid|Offline)\b/gi, "").replace(/[•\s]+/g, " ").trim();
+    if (/^\d+\s*week$/i.test(duration)) duration = duration + "s";
+    if (!duration) duration = "4 Weeks";
+
+    setEditingApp({
+      ...app,
+      mode,
+      duration,
+    });
+  };
+
   const openIssueCertForApp = (app: InternshipAppRow) => {
     setCertStudentName(app.fullName);
     setCertStudentEmail(app.email);
     setCertDomain(app.domain);
-    setCertMode(app.mode);
+
+    let mode = (app.mode || "Online").trim();
+    if (/offline/i.test(mode)) mode = "Offline";
+    else if (/hybrid/i.test(mode)) mode = "Hybrid";
+    else mode = "Online";
+    setCertMode(mode);
+
+    let duration = (app.duration || "4 Weeks").trim();
+    duration = duration.replace(/\b(Online|Hybrid|Offline)\b/gi, "").replace(/[•\s]+/g, " ").trim();
+    if (/^\d+\s*week$/i.test(duration)) duration = duration + "s";
+    if (!duration) duration = "4 Weeks";
+    setCertDuration(duration);
+
     setCertType(app.internshipType);
     setCertCollege(app.college);
-    setCertDuration(app.duration);
     setCertAppId(app.id);
     setCertSuccessUrl(null);
     setIsCertModalOpen(true);
@@ -1739,7 +1768,7 @@ export function AdminDashboardClient({
 
                               {/* Edit Student Record */}
                               <button
-                                onClick={() => setEditingApp(app)}
+                                onClick={() => openEditAppModal(app)}
                                 title="Edit Student Record"
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300 border border-white/10 transition-all cursor-pointer"
                               >
@@ -2793,7 +2822,7 @@ export function AdminDashboardClient({
                   onClick={() => {
                     const target = viewDetailApp;
                     setViewDetailApp(null);
-                    setEditingApp(target);
+                    if (target) openEditAppModal(target);
                   }}
                   className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                 >
@@ -2932,7 +2961,7 @@ export function AdminDashboardClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
                   <label className="text-gray-300 font-semibold block mb-1">Phone</label>
                   <input
@@ -2952,15 +2981,23 @@ export function AdminDashboardClient({
                   />
                 </div>
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Degree & Year</label>
+                  <label className="text-gray-300 font-semibold block mb-1">Degree</label>
                   <input
                     type="text"
-                    value={`${editingApp.degree || ""} (${editingApp.graduationYear || ""})`}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setEditingApp({ ...editingApp, degree: val });
-                    }}
+                    value={editingApp.degree || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, degree: e.target.value })}
+                    placeholder="e.g. B.Tech CSE"
                     className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Graduation Year</label>
+                  <input
+                    type="text"
+                    value={editingApp.graduationYear || ""}
+                    onChange={(e) => setEditingApp({ ...editingApp, graduationYear: e.target.value })}
+                    placeholder="e.g. 2026"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-mono"
                   />
                 </div>
               </div>
@@ -3301,23 +3338,56 @@ export function AdminDashboardClient({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Mode & Duration</label>
-                    <input
-                      type="text"
-                      value={`${certMode} • ${certDuration}`}
-                      onChange={(e) => setCertDuration(e.target.value)}
-                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400"
-                    />
+                    <label className="text-gray-300 font-semibold block mb-1">Internship Mode</label>
+                    <select
+                      value={certMode}
+                      onChange={(e) => setCertMode(e.target.value)}
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 cursor-pointer"
+                    >
+                      <option value="Online">Online</option>
+                      <option value="Hybrid">Hybrid</option>
+                      <option value="Offline">Offline</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Signatory Title</label>
+                    <label className="text-gray-300 font-semibold block mb-1">Duration</label>
                     <input
                       type="text"
-                      value="Nejamul Haque, Founder & Lead Engineer"
-                      disabled
-                      className="w-full bg-black/30 border border-white/5 rounded-xl p-2.5 text-gray-500"
+                      value={certDuration}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\b(Online|Hybrid|Offline)\b/gi, "").replace(/[•]+/g, "").trimStart();
+                        setCertDuration(val);
+                      }}
+                      placeholder="e.g. 4 Weeks, 8 Weeks"
+                      className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-400 font-medium"
                     />
+                    <div className="flex gap-1.5 mt-1.5">
+                      {["4 Weeks", "8 Weeks", "12 Weeks"].map((dur) => (
+                        <button
+                          key={dur}
+                          type="button"
+                          onClick={() => setCertDuration(dur)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer ${
+                            certDuration === dur
+                              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                              : "bg-white/5 text-gray-400 border-white/10 hover:text-white"
+                          }`}
+                        >
+                          {dur}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Signatory Title</label>
+                  <input
+                    type="text"
+                    value="Nejamul Haque, Founder & Lead Engineer"
+                    disabled
+                    className="w-full bg-black/30 border border-white/5 rounded-xl p-2.5 text-gray-500"
+                  />
                 </div>
 
                 <div className="pt-2">

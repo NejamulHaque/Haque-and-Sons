@@ -15,6 +15,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Application ID is required." }, { status: 400 });
     }
 
+    if (updates.duration) {
+      updates.duration = String(updates.duration)
+        .replace(/^(Online|Hybrid|Offline|\s|•)+/gi, "")
+        .trim() || "4 Weeks";
+    }
+
+    if (updates.mode) {
+      let m = String(updates.mode).trim();
+      if (/offline/i.test(m)) m = "Offline";
+      else if (/hybrid/i.test(m)) m = "Hybrid";
+      else m = "Online";
+      updates.mode = m;
+    }
+
     const updated = await db
       .update(internshipApplications)
       .set(updates)

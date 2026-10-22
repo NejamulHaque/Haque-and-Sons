@@ -26,6 +26,12 @@ const nextConfig = {
         destination: 'https://haquestudio.me/:path*',
         permanent: true,
       },
+      // Contact shortcut redirect to home contact anchor
+      {
+        source: '/contact',
+        destination: '/#contact',
+        permanent: false,
+      },
     ];
   },
 };

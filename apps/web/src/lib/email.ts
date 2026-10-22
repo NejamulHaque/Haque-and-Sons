@@ -24,7 +24,8 @@ const smtpTransporter =
       })
     : null;
 
-const ADMIN_FALLBACK_EMAIL = "nejamulhaque.works@gmail.com";
+const ADMIN_FALLBACK_EMAIL = process.env.ADMIN_EMAIL || "haquendsons@gmail.com";
+const SECONDARY_ADMIN_EMAIL = "nejamulhaque.works@gmail.com";
 
 export interface SendEmailOptions {
   fromName?: string;
@@ -97,32 +98,40 @@ export async function sendEmail({
         errMsg.toLowerCase().includes("testing emails") ||
         errMsg.toLowerCase().includes("verify a domain");
 
-      if (isFreeTierRestriction && cleanRecipient !== ADMIN_FALLBACK_EMAIL) {
+      if (isFreeTierRestriction) {
+        // Try forwarding to verified admin email(s)
+        const targetAdmin = cleanRecipient === ADMIN_FALLBACK_EMAIL ? SECONDARY_ADMIN_EMAIL : ADMIN_FALLBACK_EMAIL;
+
         console.warn(
-          `[Email Dispatcher - Resend Sandbox] Cannot send to external recipient ${cleanRecipient} without a verified domain. Forwarding test preview copy to admin (${ADMIN_FALLBACK_EMAIL}).`
+          `[Email Dispatcher - Resend Sandbox] Cannot send to recipient ${cleanRecipient} directly without domain verification. Forwarding preview copy to admin (${targetAdmin}).`
         );
 
-        const fallbackRes = await resend.emails.send({
-          from: fromAddress,
-          to: ADMIN_FALLBACK_EMAIL,
-          subject: `[Dev Preview: For ${cleanRecipient}] ${subject}`,
-          html: `
-            <div style="background: #1e1b4b; border: 1px solid #4338ca; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-family: sans-serif; font-size: 13px; color: #e0e7ff;">
-              <strong>Resend Sandbox Notice:</strong><br />
-              This email was addressed to <code>${cleanRecipient}</code>. To deliver directly to any student email without a domain, set <code>GMAIL_USER</code> and <code>GMAIL_APP_PASSWORD</code> in your environment variables.
-            </div>
-            ${html}
-          `,
-          replyTo: cleanRecipient,
-        });
+        try {
+          const fallbackRes = await resend.emails.send({
+            from: fromAddress,
+            to: targetAdmin,
+            subject: `[Dev Preview: For ${cleanRecipient}] ${subject}`,
+            html: `
+              <div style="background: #1e1b4b; border: 1px solid #4338ca; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-family: sans-serif; font-size: 13px; color: #e0e7ff;">
+                <strong>Resend Sandbox Notice:</strong><br />
+                This email was addressed to <code>${cleanRecipient}</code>. To deliver directly to any student email without a domain, set <code>GMAIL_USER</code> and <code>GMAIL_APP_PASSWORD</code> in your environment variables or verify your domain at resend.com/domains.
+              </div>
+              ${html}
+            `,
+            replyTo: cleanRecipient,
+          });
 
-        return {
-          success: !fallbackRes.error,
-          id: fallbackRes.data?.id,
-          testMode: true,
-          transport: "resend-sandbox-fallback",
-          error: fallbackRes.error?.message,
-        };
+          if (!fallbackRes.error) {
+            return {
+              success: true,
+              id: fallbackRes.data?.id,
+              testMode: true,
+              transport: "resend-sandbox-fallback",
+            };
+          }
+        } catch (fbErr) {
+          console.error("[Email Dispatcher - Resend Sandbox Fallback] Error:", fbErr);
+        }
       }
 
       return { success: false, error: response.error.message };

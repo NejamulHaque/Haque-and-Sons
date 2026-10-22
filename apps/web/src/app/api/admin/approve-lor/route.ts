@@ -48,52 +48,60 @@ export async function POST(req: NextRequest) {
       .where(eq(internshipApplications.id, app.id))
       .returning();
 
-    // Dispatch webhook notification
-    await dispatchWebhook({
-      event: "lor.approved",
-      title: `LOR Approved: ${app.fullName}`,
-      description: `Admin approved Letter of Recommendation for ${app.fullName} (${lorRefNumber}).`,
-      data: {
-        student: app.fullName,
-        email: app.email,
-        lorRefNumber: lorRefNumber,
-        domain: app.domain,
-        grade: grade,
-      },
-    });
+    // Dispatch webhook notification (safe & non-blocking)
+    try {
+      await dispatchWebhook({
+        event: "lor.approved",
+        title: `LOR Approved: ${app.fullName}`,
+        description: `Admin approved Letter of Recommendation for ${app.fullName} (${lorRefNumber}).`,
+        data: {
+          student: app.fullName,
+          email: app.email,
+          lorRefNumber: lorRefNumber,
+          domain: app.domain,
+          grade: grade,
+        },
+      });
+    } catch (whErr) {
+      console.error("[approve-lor] Webhook error:", whErr);
+    }
 
-    // Send email notification to student
-    await sendEmail({
-      fromName: "Haque & Sons Recommendations",
-      to: app.email,
-      subject: `🌟 Letter of Recommendation Approved & Issued: ${app.fullName} | Haque & Sons`,
-      html: `
-        <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #f59e0b; margin-top: 0;">🌟 Official Letter of Recommendation Approved!</h2>
-          <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
-          <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
-            We are pleased to inform you that your request for an official <strong>Executive Letter of Recommendation (LOR)</strong> has been formally evaluated and approved by <strong>Nejamul Haque</strong> (Founder & Lead Engineer).
-          </p>
+    // Send email notification to student (safe & non-blocking)
+    try {
+      await sendEmail({
+        fromName: "Haque & Sons Recommendations",
+        to: app.email,
+        subject: `🌟 Letter of Recommendation Approved & Issued: ${app.fullName} | Haque & Sons`,
+        html: `
+          <div style="font-family: sans-serif; background: #0a0f1d; color: #fff; padding: 24px; border-radius: 12px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #f59e0b; margin-top: 0;">🌟 Official Letter of Recommendation Approved!</h2>
+            <p style="color: #cbd5e1; font-size: 14px;">Dear <strong>${app.fullName}</strong>,</p>
+            <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
+              We are pleased to inform you that your request for an official <strong>Executive Letter of Recommendation (LOR)</strong> has been formally evaluated and approved by <strong>Nejamul Haque</strong> (Founder & Lead Engineer).
+            </p>
 
-          <div style="background: #111827; padding: 18px; border-radius: 10px; margin: 20px 0; border: 1px solid #374151; text-align: center;">
-            <span style="color: #f59e0b; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Verified LOR Reference Number</span>
-            <h3 style="color: #38bdf8; font-family: monospace; font-size: 22px; margin: 8px 0;">${lorRefNumber}</h3>
-            <p style="color: #10b981; font-size: 12px; margin: 4px 0; font-weight: bold;">Appraisal Rating: ${grade}</p>
-            <p style="color: #94a3b8; font-size: 11px; margin: 4px 0;">Signatory: Nejamul Haque (Founder & Lead Systems Architect)</p>
+            <div style="background: #111827; padding: 18px; border-radius: 10px; margin: 20px 0; border: 1px solid #374151; text-align: center;">
+              <span style="color: #f59e0b; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Verified LOR Reference Number</span>
+              <h3 style="color: #38bdf8; font-family: monospace; font-size: 22px; margin: 8px 0;">${lorRefNumber}</h3>
+              <p style="color: #10b981; font-size: 12px; margin: 4px 0; font-weight: bold;">Appraisal Rating: ${grade}</p>
+              <p style="color: #94a3b8; font-size: 11px; margin: 4px 0;">Signatory: Nejamul Haque (Founder & Lead Systems Architect)</p>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">
+              Your official LOR features our MSME/ISO credentials, 5-Pillar Competency Matrix, and authorized signature. You can view, print, or download your high-resolution A4 PDF directly from your candidate dashboard.
+            </p>
+
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="https://haquestudio.me/profile" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px; box-shadow: 0 4px 12px rgba(245,158,11,0.3);">
+                Download Official LOR (PDF)
+              </a>
+            </div>
           </div>
-
-          <p style="color: #cbd5e1; font-size: 13px; line-height: 1.6;">
-            Your official LOR features our MSME/ISO credentials, 5-Pillar Competency Matrix, and authorized signature. You can view, print, or download your high-resolution A4 PDF directly from your candidate dashboard.
-          </p>
-
-          <div style="text-align: center; margin-top: 24px;">
-            <a href="https://haquestudio.me/profile" style="display: inline-block; background: #f59e0b; color: #000; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 13px; box-shadow: 0 4px 12px rgba(245,158,11,0.3);">
-              Download Official LOR (PDF)
-            </a>
-          </div>
-        </div>
-      `,
-    });
+        `,
+      });
+    } catch (emailErr) {
+      console.error("[approve-lor] Email delivery error:", emailErr);
+    }
 
     return NextResponse.json({
       success: true,

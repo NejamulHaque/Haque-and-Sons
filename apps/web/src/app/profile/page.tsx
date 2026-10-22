@@ -144,6 +144,7 @@ function ProfileContent() {
   const [lorRemarksInput, setLorRemarksInput] = useState("");
   const [isSubmittingLor, setIsSubmittingLor] = useState(false);
   const [lorSubmitSuccess, setLorSubmitSuccess] = useState<string | null>(null);
+  const [lorSubmitError, setLorSubmitError] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Sprint task completion tracking (stored in localStorage)
@@ -338,25 +339,34 @@ function ProfileContent() {
   // Apply for LOR
   const handleApplyLor = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session?.user?.email) return;
+    if (!session?.user?.email && !application?.email && !application?.id) {
+      setLorSubmitError("Please ensure you are signed in.");
+      return;
+    }
     setIsSubmittingLor(true);
+    setLorSubmitError(null);
     try {
       const res = await fetch("/api/profile/apply-lor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: session.user.email,
+          applicationId: application?.id,
+          email: application?.email || session?.user?.email,
           remarks: lorRemarksInput,
         }),
       });
       const data = await res.json();
       if (res.ok && data.application) {
         setApplication(data.application);
-        setLorSubmitSuccess("LOR request submitted to the evaluation panel.");
+        setLorSubmitSuccess("LOR request submitted successfully! It is now pending administrative review.");
         setIsApplyLorModalOpen(false);
+        setTimeout(() => setLorSubmitSuccess(null), 8000);
+      } else {
+        setLorSubmitError(data.error || "Failed to submit LOR application. Please try again.");
       }
-    } catch {
-      alert("Failed to apply for LOR.");
+    } catch (err) {
+      console.error("Apply LOR error:", err);
+      setLorSubmitError("Network connection error while submitting LOR application. Please check your internet connection.");
     } finally {
       setIsSubmittingLor(false);
     }
@@ -455,6 +465,43 @@ function ProfileContent() {
       <div className="fixed bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto space-y-6 relative z-10">
+        {/* LOR Submission Feedback Banners */}
+        {lorSubmitSuccess && (
+          <div className="p-4 rounded-2xl bg-amber-950/50 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-3 shadow-xl backdrop-blur-md">
+            <div className="flex items-center gap-2.5">
+              <Star className="w-4 h-4 text-amber-400 shrink-0 fill-amber-400" />
+              <span className="font-medium">{lorSubmitSuccess}</span>
+            </div>
+            <button
+              onClick={() => setLorSubmitSuccess(null)}
+              className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {application?.lorStatus === "Rejected" && application?.lorRejectionReason && (
+          <div className="p-4 rounded-2xl bg-rose-950/50 border border-rose-500/40 text-rose-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xl backdrop-blur-md">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5 sm:mt-0" />
+              <div>
+                <span className="font-bold text-rose-300">LOR Evaluation Notice: </span>
+                <span>{application.lorRejectionReason}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setLorSubmitError(null);
+                setIsApplyLorModalOpen(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-200 text-xs font-bold shrink-0 cursor-pointer self-start sm:self-auto transition-all"
+            >
+              Re-apply LOR
+            </button>
+          </div>
+        )}
+
         {/* =========================================================================
             1. EXECUTIVE CANDIDATE HUD (MODERN PROFILE HERO)
         ========================================================================= */}
@@ -555,11 +602,14 @@ function ProfileContent() {
                 </span>
               ) : (
                 <button
-                  onClick={() => setIsApplyLorModalOpen(true)}
+                  onClick={() => {
+                    setLorSubmitError(null);
+                    setIsApplyLorModalOpen(true);
+                  }}
                   className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Star className="w-4 h-4 text-amber-400" />
-                  <span>Apply LOR</span>
+                  <span>{application?.lorStatus === "Rejected" ? "Re-apply LOR" : "Apply LOR"}</span>
                 </button>
               )}
 
@@ -1513,8 +1563,22 @@ function ProfileContent() {
               </div>
 
               <p className="text-xs text-gray-400 leading-relaxed">
-                Letters of Recommendation are awarded to high-performing interns. Please share any special project contributions or milestones.
+                Letters of Recommendation are awarded to high-performing interns. Please share any special project contributions, milestone accomplishments, or architecture decisions.
               </p>
+
+              {application?.lorStatus === "Rejected" && application?.lorRejectionReason && (
+                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs space-y-1">
+                  <span className="font-bold text-rose-300 block">Previous Evaluation Feedback:</span>
+                  <p className="text-gray-300 leading-relaxed">{application.lorRejectionReason}</p>
+                </div>
+              )}
+
+              {lorSubmitError && (
+                <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>{lorSubmitError}</span>
+                </div>
+              )}
 
               <form onSubmit={handleApplyLor} className="space-y-4">
                 <textarea

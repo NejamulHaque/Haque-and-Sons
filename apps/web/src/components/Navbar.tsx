@@ -11,7 +11,7 @@ import { openAuthModal } from "@/components/AuthModal";
 
 const NAV_ITEMS = [
   { label: "Home", sectionId: "home" },
-  { label: "Services", sectionId: "services" },
+  { label: "Services", href: "/services" },
   { label: "Internships", href: "/internships" },
   { label: "Estimator", sectionId: "calculator" },
   { label: "Tech Stack", sectionId: "tech" },
