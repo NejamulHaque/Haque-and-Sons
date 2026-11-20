@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sun, Moon, Command, User, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, Command, User, LogIn, UserPlus } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "@/lib/auth-client";
@@ -23,30 +23,8 @@ export function Navbar() {
   const { data: session } = useSession();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-
-  useEffect(() => {
-    const isLight = document.documentElement.classList.contains("light") || localStorage.getItem("theme") === "light";
-    if (isLight) {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-      setDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-      setDarkMode(true);
-    }
-
-    const handleThemeChange = (e: any) => {
-      const mode = e.detail;
-      setDarkMode(mode !== "light");
-    };
-
-    window.addEventListener("haque-theme-change", handleThemeChange);
-    return () => window.removeEventListener("haque-theme-change", handleThemeChange);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -57,22 +35,6 @@ export function Navbar() {
   if (pathname?.startsWith("/admin")) {
     return null;
   }
-
-  const toggleTheme = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      window.dispatchEvent(new CustomEvent("haque-theme-change", { detail: "dark" }));
-    } else {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      window.dispatchEvent(new CustomEvent("haque-theme-change", { detail: "light" }));
-    }
-  };
 
   const scrollToSection = (sectionId: string) => {
     setMobileOpen(false);
@@ -86,33 +48,19 @@ export function Navbar() {
 
   const isHome = pathname === "/";
 
-  const navStyle: React.CSSProperties = darkMode
-    ? scrolled || !isHome
+  const navStyle: React.CSSProperties =
+    scrolled || !isHome
       ? {
           backgroundColor: "rgba(0, 0, 0, 0.75)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         }
-      : { backgroundColor: "transparent", borderBottom: "none" }
-    : scrolled || !isHome
-    ? {
-        backgroundColor: "rgba(255, 255, 255, 0.85)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderBottom: "1px solid #e5e7eb",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-      }
-    : {
-        backgroundColor: "rgba(255, 255, 255, 0.8)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        borderBottom: "1px solid #f3f4f6",
-      };
+      : { backgroundColor: "transparent", borderBottom: "none" };
 
-  const textColor = darkMode ? "#a1a1aa" : "#52525b";
-  const textHoverColor = darkMode ? "#ffffff" : "#09090b";
-  const logoTextColor = darkMode ? "#ffffff" : "#09090b";
+  const textColor = "#a1a1aa";
+  const textHoverColor = "#ffffff";
+  const logoTextColor = "#ffffff";
 
   return (
     <motion.nav
@@ -184,24 +132,6 @@ export function Navbar() {
             <span className="font-mono text-[10px]">⌘K</span>
           </button>
 
-          {/* Theme Switcher */}
-          <button
-            onClick={toggleTheme}
-            className={`ml-1.5 p-1.5 rounded-full border transition-all duration-200 cursor-pointer flex items-center justify-center ${
-              darkMode
-                ? "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-neutral-400 hover:text-white"
-                : "bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-600 hover:text-black"
-            }`}
-            aria-label="Toggle theme"
-            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {darkMode ? (
-              <Sun size={14} className="text-neutral-300" />
-            ) : (
-              <Moon size={14} className="text-neutral-700" />
-            )}
-          </button>
-
           {/* Student Auth & Dashboard */}
           {session?.user ? (
             <Link
@@ -242,17 +172,6 @@ export function Navbar() {
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
           <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-full border transition-all cursor-pointer ${
-              darkMode
-                ? "bg-white/[0.05] border-white/[0.1] text-neutral-300"
-                : "bg-neutral-100 border-neutral-200 text-neutral-700"
-            }`}
-            aria-label="Toggle theme"
-          >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button
             onClick={() => setMobileOpen(!mobileOpen)}
             style={{ color: logoTextColor }}
             className="p-1.5 rounded-lg hover:bg-white/10 transition-colors bg-transparent border-none"
@@ -272,8 +191,8 @@ export function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
             style={{
-              backgroundColor: darkMode ? "rgba(0,0,0,0.96)" : "rgba(255,255,255,0.98)",
-              borderBottom: darkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e5e7eb",
+              backgroundColor: "rgba(0,0,0,0.96)",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
               backdropFilter: "blur(24px)",
             }}
             className="md:hidden overflow-hidden"

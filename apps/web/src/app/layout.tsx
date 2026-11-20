@@ -158,15 +158,9 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('theme');
-                  var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-                  if (saved === 'light' || (!saved && prefersLight && false)) {
-                    document.documentElement.classList.add('light');
-                    document.documentElement.classList.remove('dark');
-                  } else {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                  }
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                  localStorage.setItem('theme', 'dark');
                 } catch (e) {}
               })();
             `,
