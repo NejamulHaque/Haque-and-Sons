@@ -5,22 +5,27 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client"; // Assuming you have better-auth client setup
 import { Loader2, ShieldAlert } from "lucide-react";
 
-const ADMIN_EMAIL = "nejamulhaque.works@gmail.com";
+const ADMIN_EMAILS = [
+  "nejamulhaque@haquestudio.me",
+  "nejamulhaque.works@gmail.com",
+  "haquendsons@gmail.com",
+];
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const isAuthorized = !isPending && !!session && session.user.email === ADMIN_EMAIL;
+  const userEmail = session?.user?.email?.toLowerCase().trim();
+  const isAuthorized = !isPending && !!session && !!userEmail && ADMIN_EMAILS.includes(userEmail);
 
   useEffect(() => {
     if (!isPending) {
       if (!session) {
         router.push("/admin/signin"); // Redirect to admin login if not logged in
-      } else if (session.user.email !== ADMIN_EMAIL) {
+      } else if (!userEmail || !ADMIN_EMAILS.includes(userEmail)) {
         router.push("/"); // Redirect to home if not admin
       }
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, userEmail]);
 
   if (isPending) {
     return (

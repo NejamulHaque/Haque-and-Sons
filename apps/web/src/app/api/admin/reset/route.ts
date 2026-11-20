@@ -3,7 +3,11 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 
-const ADMIN_EMAIL = "nejamulhaque.works@gmail.com";
+const ADMIN_EMAILS = [
+  "nejamulhaque@haquestudio.me",
+  "nejamulhaque.works@gmail.com",
+  "haquendsons@gmail.com",
+];
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +20,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (email.toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase()) {
+    const cleanEmail = email.toLowerCase().trim();
+    if (!ADMIN_EMAILS.includes(cleanEmail)) {
       return NextResponse.json(
         { error: "Password reset via this portal is only available for the admin email." },
         { status: 403 }
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
     const existingUsers = await db
       .select()
       .from(schema.user)
-      .where(eq(schema.user.email, ADMIN_EMAIL.toLowerCase()));
+      .where(eq(schema.user.email, cleanEmail));
 
     const existingUser = existingUsers[0];
 

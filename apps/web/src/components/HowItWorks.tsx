@@ -41,19 +41,19 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="px-4 sm:px-6 max-w-7xl mx-auto py-24 border-t border-white/5 relative">
+    <section className="px-6 max-w-7xl mx-auto py-24 border-t border-white/[0.08] relative bg-black">
       <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
           <span>Step-by-Step Roadmap</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
           How It Works in{" "}
-          <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
             4 Simple Steps
           </span>
         </h2>
-        <p className="text-xs sm:text-sm text-gray-400 max-w-lg mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto leading-relaxed font-normal">
           From application submission to verified industry credentials on your LinkedIn profile.
         </p>
       </div>
@@ -64,34 +64,34 @@ export function HowItWorks() {
           return (
             <motion.div
               key={step.step}
-              initial={{ opacity: 0, y: 25 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
             >
-              <SpotlightCard className="p-7 h-full flex flex-col justify-between border-white/10 bg-gray-950/70 backdrop-blur-xl group hover:border-cyan-500/30 transition-all">
+              <div className="p-7 rounded-3xl h-full flex flex-col justify-between border border-white/[0.08] bg-[#0c0c0e]/80 backdrop-blur-xl hover:border-white/[0.18] transition-all">
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-3xl font-black font-mono text-cyan-400/40 group-hover:text-cyan-400 transition-colors">
+                    <span className="text-2xl font-bold font-mono text-neutral-600">
                       {step.step}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                      <Icon className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-cyan-400">
+                      <Icon className="w-5 h-5" />
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-base font-semibold tracking-tight text-white mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <p className="text-xs text-neutral-400 leading-relaxed font-normal">
                     {step.description}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2 text-[10px] text-neutral-500 font-mono">
                   <span>Phase 0{i + 1} of 04</span>
                 </div>
-              </SpotlightCard>
+              </div>
             </motion.div>
           );
         })}

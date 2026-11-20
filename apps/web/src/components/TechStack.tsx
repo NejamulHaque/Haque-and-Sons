@@ -44,34 +44,37 @@ const TECH: Record<string, { name: string; desc: string }[]> = {
 export function TechStack() {
   const [active, setActive] = useState<string>("Frontend");
   return (
-    <section id="tech" className="py-32 bg-black px-6 relative overflow-hidden">
-      <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
+    <section id="tech" className="py-28 bg-black px-6 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-14"
         >
-          <span className="text-cyan-400 text-sm font-semibold tracking-widest uppercase">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
             Technology
           </span>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mt-3 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
             Enterprise-Grade{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
               Stack
             </span>
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+          <p className="text-neutral-400 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
             Every tool chosen for performance, security, and developer experience.
           </p>
         </motion.div>
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${active === cat ? "bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.3)]" : "border border-white/[0.08] text-gray-400 hover:border-white/20 hover:text-white"}`}
+              className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+                active === cat
+                  ? "bg-white text-black shadow-sm font-semibold"
+                  : "bg-white/[0.04] border border-white/[0.08] text-neutral-400 hover:border-white/[0.16] hover:text-white"
+              }`}
             >
               {cat}
             </button>
@@ -80,24 +83,24 @@ export function TechStack() {
         <AnimatePresence mode="wait">
           <motion.div
             key={active}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {TECH[active].map((tech, i) => (
               <motion.div
                 key={tech.name}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="group p-6 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/30 transition-all duration-300 cursor-default"
+                transition={{ delay: i * 0.04 }}
+                className="p-6 rounded-2xl bg-[#0c0c0e]/80 border border-white/[0.08] hover:border-white/[0.18] transition-all cursor-default"
               >
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-sm font-semibold tracking-tight text-white mb-1.5">
                   {tech.name}
                 </h3>
-                <p className="text-gray-500 text-sm">{tech.desc}</p>
+                <p className="text-neutral-400 text-xs leading-relaxed font-normal">{tech.desc}</p>
               </motion.div>
             ))}
           </motion.div>

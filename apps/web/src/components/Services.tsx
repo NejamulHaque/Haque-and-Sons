@@ -260,18 +260,18 @@ export function Services() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Interactive Services & Solutions Dashboard</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Interactive Solutions & Ecosystem</span>
           </div>
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight leading-tight">
             Capabilities &{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
               Deployed Ecosystem
             </span>
           </h2>
-          <p className="mt-4 text-gray-400 text-base sm:text-lg leading-relaxed">
+          <p className="mt-4 text-neutral-400 text-base sm:text-lg leading-relaxed">
             Explore our battle-tested engineering capabilities and live production platforms. Click any solution to inspect its architecture and metrics.
           </p>
 
@@ -283,10 +283,10 @@ export function Services() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                      : "bg-white/[0.03] border border-white/10 text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                      ? "bg-white text-black shadow-sm"
+                      : "bg-white/[0.04] border border-white/[0.08] text-neutral-400 hover:text-white hover:bg-white/[0.08]"
                   }`}
                 >
                   {cat}
@@ -298,26 +298,24 @@ export function Services() {
 
         {/* Visualizing Topology Inspector (Selected Service Live Architecture) */}
         <div className="mb-14">
-          <SpotlightCard className="p-8 border-cyan-500/30 bg-gradient-to-br from-gray-950/90 via-black to-cyan-950/20 shadow-[0_0_50px_rgba(6,182,212,0.12)]">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
+          <div className="p-8 rounded-3xl border border-white/[0.1] bg-[#0c0c0e]/90 backdrop-blur-2xl">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/[0.08]">
               <div className="flex items-center gap-4">
                 <div
-                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${activeService.gradient} p-0.5 shadow-lg flex items-center justify-center`}
+                  className="w-13 h-13 rounded-2xl bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-white"
                 >
-                  <div className="w-full h-full bg-black/60 rounded-[14px] flex items-center justify-center text-white">
-                    <activeService.icon className="w-7 h-7 text-cyan-300" />
-                  </div>
+                  <activeService.icon className="w-6 h-6 text-cyan-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
                     <h3 className="text-2xl font-bold text-white tracking-tight">
                       {activeService.title}
                     </h3>
-                    <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300">
+                    <span className="text-[10px] uppercase font-semibold px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-neutral-300">
                       {activeService.status}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1 max-w-xl">
+                  <p className="text-xs text-neutral-400 mt-1 max-w-xl">
                     {activeService.desc}
                   </p>
                 </div>
@@ -330,7 +328,7 @@ export function Services() {
                     href={activeService.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center gap-2 active:scale-98"
                   >
                     <span>Launch Live Platform</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -340,7 +338,7 @@ export function Services() {
                     onClick={() =>
                       document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" })
                     }
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center gap-2 cursor-pointer"
+                    className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center gap-2 active:scale-98 cursor-pointer"
                   >
                     <span>Configure Scope</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -352,53 +350,53 @@ export function Services() {
             {/* Visualizing Architecture Pipeline */}
             <div className="py-8">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-cyan-400" />
                   System Architecture Pipeline
                 </span>
-                <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
+                <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   DevSecOps Hardened
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 rounded-xl bg-black/50 border border-white/10 hover:border-cyan-500/30 transition-all">
-                  <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold mb-2">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="flex items-center gap-2 text-cyan-400 text-xs font-semibold mb-2">
                     <Server className="w-4 h-4" />
                     <span>1. Ingress Layer</span>
                   </div>
-                  <p className="text-xs text-gray-300 font-mono">
+                  <p className="text-xs text-neutral-300 font-mono">
                     {activeService.architecture.ingress}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-black/50 border border-white/10 hover:border-purple-500/30 transition-all">
-                  <div className="flex items-center gap-2 text-purple-400 text-xs font-bold mb-2">
-                    <Cpu className="w-4 h-4" />
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="flex items-center gap-2 text-neutral-300 text-xs font-semibold mb-2">
+                    <Cpu className="w-4 h-4 text-cyan-400" />
                     <span>2. Compute Engine</span>
                   </div>
-                  <p className="text-xs text-gray-300 font-mono">
+                  <p className="text-xs text-neutral-300 font-mono">
                     {activeService.architecture.engine}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-black/50 border border-white/10 hover:border-emerald-500/30 transition-all">
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold mb-2">
-                    <Database className="w-4 h-4" />
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="flex items-center gap-2 text-neutral-300 text-xs font-semibold mb-2">
+                    <Database className="w-4 h-4 text-cyan-400" />
                     <span>3. State & Storage</span>
                   </div>
-                  <p className="text-xs text-gray-300 font-mono">
+                  <p className="text-xs text-neutral-300 font-mono">
                     {activeService.architecture.storage}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-black/50 border border-white/10 hover:border-pink-500/30 transition-all">
-                  <div className="flex items-center gap-2 text-pink-400 text-xs font-bold mb-2">
-                    <Lock className="w-4 h-4" />
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  <div className="flex items-center gap-2 text-neutral-300 text-xs font-semibold mb-2">
+                    <Lock className="w-4 h-4 text-cyan-400" />
                     <span>4. Zero-Trust Security</span>
                   </div>
-                  <p className="text-xs text-gray-300 font-mono">
+                  <p className="text-xs text-neutral-300 font-mono">
                     {activeService.architecture.security}
                   </p>
                 </div>
@@ -406,24 +404,24 @@ export function Services() {
             </div>
 
             {/* Performance Metrics & Key Deliverables */}
-            <div className="pt-6 border-t border-white/10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className="pt-6 border-t border-white/[0.08] grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               {/* Telemetry Metrics */}
               <div className="lg:col-span-4 grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                  <span className="text-[10px] text-gray-500 uppercase block">Response</span>
-                  <span className="text-xs font-bold text-cyan-300 font-mono">
+                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-center">
+                  <span className="text-[10px] text-neutral-400 uppercase block">Response</span>
+                  <span className="text-xs font-semibold text-white font-mono">
                     {activeService.metrics.latency}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                  <span className="text-[10px] text-gray-500 uppercase block">Uptime</span>
-                  <span className="text-xs font-bold text-emerald-400 font-mono">
+                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-center">
+                  <span className="text-[10px] text-neutral-400 uppercase block">Uptime</span>
+                  <span className="text-xs font-semibold text-emerald-400 font-mono">
                     {activeService.metrics.uptime}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-center">
-                  <span className="text-[10px] text-gray-500 uppercase block">Scale Tier</span>
-                  <span className="text-xs font-bold text-purple-300 font-mono">
+                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-center">
+                  <span className="text-[10px] text-neutral-400 uppercase block">Scale Tier</span>
+                  <span className="text-xs font-semibold text-white font-mono">
                     {activeService.metrics.scalability}
                   </span>
                 </div>
@@ -434,7 +432,7 @@ export function Services() {
                 {activeService.deliverables.map((item) => (
                   <span
                     key={item}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs text-neutral-300"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                     {item}
@@ -442,7 +440,7 @@ export function Services() {
                 ))}
               </div>
             </div>
-          </SpotlightCard>
+          </div>
         </div>
 
         {/* Service Cards Grid */}
@@ -452,50 +450,50 @@ export function Services() {
             const Icon = service.icon;
 
             return (
-              <SpotlightCard
+              <div
                 key={service.id}
-                className={`p-7 flex flex-col justify-between transition-all cursor-pointer ${
+                className={`p-7 rounded-3xl flex flex-col justify-between transition-all cursor-pointer bg-[#0c0c0e]/80 backdrop-blur-xl ${
                   isSelected
-                    ? "border-cyan-500/60 bg-cyan-950/20 shadow-[0_0_30px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/40"
-                    : "border-white/10 hover:border-white/20"
+                    ? "border border-white/[0.3] shadow-md ring-1 ring-white/[0.15]"
+                    : "border border-white/[0.08] hover:border-white/[0.18]"
                 }`}
                 onClick={() => setActiveServiceId(service.id)}
               >
                 <div>
                   <div className="flex items-start justify-between mb-4">
                     <div
-                      className={`p-3 rounded-xl bg-gradient-to-br ${service.gradient} text-white shadow-md`}
+                      className="p-3 rounded-2xl bg-white/[0.06] border border-white/[0.08] text-cyan-400"
                     >
                       <Icon className="w-5 h-5" />
                     </div>
                     <span
-                      className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full ${
+                      className={`text-[10px] uppercase font-semibold tracking-wider px-2.5 py-0.5 rounded-full ${
                         service.status === "Live"
-                          ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                          ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                           : service.status === "Core Service"
-                          ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-300"
-                          : "bg-yellow-500/15 border border-yellow-500/30 text-yellow-400"
+                          ? "bg-white/[0.06] border border-white/[0.1] text-neutral-300"
+                          : "bg-amber-500/10 border border-amber-500/20 text-amber-400"
                       }`}
                     >
                       {service.status}
                     </span>
                   </div>
 
-                  <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                  <span className="text-[10px] uppercase font-semibold text-neutral-500 tracking-wider">
                     {service.category}
                   </span>
-                  <h4 className="text-lg font-bold text-white mt-1 mb-2">{service.title}</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed line-clamp-3">
+                  <h4 className="text-lg font-bold text-white mt-1 mb-2 tracking-tight">{service.title}</h4>
+                  <p className="text-xs text-neutral-400 leading-relaxed line-clamp-3">
                     {service.desc}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/5">
+                <div className="mt-6 pt-4 border-t border-white/[0.06]">
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {service.tech.map((t) => (
                       <span
                         key={t}
-                        className="text-[10px] bg-white/[0.03] border border-white/10 text-gray-300 px-2 py-0.5 rounded-md font-mono"
+                        className="text-[10px] bg-white/[0.03] border border-white/[0.08] text-neutral-300 px-2.5 py-0.5 rounded-full font-mono"
                       >
                         {t}
                       </span>
@@ -504,51 +502,51 @@ export function Services() {
 
                   <div className="flex items-center justify-between text-xs">
                     <span
-                      className={`font-semibold transition-colors ${
-                        isSelected ? "text-cyan-400" : "text-gray-400 group-hover:text-white"
+                      className={`font-medium transition-colors ${
+                        isSelected ? "text-white" : "text-neutral-400 group-hover:text-white"
                       }`}
                     >
-                      {isSelected ? "✦ Inspected Architecture" : "Click to Inspect Architecture"}
+                      {isSelected ? "✦ Active Architecture" : "Inspect Architecture"}
                     </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
                   </div>
                 </div>
-              </SpotlightCard>
+              </div>
             );
           })}
         </div>
 
         {/* Studio Guarantees Bar */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] flex items-center gap-3.5">
             <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
             <div>
-              <h5 className="text-xs font-bold text-white">100% Code Ownership</h5>
-              <p className="text-[11px] text-gray-400">Zero vendor lock-in with full git repo</p>
+              <h5 className="text-xs font-semibold text-white">100% Code Ownership</h5>
+              <p className="text-[11px] text-neutral-400">Zero vendor lock-in with full git repo</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
-            <Zap className="w-5 h-5 text-yellow-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] flex items-center gap-3.5">
+            <Zap className="w-5 h-5 text-cyan-400 shrink-0" />
             <div>
-              <h5 className="text-xs font-bold text-white">Sub-30ms Edge Speed</h5>
-              <p className="text-[11px] text-gray-400">Optimized Vercel & Neon serverless</p>
+              <h5 className="text-xs font-semibold text-white">Sub-30ms Edge Speed</h5>
+              <p className="text-[11px] text-neutral-400">Optimized Vercel & Neon serverless</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
-            <Lock className="w-5 h-5 text-purple-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] flex items-center gap-3.5">
+            <Lock className="w-5 h-5 text-neutral-300 shrink-0" />
             <div>
-              <h5 className="text-xs font-bold text-white">DevSecOps Hardened</h5>
-              <p className="text-[11px] text-gray-400">SAST & secret scanning integrated</p>
+              <h5 className="text-xs font-semibold text-white">DevSecOps Hardened</h5>
+              <p className="text-[11px] text-neutral-400">SAST & secret scanning integrated</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3">
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] flex items-center gap-3.5">
             <Sparkles className="w-5 h-5 text-cyan-400 shrink-0" />
             <div>
-              <h5 className="text-xs font-bold text-white">30-Day Guarantee</h5>
-              <p className="text-[11px] text-gray-400">Post-launch bug fix & tuning warranty</p>
+              <h5 className="text-xs font-semibold text-white">30-Day Guarantee</h5>
+              <p className="text-[11px] text-neutral-400">Post-launch bug fix & tuning warranty</p>
             </div>
           </div>
         </div>

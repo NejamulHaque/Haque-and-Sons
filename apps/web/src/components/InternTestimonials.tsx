@@ -82,19 +82,19 @@ export function InternTestimonials() {
   const prev = () => setActiveIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
   return (
-    <section className="px-4 sm:px-6 max-w-7xl mx-auto py-24 border-t border-white/5 relative">
+    <section className="px-6 max-w-7xl mx-auto py-24 border-t border-white/[0.08] relative bg-black">
       <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold uppercase tracking-wider">
-          <Quote className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider">
+          <Quote className="w-3.5 h-3.5 text-cyan-400" />
           <span>Student Success Stories</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
           What Our Interns{" "}
-          <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
             Say
           </span>
         </h2>
-        <p className="text-xs sm:text-sm text-gray-400 max-w-lg mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto leading-relaxed font-normal">
           Hear from students from premier institutions who built production software and advanced their tech careers.
         </p>
       </div>
@@ -103,35 +103,35 @@ export function InternTestimonials() {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIndex}
-            initial={{ opacity: 0, x: 40, scale: 0.96 }}
+            initial={{ opacity: 0, x: 30, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -40, scale: 0.96 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, x: -30, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
-            <SpotlightCard className="p-8 sm:p-10 border-white/10 bg-gray-950/80 backdrop-blur-xl shadow-2xl relative">
-              <Quote className="w-10 h-10 text-cyan-500/25 mb-4" />
+            <div className="p-8 sm:p-10 rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/90 backdrop-blur-xl shadow-xl relative">
+              <Quote className="w-8 h-8 text-white/[0.08] mb-4" />
 
-              <p className="text-base sm:text-lg text-gray-200 leading-relaxed italic mb-8">
+              <p className="text-base sm:text-lg text-neutral-300 leading-relaxed font-normal mb-8">
                 &ldquo;{TESTIMONIALS[activeIndex].quote}&rdquo;
               </p>
 
               {/* Achievement Badge */}
-              <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-medium">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-neutral-300 text-xs font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                 <span>{TESTIMONIALS[activeIndex].achievement}</span>
               </div>
 
               {/* Author Row */}
-              <div className="flex items-center justify-between pt-6 border-t border-white/5">
+              <div className="flex items-center justify-between pt-6 border-t border-white/[0.06]">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                  <div className="w-11 h-11 rounded-2xl bg-white/[0.08] border border-white/[0.1] flex items-center justify-center text-white font-medium text-xs">
                     {TESTIMONIALS[activeIndex].avatar}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">
+                    <h4 className="text-sm font-semibold tracking-tight text-white">
                       {TESTIMONIALS[activeIndex].name}
                     </h4>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-neutral-400 font-normal">
                       {TESTIMONIALS[activeIndex].college}
                     </p>
                     <p className="text-[11px] text-cyan-400 font-medium">
@@ -142,11 +142,11 @@ export function InternTestimonials() {
 
                 <div className="flex gap-1">
                   {Array.from({ length: TESTIMONIALS[activeIndex].rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <Star key={i} className="w-3.5 h-3.5 text-white fill-white" />
                   ))}
                 </div>
               </div>
-            </SpotlightCard>
+            </div>
           </motion.div>
         </AnimatePresence>
 
@@ -159,7 +159,7 @@ export function InternTestimonials() {
                 type="button"
                 onClick={() => setActiveIndex(i)}
                 className={`rounded-full transition-all cursor-pointer ${
-                  i === activeIndex ? "w-8 h-2 bg-cyan-400" : "w-2 h-2 bg-white/20 hover:bg-white/40"
+                  i === activeIndex ? "w-6 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"
                 }`}
                 aria-label={`Go to testimonial ${i + 1}`}
               />
@@ -170,7 +170,7 @@ export function InternTestimonials() {
             <button
               type="button"
               onClick={prev}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+              className="p-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-white transition-all cursor-pointer"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -178,7 +178,7 @@ export function InternTestimonials() {
             <button
               type="button"
               onClick={next}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+              className="p-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-white transition-all cursor-pointer"
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-4 h-4" />

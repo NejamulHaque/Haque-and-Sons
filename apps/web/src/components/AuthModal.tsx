@@ -337,22 +337,15 @@ export function AuthModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="relative w-full max-w-md bg-[#090d16] border border-cyan-500/25 rounded-3xl shadow-[0_0_60px_rgba(6,182,212,0.2)] overflow-hidden my-6 z-10 select-none"
+            className="relative w-full max-w-md bg-[#0c0c0e] border border-white/[0.08] rounded-3xl shadow-2xl overflow-hidden my-6 z-10 select-none"
           >
-            {/* Top gradient highlight line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600" />
-
-            {/* Ambient Lighting */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
             {/* Header */}
             <div className="p-6 pb-2 flex items-start justify-between relative z-10">
               <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 p-1 flex items-center justify-center shadow-md shrink-0">
+                <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white/[0.06] border border-white/[0.08] p-1 flex items-center justify-center shrink-0">
                   <Image
                     src="/logo.svg"
-                    alt="Haque & Sons"
+                    alt="Haque Studio"
                     fill
                     className="p-1 object-contain"
                     unoptimized
@@ -360,9 +353,9 @@ export function AuthModal({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-1.5">
-                    Haque &amp; Sons <span className="text-cyan-400">Portal</span>
+                    Haque Studio <span className="text-neutral-400">Portal</span>
                   </h3>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-[11px] text-neutral-400 font-normal">
                     {mode === "signin"
                       ? "Sign in to access your sprint milestones"
                       : "Create your student account in 30 seconds"}
@@ -372,16 +365,16 @@ export function AuthModal({
 
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-colors cursor-pointer"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Interactive Tab Switcher */}
             <div className="px-6 pt-3 pb-2 relative z-10">
-              <div className="grid grid-cols-2 p-1 bg-black/60 border border-white/10 rounded-2xl relative">
+              <div className="grid grid-cols-2 p-1 bg-black/60 border border-white/[0.08] rounded-full relative">
                 <button
                   type="button"
                   onClick={() => {
@@ -389,8 +382,8 @@ export function AuthModal({
                     setError(null);
                     setSuccessMsg(null);
                   }}
-                  className={`py-2 text-xs font-bold rounded-xl transition-all relative z-10 cursor-pointer flex items-center justify-center gap-1.5 ${
-                    mode === "signin" ? "text-white" : "text-gray-400 hover:text-white"
+                  className={`py-2 text-xs font-medium rounded-full transition-all relative z-10 cursor-pointer flex items-center justify-center gap-1.5 ${
+                    mode === "signin" ? "text-black" : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
@@ -404,8 +397,8 @@ export function AuthModal({
                     setError(null);
                     setSuccessMsg(null);
                   }}
-                  className={`py-2 text-xs font-bold rounded-xl transition-all relative z-10 cursor-pointer flex items-center justify-center gap-1.5 ${
-                    mode === "signup" ? "text-white" : "text-gray-400 hover:text-white"
+                  className={`py-2 text-xs font-medium rounded-full transition-all relative z-10 cursor-pointer flex items-center justify-center gap-1.5 ${
+                    mode === "signup" ? "text-black" : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
@@ -414,7 +407,7 @@ export function AuthModal({
 
                 {/* Animated sliding background pill */}
                 <motion.div
-                  className="absolute inset-y-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 shadow-[0_0_15px_rgba(6,182,212,0.35)]"
+                  className="absolute inset-y-1 rounded-full bg-white"
                   layoutId="auth-modal-tab-pill"
                   style={{
                     left: mode === "signin" ? "4px" : "50%",
@@ -538,10 +531,10 @@ export function AuthModal({
                       <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-[11px] text-gray-400 leading-relaxed">
                         Forgot your password or credentials? Reach out directly to{" "}
                         <a
-                          href="mailto:nejamulhaque.works@gmail.com"
-                          className="text-cyan-400 underline font-mono"
+                          href="mailto:nejamulhaque@haquestudio.me"
+                          className="text-white underline font-mono"
                         >
-                          nejamulhaque.works@gmail.com
+                          nejamulhaque@haquestudio.me
                         </a>{" "}
                         with your registered student name and college.
                       </div>
@@ -551,10 +544,10 @@ export function AuthModal({
                       <button
                         type="submit"
                         disabled={loading || lockoutRemaining > 0}
-                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wider active:scale-[0.98]"
+                        className="w-full py-3 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-wider active:scale-[0.98]"
                       >
                         {loading ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
                         ) : lockoutRemaining > 0 ? (
                           <span>Security Lockout ({lockoutRemaining}s)</span>
                         ) : (
@@ -573,10 +566,10 @@ export function AuthModal({
                           setMode("signup");
                           setError(null);
                         }}
-                        className="text-xs text-gray-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                        className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
                       >
                         Don&apos;t have an account?{" "}
-                        <strong className="text-cyan-300 underline font-bold">
+                        <strong className="text-white underline font-medium">
                           Create Student Account
                         </strong>
                       </button>
@@ -761,13 +754,13 @@ export function AuthModal({
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 uppercase tracking-wider active:scale-[0.98]"
+                        className="w-full py-3 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 uppercase tracking-wider active:scale-[0.98]"
                       >
                         {loading ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4 text-yellow-300" />
+                            <Sparkles className="w-4 h-4 text-neutral-600" />
                             <span>Create Account &amp; Access Dashboard</span>
                             <ArrowRight className="w-4 h-4" />
                           </>

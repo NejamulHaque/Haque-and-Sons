@@ -24,8 +24,8 @@ const smtpTransporter =
       })
     : null;
 
-const ADMIN_FALLBACK_EMAIL = process.env.ADMIN_EMAIL || "haquendsons@gmail.com";
-const SECONDARY_ADMIN_EMAIL = "nejamulhaque.works@gmail.com";
+const ADMIN_FALLBACK_EMAIL = process.env.ADMIN_EMAIL || "nejamulhaque@haquestudio.me";
+const SECONDARY_ADMIN_EMAIL = "nejamulhaque@haquestudio.me";
 
 export interface SendEmailOptions {
   fromName?: string;

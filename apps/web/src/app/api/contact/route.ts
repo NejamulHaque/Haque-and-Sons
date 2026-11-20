@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
 
     // Send email to admin
     await sendEmail({
-      fromName: "Haque & Sons",
-      to: "nejamulhaque.works@gmail.com",
+      fromName: "Haque Studio",
+      to: "nejamulhaque@haquestudio.me",
       subject: `New Contact Form: ${name}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

@@ -72,19 +72,19 @@ const FEATURES = [
 
 export function ProgramFeatures() {
   return (
-    <section className="px-4 sm:px-6 max-w-7xl mx-auto py-20 border-t border-white/5 relative">
+    <section className="px-6 max-w-7xl mx-auto py-20 border-t border-white/[0.08] relative bg-black">
       <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
           <span>Why Choose Haque &amp; Sons</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
           Engineering Program{" "}
-          <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
             Features
           </span>
         </h2>
-        <p className="text-sm sm:text-base text-gray-400 leading-relaxed">
+        <p className="text-sm sm:text-base text-neutral-400 leading-relaxed font-normal">
           Designed specifically to bridge the gap between academic curriculum and high-growth industry standards.
         </p>
       </div>
@@ -95,35 +95,35 @@ export function ProgramFeatures() {
           return (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
             >
-              <SpotlightCard className="p-7 border-white/10 bg-gray-950/60 backdrop-blur-xl h-full flex flex-col justify-between group hover:border-cyan-500/30 transition-all">
+              <div className="p-7 rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/80 backdrop-blur-xl h-full flex flex-col justify-between hover:border-white/[0.18] transition-all">
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className={`w-6 h-6 ${feature.iconColor}`} />
+                    <div className="w-11 h-11 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-cyan-400">
+                      <Icon className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-neutral-300">
                       {feature.badge}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                  <h3 className="text-base font-semibold tracking-tight text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <p className="text-xs text-neutral-400 leading-relaxed font-normal">
                     {feature.description}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-2 text-[11px] text-gray-400">
+                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2 text-[11px] text-neutral-400 font-normal">
                   <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Included in All Domain Tracks</span>
                 </div>
-              </SpotlightCard>
+              </div>
             </motion.div>
           );
         })}

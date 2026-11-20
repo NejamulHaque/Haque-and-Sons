@@ -169,26 +169,26 @@ function StudentSignInContent() {
         )}
 
         {/* Login Card */}
-        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl rounded-3xl">
+        <SpotlightCard className="p-6 sm:p-8 border-white/[0.08] bg-[#0c0c0e] backdrop-blur-2xl rounded-3xl">
           <div className="mb-6 space-y-1">
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <User className="w-5 h-5 text-cyan-400" />
+            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <User className="w-5 h-5 text-neutral-400" />
               <span>Student Sign In</span>
             </h1>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-neutral-400 leading-relaxed font-normal">
               Enter your student credentials to access your roadmap, active milestones, and verified certificates.
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <div className="flex-1">
                 <span>{error}</span>
                 {error.includes("Invalid") && (
                   <Link
                     href={signupUrl}
-                    className="text-cyan-300 font-bold underline hover:text-cyan-200 mt-1 block"
+                    className="text-white font-medium underline hover:text-neutral-300 mt-1 block"
                   >
                     Need an account? Register here &rarr;
                   </Link>
@@ -198,7 +198,7 @@ function StudentSignInContent() {
           )}
 
           {success && (
-            <div className="mb-5 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
               <span>Authenticated! Redirecting to your dashboard...</span>
             </div>
@@ -206,11 +206,11 @@ function StudentSignInContent() {
 
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-300 block mb-1.5">
+              <label className="text-xs font-medium text-neutral-300 block mb-1.5 font-mono">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                 <input
                   type="email"
                   required
@@ -218,20 +218,20 @@ function StudentSignInContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@college.edu"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all font-medium"
+                  className="w-full bg-black/60 border border-white/[0.1] rounded-full py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-white transition-all font-mono"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-gray-300">
+                <label className="text-xs font-medium text-neutral-300 font-mono">
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowHelpNote(!showHelpNote)}
-                  className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer font-mono"
                 >
                   <HelpCircle className="w-3 h-3" />
                   <span>Need help?</span>
@@ -239,7 +239,7 @@ function StudentSignInContent() {
               </div>
 
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -247,12 +247,12 @@ function StudentSignInContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-black/60 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all font-medium font-mono"
+                  className="w-full bg-black/60 border border-white/[0.1] rounded-full py-2.5 pl-10 pr-10 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-white transition-all font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer"
                   title={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -261,13 +261,13 @@ function StudentSignInContent() {
             </div>
 
             {showHelpNote && (
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-[11px] text-gray-400 leading-relaxed">
+              <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-[11px] text-neutral-400 leading-relaxed font-normal">
                 Forgot your password or credentials? Contact{" "}
                 <a
-                  href="mailto:nejamulhaque.works@gmail.com"
-                  className="text-cyan-400 underline font-mono"
+                  href="mailto:nejamulhaque@haquestudio.me"
+                  className="text-white underline font-mono"
                 >
-                  nejamulhaque.works@gmail.com
+                  nejamulhaque@haquestudio.me
                 </a>{" "}
                 with your registered candidate email.
               </div>
@@ -276,10 +276,10 @@ function StudentSignInContent() {
             <button
               type="submit"
               disabled={loading || lockoutRemaining > 0}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 active:scale-[0.98]"
+              className="w-full py-3 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2 active:scale-[0.98]"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               ) : lockoutRemaining > 0 ? (
                 <span>Security Lockout ({lockoutRemaining}s)</span>
               ) : (
@@ -292,12 +292,12 @@ function StudentSignInContent() {
           </form>
 
           {/* Switch to Sign Up */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-gray-400">
-              New to Haque &amp; Sons Internship Program?{" "}
+          <div className="mt-6 pt-5 border-t border-white/[0.08] text-center">
+            <p className="text-xs text-neutral-400 font-normal">
+              New to Haque Studio Internship Program?{" "}
               <Link
                 href={signupUrl}
-                className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors underline"
+                className="text-white hover:text-neutral-300 font-medium transition-colors underline"
               >
                 Create Student Account
               </Link>

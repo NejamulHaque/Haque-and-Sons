@@ -94,31 +94,27 @@ export function Process() {
   const [activeStep, setActiveStep] = useState<number>(0);
 
   return (
-    <section id="process" className="py-32 bg-black px-6 relative overflow-hidden">
-      {/* Glow backgrounds */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[140px] pointer-events-none" />
-
+    <section id="process" className="py-28 bg-black px-6 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>Proven Engineering Methodology</span>
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-extrabold text-white mt-2 mb-6 tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mt-2 mb-4 tracking-tight">
             How We{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
               Deliver Excellence
             </span>
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
+          <p className="text-neutral-400 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
             A battle-tested 6-phase engineering lifecycle designed to turn complex visions into robust, high-performance production platforms.
           </p>
         </motion.div>
@@ -130,12 +126,12 @@ export function Process() {
             const Icon = step.icon;
 
             return (
-              <SpotlightCard
+              <div
                 key={step.number}
-                className={`p-7 flex flex-col justify-between transition-all cursor-pointer ${
+                className={`p-7 rounded-3xl flex flex-col justify-between transition-all cursor-pointer bg-[#0c0c0e]/80 backdrop-blur-xl ${
                   isSelected
-                    ? "border-cyan-500/50 bg-gradient-to-b from-cyan-950/20 to-black shadow-[0_0_30px_rgba(6,182,212,0.15)]"
-                    : "border-white/10 hover:border-white/20"
+                    ? "border border-white/[0.3] shadow-md ring-1 ring-white/[0.15]"
+                    : "border border-white/[0.08] hover:border-white/[0.18]"
                 }`}
                 onClick={() => setActiveStep(i)}
               >
@@ -143,56 +139,56 @@ export function Process() {
                   {/* Top Bar: Icon + Number + Duration */}
                   <div className="flex items-center justify-between mb-5">
                     <div
-                      className={`p-3 rounded-xl bg-gradient-to-br ${step.gradient} text-white shadow-md`}
+                      className="p-3 rounded-2xl bg-white/[0.06] border border-white/[0.08] text-cyan-400"
                     >
                       <Icon className="w-5 h-5" />
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-[11px] text-cyan-400/80 bg-cyan-950/40 border border-cyan-500/20 px-2.5 py-0.5 rounded-full font-mono">
-                        <Clock className="w-3 h-3" />
+                      <span className="flex items-center gap-1 text-[11px] text-neutral-300 bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5 rounded-full font-mono">
+                        <Clock className="w-3 h-3 text-neutral-400" />
                         {step.duration}
                       </span>
-                      <span className="text-2xl font-black text-white/20 font-mono">
+                      <span className="text-xl font-bold text-neutral-600 font-mono">
                         {step.number}
                       </span>
                     </div>
                   </div>
 
                   {/* Title & Tagline */}
-                  <h3 className="text-lg font-bold text-white mb-1">{step.title}</h3>
-                  <p className="text-xs text-cyan-400/90 font-medium mb-3">{step.tagline}</p>
-                  <p className="text-xs text-gray-400 leading-relaxed mb-6">{step.desc}</p>
+                  <h3 className="text-lg font-bold text-white mb-1 tracking-tight">{step.title}</h3>
+                  <p className="text-xs text-neutral-300 font-medium mb-3">{step.tagline}</p>
+                  <p className="text-xs text-neutral-400 leading-relaxed mb-6 font-normal">{step.desc}</p>
                 </div>
 
                 {/* Deliverables */}
-                <div className="pt-4 border-t border-white/5 space-y-2">
-                  <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">
+                <div className="pt-4 border-t border-white/[0.06] space-y-2">
+                  <span className="text-[10px] uppercase font-semibold text-neutral-500 tracking-wider block">
                     Key Deliverables
                   </span>
                   {step.deliverables.map((item) => (
-                    <div key={item} className="flex items-center gap-2 text-xs text-gray-300">
+                    <div key={item} className="flex items-center gap-2 text-xs text-neutral-400 font-normal">
                       <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                       <span className="truncate">{item}</span>
                     </div>
                   ))}
                 </div>
-              </SpotlightCard>
+              </div>
             );
           })}
         </div>
 
         {/* Bottom CTA to Estimator */}
-        <div className="mt-16 text-center">
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-md">
-            <span className="text-sm text-gray-300 font-medium">
+        <div className="mt-14 text-center">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-2 pl-4 pr-2 rounded-full bg-[#0c0c0e] border border-white/[0.08] backdrop-blur-md">
+            <span className="text-xs text-neutral-300 font-medium">
               Ready to kick off Phase 1 with Nejamul Haque?
             </span>
             <button
               onClick={() =>
                 document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" })
               }
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer active:scale-98 shadow-sm"
             >
               <span>Configure Your Sprint Scope</span>
               <ArrowRight className="w-3.5 h-3.5" />

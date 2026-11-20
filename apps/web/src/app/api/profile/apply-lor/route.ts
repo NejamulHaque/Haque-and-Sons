@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
       const adminRecipients = Array.from(
         new Set(
           [
+            "nejamulhaque@haquestudio.me",
             ADMIN_NOTIFICATION_EMAIL,
             "nejamulhaque.works@gmail.com",
             process.env.ADMIN_EMAIL,

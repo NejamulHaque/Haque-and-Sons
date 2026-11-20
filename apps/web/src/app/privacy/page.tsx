@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <p className="text-gray-300 mb-4">We implement industry-standard security measures including SSL encryption, secure API endpoints, and regular security audits to protect your data.</p>
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">5. Contact Us</h2>
-        <p className="text-gray-300 mb-4">If you have questions about this Privacy Policy, please contact us at <a href="mailto:nejamulhaque.works@gmail.com" className="text-cyan-400 hover:underline">nejamulhaque.works@gmail.com</a>.</p>
+        <p className="text-gray-300 mb-4">If you have questions about this Privacy Policy, please contact us at <a href="mailto:nejamulhaque@haquestudio.me" className="text-cyan-400 hover:underline">nejamulhaque@haquestudio.me</a>.</p>
       </div>
     </div>
   );

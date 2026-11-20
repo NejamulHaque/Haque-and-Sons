@@ -39,70 +39,71 @@ export function About() {
   return (
     <section
       id="about"
-      className="py-32 bg-gradient-to-b from-gray-950 to-black px-6 relative overflow-hidden"
+      className="py-28 bg-black px-6 relative overflow-hidden"
     >
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-12">
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.6 }}
           >
-            <span className="text-cyan-400 text-sm font-semibold tracking-widest uppercase">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-white/[0.1] bg-white/[0.04] text-neutral-300 mb-4">
               About Us
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mt-3 mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 leading-tight">
               We Build Software That{" "}
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
                 Drives Growth
               </span>
             </h2>
-            <p className="text-gray-400 text-lg leading-relaxed mb-6">
+            <p className="text-neutral-400 text-base md:text-lg leading-relaxed mb-6 font-normal">
               Haque & Sons is a digital services studio founded by Nejamul Haque, a Help Desk
               Specialist and full-stack engineer with 2+ years of experience delivering
               production-grade software.
             </p>
-            <p className="text-gray-400 text-lg leading-relaxed mb-8">
+            <p className="text-neutral-400 text-base md:text-lg leading-relaxed mb-8 font-normal">
               We specialize in web development, AI-powered tools, data science solutions, and
               interview preparation platforms. Every project is built with enterprise-grade
               security, performance optimization, and scalability from day one.
             </p>
             <div className="flex flex-wrap gap-4">
-              <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                <div className="text-2xl font-bold text-cyan-400">2+</div>
-                <div className="text-xs text-gray-500 mt-1">Years Experience</div>
+              <div className="px-5 py-3.5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08]">
+                <div className="text-2xl font-bold tracking-tight text-white">2+</div>
+                <div className="text-xs text-neutral-400 mt-0.5">Years Experience</div>
               </div>
-              <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                <div className="text-2xl font-bold text-purple-400">5+</div>
-                <div className="text-xs text-gray-500 mt-1">Projects Shipped</div>
+              <div className="px-5 py-3.5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08]">
+                <div className="text-2xl font-bold tracking-tight text-white">5+</div>
+                <div className="text-xs text-neutral-400 mt-0.5">Projects Shipped</div>
               </div>
-              <div className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                <div className="text-2xl font-bold text-emerald-400">100%</div>
-                <div className="text-xs text-gray-500 mt-1">Client Satisfaction</div>
+              <div className="px-5 py-3.5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08]">
+                <div className="text-2xl font-bold tracking-tight text-white">100%</div>
+                <div className="text-xs text-neutral-400 mt-0.5">Client Satisfaction</div>
               </div>
             </div>
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
             {HIGHLIGHTS.map((h, i) => (
               <motion.div
                 key={h.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/20 transition-colors"
+                transition={{ delay: i * 0.06 }}
+                className="p-6 rounded-2xl bg-[#0c0c0e]/80 border border-white/[0.08] hover:border-white/[0.18] transition-all backdrop-blur-xl"
               >
-                <h.icon className="w-6 h-6 text-cyan-400 mb-3" />
-                <h3 className="text-sm font-bold text-white mb-2">{h.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{h.desc}</p>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
+                  <h.icon className="w-5 h-5 text-cyan-400" />
+                </div>
+                <h3 className="text-sm font-semibold tracking-tight text-white mb-2">{h.title}</h3>
+                <p className="text-xs text-neutral-400 leading-relaxed font-normal">{h.desc}</p>
               </motion.div>
             ))}
           </motion.div>

@@ -61,23 +61,22 @@ const STATS = [
 
 export function Stats() {
   return (
-    <section className="py-24 bg-black border-y border-white/[0.04] relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/[0.02] via-transparent to-purple-500/[0.02] pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
+    <section className="py-20 bg-black border-y border-white/[0.08] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 relative z-10">
         {STATS.map((stat, i) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.1, duration: 0.6 }}
+            transition={{ delay: i * 0.08, duration: 0.5 }}
             className="text-center group"
           >
-            <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300 inline-block">
+            <div className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-2 inline-block">
               <AnimatedCounter target={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
             </div>
-            <div className="text-sm font-semibold text-white mb-1">{stat.label}</div>
-            <div className="text-xs text-gray-500">{stat.desc}</div>
+            <div className="text-sm font-medium text-neutral-200 mb-1">{stat.label}</div>
+            <div className="text-xs text-neutral-500 leading-relaxed max-w-[200px] mx-auto">{stat.desc}</div>
           </motion.div>
         ))}
       </div>

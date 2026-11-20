@@ -25,21 +25,20 @@ const TESTIMONIALS = [
 
 export function Testimonials() {
   return (
-    <section className="py-32 bg-black px-6 relative overflow-hidden">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+    <section className="py-28 bg-black px-6 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-16"
         >
-          <span className="text-cyan-400 text-sm font-semibold tracking-widest uppercase">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
             Testimonials
           </span>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mt-3 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
             What Our Clients{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
               Say
             </span>
           </h2>
@@ -48,22 +47,23 @@ export function Testimonials() {
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.6 }}
-              className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] relative"
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              className="p-8 rounded-3xl bg-[#0c0c0e]/80 border border-white/[0.08] hover:border-white/[0.18] transition-all relative flex flex-col justify-between"
             >
-              <Quote className="absolute top-6 right-6 w-8 h-8 text-white/[0.04]" />
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: t.stars }).map((_, j) => (
-                  <Star key={j} size={14} className="fill-yellow-500 text-yellow-500" />
-                ))}
-              </div>
-              <p className="text-gray-300 leading-relaxed mb-6 text-sm">&ldquo;{t.text}&rdquo;</p>
               <div>
-                <div className="text-white font-semibold text-sm">{t.name}</div>
-                <div className="text-gray-500 text-xs">{t.role}</div>
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: t.stars }).map((_, j) => (
+                    <Star key={j} size={13} className="fill-white text-white" />
+                  ))}
+                </div>
+                <p className="text-neutral-300 leading-relaxed mb-6 text-sm font-normal">&ldquo;{t.text}&rdquo;</p>
+              </div>
+              <div className="pt-4 border-t border-white/[0.06]">
+                <div className="text-white font-medium text-sm">{t.name}</div>
+                <div className="text-neutral-500 text-xs mt-0.5">{t.role}</div>
               </div>
             </motion.div>
           ))}

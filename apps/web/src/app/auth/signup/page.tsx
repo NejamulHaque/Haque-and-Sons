@@ -196,26 +196,26 @@ function StudentSignUpContent() {
         </div>
 
         {/* Registration Card */}
-        <SpotlightCard className="p-6 sm:p-8 border-white/10 bg-[#090d16]/90 backdrop-blur-xl shadow-2xl rounded-3xl">
+        <SpotlightCard className="p-6 sm:p-8 border-white/[0.08] bg-[#0c0c0e] backdrop-blur-2xl rounded-3xl">
           <div className="mb-6 space-y-1">
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-cyan-400" />
+            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-neutral-400" />
               <span>Create Student Account</span>
             </h1>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-neutral-400 leading-relaxed font-normal">
               Register in 30 seconds to receive your capstone project kit, curriculum, and verified certificate.
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <div className="flex-1">
                 <span>{error}</span>
                 {error.includes("already exists") && (
                   <Link
                     href={signinUrl}
-                    className="text-cyan-300 font-bold underline hover:text-cyan-200 mt-1 block"
+                    className="text-white font-medium underline hover:text-neutral-300 mt-1 block"
                   >
                     Click here to Sign In with this email &rarr;
                   </Link>
@@ -225,7 +225,7 @@ function StudentSignUpContent() {
           )}
 
           {success && (
-            <div className="mb-5 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
               <span>Account created! Transitioning to your dashboard...</span>
             </div>
@@ -390,13 +390,13 @@ function StudentSignUpContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4 active:scale-[0.98]"
+              className="w-full py-3 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4 active:scale-[0.98]"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-yellow-300" />
+                  <Sparkles className="w-4 h-4 text-neutral-600" />
                   <span>Create Account &amp; Access Dashboard</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
@@ -405,12 +405,12 @@ function StudentSignUpContent() {
           </form>
 
           {/* Switch to Sign In */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-gray-400">
-              Already registered with Haque &amp; Sons?{" "}
+          <div className="mt-6 pt-5 border-t border-white/[0.08] text-center">
+            <p className="text-xs text-neutral-400 font-normal">
+              Already registered with Haque Studio?{" "}
               <Link
                 href="/auth/signin"
-                className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors underline"
+                className="text-white hover:text-neutral-300 font-medium transition-colors underline"
               >
                 Log In / Sign In
               </Link>

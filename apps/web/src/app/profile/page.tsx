@@ -505,64 +505,61 @@ function ProfileContent() {
         {/* =========================================================================
             1. EXECUTIVE CANDIDATE HUD (MODERN PROFILE HERO)
         ========================================================================= */}
-        <div className="relative rounded-3xl bg-gradient-to-b from-[#090d16] via-[#070b13] to-black border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
-          {/* Top highlight glow bar */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 opacity-80" />
-
+        <div className="relative rounded-3xl bg-[#0c0c0e] border border-white/[0.08] p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             {/* Left: Avatar & Identity */}
             <div className="flex items-start sm:items-center gap-5">
               <div className="relative shrink-0">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-600/20 to-purple-600/20 border border-cyan-500/40 p-1 flex items-center justify-center shadow-[0_0_25px_rgba(6,182,212,0.25)]">
-                  <div className="w-full h-full bg-[#070b14] rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-300 via-white to-purple-300">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/[0.04] border border-white/[0.08] p-1 flex items-center justify-center">
+                  <div className="w-full h-full bg-black/60 rounded-[14px] flex items-center justify-center text-2xl sm:text-3xl font-bold text-white">
                     {fullName ? fullName.charAt(0).toUpperCase() : "S"}
                   </div>
                 </div>
                 <div
-                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center"
+                  className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center"
                   title="Enrolled Student Active"
                 >
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                     {fullName || session?.user?.name || "Student Profile"}
                   </h1>
 
                   {isApplicationApproved ? (
-                    <span className="px-3 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                    <span className="px-3 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Enrolled Intern</span>
                     </span>
                   ) : (
-                    <span className="px-3 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5">
+                    <span className="px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin" />
                       <span>Under Review</span>
                     </span>
                   )}
 
-                  <span className="px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-400 font-mono text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-neutral-400 font-mono text-xs">
                     ID: #HS-{application?.id ? String(application.id).padStart(4, "0") : "2026"}
                   </span>
                 </div>
 
                 {/* Metadata Pills */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-300 font-sans">
-                  <span className="flex items-center gap-1.5 text-cyan-300 font-medium">
-                    <GraduationCap className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-400 font-normal">
+                  <span className="flex items-center gap-1.5 text-white font-medium">
+                    <GraduationCap className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                     <span>{college || "College / University"}</span>
                   </span>
-                  <span className="text-gray-600 hidden sm:inline">•</span>
-                  <span className="text-gray-300">
+                  <span className="text-neutral-600 hidden sm:inline">•</span>
+                  <span className="text-neutral-300">
                     {degree} ({graduationYear})
                   </span>
-                  <span className="text-gray-600 hidden sm:inline">•</span>
-                  <span className="text-purple-300 font-medium">{domain}</span>
-                  <span className="text-gray-600 hidden sm:inline">•</span>
-                  <span className="text-yellow-300/90 font-medium">
+                  <span className="text-neutral-600 hidden sm:inline">•</span>
+                  <span className="text-neutral-300 font-mono">{domain}</span>
+                  <span className="text-neutral-600 hidden sm:inline">•</span>
+                  <span className="text-neutral-400 font-mono">
                     {mode} ({duration})
                   </span>
                 </div>
@@ -573,7 +570,7 @@ function ProfileContent() {
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsOfferLetterOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
+                className="px-5 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center gap-2 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
                 <span>Offer Letter</span>
@@ -581,23 +578,23 @@ function ProfileContent() {
 
               <button
                 onClick={() => setIsAicteDiaryOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
+                className="px-4 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-300 hover:text-white text-xs font-medium transition-all flex items-center gap-2 cursor-pointer"
               >
-                <BookOpen className="w-4 h-4 text-amber-400" />
+                <BookOpen className="w-4 h-4 text-neutral-400" />
                 <span>Activity Logbook</span>
               </button>
 
               {isLorApproved ? (
                 <button
                   onClick={() => setIsLorModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Star className="w-4 h-4 fill-black" />
                   <span>Official LOR</span>
                 </button>
               ) : isLorPending ? (
-                <span className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                <span className="px-3 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] text-neutral-300 text-xs font-mono flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 animate-spin text-neutral-400" />
                   <span>LOR Under Review</span>
                 </span>
               ) : (
@@ -606,9 +603,9 @@ function ProfileContent() {
                     setLorSubmitError(null);
                     setIsApplyLorModalOpen(true);
                   }}
-                  className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-300 hover:text-white text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Star className="w-4 h-4 text-amber-400" />
+                  <Star className="w-4 h-4 text-neutral-400" />
                   <span>{application?.lorStatus === "Rejected" ? "Re-apply LOR" : "Apply LOR"}</span>
                 </button>
               )}
@@ -616,11 +613,11 @@ function ProfileContent() {
               <button
                 onClick={handleSignOut}
                 disabled={loggingOut}
-                className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-red-200 transition-all cursor-pointer disabled:opacity-50"
+                className="p-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-rose-400 transition-all cursor-pointer disabled:opacity-50"
                 title="Sign Out"
               >
                 {loggingOut ? (
-                  <div className="w-4 h-4 border-2 border-red-300 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <LogOut className="w-4 h-4" />
                 )}
@@ -629,65 +626,65 @@ function ProfileContent() {
           </div>
 
           {/* Candidate Sprint & Practicum Matrix */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-6 mt-6 border-t border-white/5">
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-6 mt-6 border-t border-white/[0.08]">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/[0.06] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-neutral-400" />
                   <span>Sprint Milestone Progress</span>
                 </span>
-                <span className="text-xs font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                <span className="text-xs font-mono font-medium text-neutral-300 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
                   {completedSprintTasks} / {totalSprintTasks} Tasks
                 </span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-white/[0.08] rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500"
+                  className="bg-white h-full rounded-full transition-all duration-500"
                   style={{ width: `${sprintPercentage}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono">
+              <div className="flex items-center justify-between text-[11px] text-neutral-400 font-mono">
                 <span>{domain} Curriculum</span>
-                <span className="text-cyan-400 font-bold">{sprintPercentage}% Complete</span>
+                <span className="text-white font-medium">{sprintPercentage}% Complete</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/[0.06] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-neutral-400" />
                   <span>Practicum Immersion</span>
                 </span>
-                <span className="text-xs font-mono font-bold text-amber-300 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                <span className="text-xs font-mono font-medium text-neutral-300 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
                   {duration}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-300 font-mono">
-                <span className="text-white font-bold">{aicteInfo.totalHours}+ Clock Hours</span>
-                <span className="text-gray-500">•</span>
-                <span className="text-amber-300">{mode} Practicum</span>
+              <div className="flex items-center gap-2 text-xs text-neutral-300 font-mono">
+                <span className="text-white font-medium">{aicteInfo.totalHours}+ Clock Hours</span>
+                <span className="text-neutral-600">•</span>
+                <span className="text-neutral-400">{mode} Practicum</span>
               </div>
-              <p className="text-[11px] text-gray-400 truncate">
+              <p className="text-[11px] text-neutral-500 truncate font-normal">
                 Category-B Industry Practicum Immersion
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+            <div className="p-4 rounded-2xl bg-black/60 border border-white/[0.06] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-neutral-400" />
                   <span>Accreditation &amp; Standards</span>
                 </span>
-                <span className="text-xs font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-xs font-mono text-neutral-300 font-medium px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
                   Verified
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="text-emerald-300 font-semibold">MSME: {aicteInfo.msmeUdyamId}</span>
-                <span className="text-gray-500">•</span>
-                <span className="text-purple-300 font-semibold">ISO 9001:2015</span>
+                <span className="text-neutral-300 font-medium">MSME: {aicteInfo.msmeUdyamId}</span>
+                <span className="text-neutral-600">•</span>
+                <span className="text-neutral-400 font-medium">ISO 9001:2015</span>
               </div>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-neutral-500 font-normal">
                 Cryptographically Signed Verification Ledger
               </p>
             </div>
@@ -697,7 +694,7 @@ function ProfileContent() {
         {/* =========================================================================
             2. MODERN TABBED SEGMENTED NAVIGATION
         ========================================================================= */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#090d16] border border-white/10 overflow-x-auto no-scrollbar shadow-lg">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-[#0c0c0e] border border-white/[0.08] overflow-x-auto no-scrollbar shadow-lg">
           {[
             { id: "overview", label: "Overview & Roadmap", icon: Layers },
             { id: "syllabus", label: "Curriculum & Tasks", icon: BookOpen },
@@ -711,17 +708,17 @@ function ProfileContent() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTab)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all relative z-10 cursor-pointer flex items-center gap-2 shrink-0 ${
-                  isActive ? "text-white" : "text-gray-400 hover:text-white"
+                className={`px-4 py-2 rounded-full text-xs font-medium transition-all relative z-10 cursor-pointer flex items-center gap-2 shrink-0 ${
+                  isActive ? "text-black" : "text-neutral-400 hover:text-white"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-cyan-400" : ""}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? "text-black" : "text-neutral-400"}`} />
                 <span>{tab.label}</span>
                 {isActive && (
                   <motion.div
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.25)] -z-10"
+                    className="absolute inset-0 rounded-full bg-white shadow-sm -z-10"
                     layoutId="profile-tab-pill"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
                   />
                 )}
               </button>

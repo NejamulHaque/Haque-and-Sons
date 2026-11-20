@@ -34,42 +34,46 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-32 bg-black px-6 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="max-w-4xl mx-auto relative z-10">
+    <section className="py-28 bg-black px-6 relative overflow-hidden">
+      <div className="max-w-3xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-cyan-400 text-sm font-semibold tracking-widest uppercase">FAQ</span>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mt-3 mb-6">
-            Frequently Asked <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">Questions</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
+            FAQ
+          </span>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+            Frequently Asked{" "}
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
+              Questions
+            </span>
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+          <p className="text-neutral-400 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed">
             Everything you need to know about our services and process.
           </p>
         </motion.div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-              className="border border-white/[0.06] rounded-2xl overflow-hidden bg-white/[0.02]"
+              transition={{ delay: index * 0.04 }}
+              className="border border-white/[0.08] rounded-2xl overflow-hidden bg-[#0c0c0e]/80 transition-all hover:border-white/[0.16]"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/[0.02] transition-colors"
+                className="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer transition-colors"
               >
-                <span className="text-lg font-semibold text-white pr-4">{faq.question}</span>
+                <span className="text-base font-medium text-white pr-4 tracking-tight">{faq.question}</span>
                 <ChevronDown
-                  className={`w-5 h-5 text-cyan-400 shrink-0 transition-transform duration-300 ${
-                    openIndex === index ? "rotate-180" : ""
+                  className={`w-4 h-4 text-neutral-400 shrink-0 transition-transform duration-200 ${
+                    openIndex === index ? "rotate-180 text-white" : ""
                   }`}
                 />
               </button>
@@ -79,10 +83,10 @@ export function FAQ() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-5 text-gray-400 leading-relaxed">
+                    <div className="px-6 pb-5 text-sm text-neutral-400 leading-relaxed font-normal border-t border-white/[0.04] pt-3">
                       {faq.answer}
                     </div>
                   </motion.div>

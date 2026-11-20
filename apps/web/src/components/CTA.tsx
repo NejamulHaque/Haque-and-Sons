@@ -70,33 +70,31 @@ export function CTA() {
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText("nejamulhaque.works@gmail.com");
+    navigator.clipboard.writeText("nejamulhaque@haquestudio.me");
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
   return (
-    <section id="contact" className="py-32 bg-black px-6 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
-
+    <section id="contact" className="py-28 bg-black px-6 relative overflow-hidden">
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>Initiate Collaboration</span>
           </div>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
             Let&apos;s Build Something{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
               Extraordinary
             </span>
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="text-neutral-400 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed font-normal">
             Ready to build a production AI system, scale your platform, or launch a new digital product? Send a message to start the conversation.
           </p>
         </motion.div>
@@ -104,10 +102,10 @@ export function CTA() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Form */}
           <div className="lg:col-span-7">
-            <SpotlightCard className="p-8 sm:p-10 border-white/10 shadow-2xl">
+            <div className="p-8 sm:p-10 rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/90 backdrop-blur-2xl shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="name" className="block text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">
                     Your Name
                   </label>
                   <input
@@ -116,13 +114,13 @@ export function CTA() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-xl bg-black/60 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all text-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-white/[0.08] text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-all text-sm"
                     placeholder="Jane Doe"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="email" className="block text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">
                     Email Address
                   </label>
                   <input
@@ -131,14 +129,14 @@ export function CTA() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-xl bg-black/60 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all text-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-white/[0.08] text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-all text-sm"
                     placeholder="jane@company.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-                    Project Details & Scope
+                  <label htmlFor="message" className="block text-xs font-medium uppercase tracking-wider text-neutral-400 mb-2">
+                    Project Details &amp; Scope
                   </label>
                   <textarea
                     id="message"
@@ -146,120 +144,120 @@ export function CTA() {
                     rows={5}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-xl bg-black/60 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all resize-none text-sm leading-relaxed"
+                    className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-white/[0.08] text-white placeholder-neutral-500 focus:outline-none focus:border-white/30 transition-all resize-none text-sm leading-relaxed"
                     placeholder="Tell us about what you want to build..."
                   />
                 </div>
 
                 {formState === "error" && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <AlertCircle size={16} /> {errorMsg}
+                  <div className="flex items-center gap-2 text-red-400 text-xs p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                    <AlertCircle size={15} /> {errorMsg}
                   </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={formState !== "idle"}
-                  className="w-full py-4 rounded-xl font-bold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 transition-all shadow-[0_0_25px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 rounded-full font-semibold text-sm text-black bg-white hover:bg-neutral-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-98 shadow-sm"
                 >
                   {formState === "idle" && (
                     <>
-                      <Send size={18} /> Send Message
+                      <Send size={16} /> Send Message
                     </>
                   )}
                   {formState === "submitting" && (
-                    <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   )}
                   {formState === "success" && (
                     <>
-                      <CheckCircle size={18} /> Message Sent Successfully!
+                      <CheckCircle size={16} /> Message Sent Successfully!
                     </>
                   )}
                   {formState === "error" && (
                     <>
-                      <AlertCircle size={18} /> Retry Submission
+                      <AlertCircle size={16} /> Retry Submission
                     </>
                   )}
                 </button>
               </form>
-            </SpotlightCard>
+            </div>
           </div>
 
           {/* Quick Connect Column */}
           <div className="lg:col-span-5 space-y-6">
-            <SpotlightCard className="p-8 border-white/10">
-              <Mail className="w-7 h-7 text-cyan-400 mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">Direct Studio Email</h3>
-              <p className="text-gray-400 text-sm mb-4">
+            <div className="p-7 rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/80">
+              <Mail className="w-6 h-6 text-cyan-400 mb-3" />
+              <h3 className="text-base font-semibold text-white mb-1.5 tracking-tight">Direct Studio Email</h3>
+              <p className="text-neutral-400 text-xs mb-4">
                 Prefer direct communication? Reach out anytime:
               </p>
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/60 border border-white/10">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-black/50 border border-white/[0.08]">
                 <a
-                  href="mailto:nejamulhaque.works@gmail.com"
+                  href="mailto:nejamulhaque@haquestudio.me"
                   className="text-cyan-400 font-mono text-xs hover:underline truncate"
                 >
-                  nejamulhaque.works@gmail.com
+                  nejamulhaque@haquestudio.me
                 </a>
                 <button
                   onClick={handleCopyEmail}
-                  className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                   title="Copy email"
                 >
-                  {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedEmail ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </div>
-            </SpotlightCard>
+            </div>
 
-            <SpotlightCard className="p-8 border-white/10">
-              <h3 className="text-lg font-bold text-white mb-3">Connect on Social</h3>
-              <div className="flex flex-wrap gap-3">
+            <div className="p-7 rounded-3xl border border-white/[0.08] bg-[#0c0c0e]/80">
+              <h3 className="text-base font-semibold text-white mb-3 tracking-tight">Connect on Social</h3>
+              <div className="flex flex-wrap gap-2.5">
                 <a
                   href="https://github.com/NejamulHaque"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-all"
+                  className="p-2.5 rounded-full border border-white/[0.08] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
                   aria-label="GitHub"
                 >
-                  <GithubSvg size={20} />
+                  <GithubSvg size={18} />
                 </a>
 
                 <a
                   href="https://www.linkedin.com/in/nejamulhaque"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/10 hover:bg-blue-500/20 hover:border-blue-500/40 text-gray-300 hover:text-blue-400 transition-all"
+                  className="p-2.5 rounded-full border border-white/[0.08] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
                   aria-label="LinkedIn"
                 >
-                  <LinkedinSvg size={20} />
+                  <LinkedinSvg size={18} />
                 </a>
 
                 <a
                   href="https://instagram.com/neja_mul_"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/10 hover:bg-pink-500/20 hover:border-pink-500/40 text-gray-300 hover:text-pink-400 transition-all"
+                  className="p-2.5 rounded-full border border-white/[0.08] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
                   aria-label="Instagram"
                 >
-                  <InstagramSvg size={20} />
+                  <InstagramSvg size={18} />
                 </a>
 
                 <a
                   href="https://x.com/Nejamul_Haque_"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-all"
+                  className="p-2.5 rounded-full border border-white/[0.08] hover:bg-white/[0.08] text-neutral-400 hover:text-white transition-all"
                   aria-label="X"
                 >
-                  <XSvg size={20} />
+                  <XSvg size={18} />
                 </a>
               </div>
-            </SpotlightCard>
+            </div>
 
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-950/30 to-purple-950/30 border border-cyan-500/20 flex items-start gap-3.5">
-              <MessageSquare className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+            <div className="p-6 rounded-3xl bg-[#0c0c0e]/80 border border-white/[0.08] flex items-start gap-3.5">
+              <MessageSquare className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-bold text-white mb-1">Guaranteed 24-Hour Response</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
+                <h4 className="text-xs font-semibold text-white mb-1">Guaranteed 24-Hour Response</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed font-normal">
                   Every inquiry receives an initial technical review and response within 24 hours.
                 </p>
               </div>

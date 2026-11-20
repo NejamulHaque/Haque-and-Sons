@@ -13,8 +13,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const post = getPost(slug);
   if (!post) return {};
   return {
-    title: `${post.title} | Haque & Sons Blog`,
+    title: `${post.title} | Haque Studio`,
     description: post.excerpt,
+    alternates: { canonical: `https://haquestudio.me/blog/${slug}` },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -40,7 +41,7 @@ function renderFormattedText(text: string) {
       return (
         <code
           key={index}
-          className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 font-mono text-xs"
+          className="px-1.5 py-0.5 rounded bg-white/[0.08] text-white font-mono text-xs"
         >
           {part.slice(1, -1)}
         </code>
@@ -55,7 +56,7 @@ function renderFormattedText(text: string) {
             href={match[2]}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 font-medium"
+            className="text-white hover:text-neutral-300 underline underline-offset-4 font-medium"
           >
             {match[1]}
           </a>
@@ -74,7 +75,7 @@ function parseMarkdownBlock(block: string, key: number) {
     return (
       <h2
         key={key}
-        className="text-2xl sm:text-3xl font-bold text-white mt-12 mb-5 pb-3 border-b border-white/10 tracking-tight"
+        className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-12 mb-5 pb-3 border-b border-white/[0.08]"
       >
         {trimmed.replace("## ", "")}
       </h2>
@@ -86,7 +87,7 @@ function parseMarkdownBlock(block: string, key: number) {
     return (
       <h3
         key={key}
-        className="text-xl sm:text-2xl font-bold text-cyan-300 mt-8 mb-3 tracking-tight"
+        className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-8 mb-3"
       >
         {trimmed.replace("### ", "")}
       </h3>
@@ -112,18 +113,18 @@ function parseMarkdownBlock(block: string, key: number) {
         );
 
       return (
-        <div key={key} className="my-8 overflow-x-auto rounded-xl border border-white/10 bg-white/[0.02]">
+        <div key={key} className="my-8 overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#0c0c0e]">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/[0.06] text-gray-200 uppercase text-xs">
+            <thead className="bg-white/[0.04] text-neutral-300 uppercase text-xs font-mono">
               <tr>
                 {headerRow.map((h, i) => (
-                  <th key={i} className="px-5 py-3.5 font-semibold text-cyan-400">
+                  <th key={i} className="px-5 py-3.5 font-semibold text-white">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-gray-300">
+            <tbody className="divide-y divide-white/[0.04] text-neutral-300">
               {bodyRows.map((row, rIdx) => (
                 <tr key={rIdx} className="hover:bg-white/[0.02] transition-colors">
                   {row.map((cell, cIdx) => (
@@ -144,10 +145,10 @@ function parseMarkdownBlock(block: string, key: number) {
   if (trimmed.startsWith("- ")) {
     const items = trimmed.split("\n").filter((line) => line.trim().startsWith("- "));
     return (
-      <ul key={key} className="my-6 space-y-3 pl-4">
+      <ul key={key} className="my-6 space-y-3 pl-2">
         {items.map((item, i) => (
-          <li key={i} className="text-gray-300 flex items-start gap-3 leading-relaxed">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0" />
+          <li key={i} className="text-neutral-300 flex items-start gap-3 leading-relaxed text-base font-normal">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 mt-2 shrink-0" />
             <span>{renderFormattedText(item.replace(/^- /, ""))}</span>
           </li>
         ))}
@@ -159,10 +160,10 @@ function parseMarkdownBlock(block: string, key: number) {
   if (/^\d+\./.test(trimmed)) {
     const items = trimmed.split("\n").filter((line) => /^\d+\./.test(line.trim()));
     return (
-      <ol key={key} className="my-6 space-y-3 pl-4">
+      <ol key={key} className="my-6 space-y-3 pl-2">
         {items.map((item, i) => (
-          <li key={i} className="text-gray-300 flex items-start gap-3 leading-relaxed">
-            <span className="font-mono text-xs font-bold text-cyan-400 mt-0.5 shrink-0">
+          <li key={i} className="text-neutral-300 flex items-start gap-3 leading-relaxed text-base font-normal">
+            <span className="font-mono text-xs font-semibold text-neutral-400 mt-0.5 shrink-0">
               {String(i + 1).padStart(2, "0")}.
             </span>
             <span>{renderFormattedText(item.replace(/^\d+\.\s*/, ""))}</span>
@@ -174,7 +175,7 @@ function parseMarkdownBlock(block: string, key: number) {
 
   // Paragraph
   return (
-    <p key={key} className="text-gray-300 leading-relaxed text-base sm:text-lg mb-6">
+    <p key={key} className="text-neutral-300 leading-relaxed text-base sm:text-lg mb-6 font-normal">
       {renderFormattedText(trimmed)}
     </p>
   );
@@ -188,17 +189,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const blocks = post.content.split("\n\n");
 
   return (
-    <main className="min-h-screen bg-black pt-32 pb-24 px-6 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
-
+    <main className="min-h-screen bg-black text-white pt-28 pb-24 px-6 relative selection:bg-white selection:text-black">
       <div className="max-w-3xl mx-auto relative z-10">
         {/* Back Link */}
         <Link
           href="/blog"
-          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors mb-10 group"
+          className="inline-flex items-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors mb-8 group"
         >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
           <span>Back to Articles</span>
         </Link>
 
@@ -207,7 +205,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.tags.map((tag) => (
             <span
               key={tag}
-              className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 rounded-full border border-cyan-500/20"
+              className="px-3 py-1 text-xs font-mono text-neutral-300 bg-white/[0.04] rounded-full border border-white/[0.08]"
             >
               {tag}
             </span>
@@ -215,49 +213,49 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight tracking-tight">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.12]">
           {post.title}
         </h1>
 
         {/* Metadata Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-400 mb-12 pb-8 border-b border-white/10">
+        <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-neutral-400 mb-12 pb-6 border-b border-white/[0.08]">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2">
-              <User size={15} className="text-cyan-400" />
-              <span className="text-white font-medium">{post.author}</span>
+            <span className="flex items-center gap-2 text-white">
+              <User size={13} className="text-neutral-400" />
+              <span>{post.author}</span>
             </span>
-            <span className="flex items-center gap-1.5 text-gray-500">
-              <Calendar size={14} /> {post.date}
+            <span className="flex items-center gap-1.5 text-neutral-500">
+              <Calendar size={13} /> {post.date}
             </span>
-            <span className="flex items-center gap-1.5 text-gray-500">
-              <Clock size={14} /> {post.readTime}
+            <span className="flex items-center gap-1.5 text-neutral-500">
+              <Clock size={13} /> {post.readTime}
             </span>
           </div>
 
-          <span className="text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 text-gray-400">
-            Haque & Sons Studio
+          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-neutral-400">
+            Haque Studio
           </span>
         </div>
 
         {/* Article Body */}
-        <article className="text-gray-300">
+        <article className="text-neutral-300 font-normal">
           {blocks.map((block, index) => parseMarkdownBlock(block, index))}
         </article>
 
         {/* Post Footer */}
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-16 pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-full text-white text-sm font-medium transition-all"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-full text-white text-xs font-medium transition-all"
           >
-            <ChevronRight size={16} className="rotate-180" /> All Articles
+            <ChevronRight size={14} className="rotate-180" /> All Articles
           </Link>
 
           <Link
             href="/#contact"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 text-black font-semibold rounded-full hover:bg-cyan-400 transition-all text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+            className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-white text-black text-xs font-medium hover:bg-neutral-200 transition-all duration-200"
           >
-            <span>Start a Project with Us</span>
+            Start a Project with Us
           </Link>
         </div>
       </div>

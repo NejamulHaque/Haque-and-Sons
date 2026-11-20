@@ -5,7 +5,7 @@ import { signUp } from "@/lib/auth-client"; // Ensure this import works
 import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("nejamulhaque.works@gmail.com");
+  const [email, setEmail] = useState("nejamulhaque@haquestudio.me");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("Nejamul Haque");
   const router = useRouter();

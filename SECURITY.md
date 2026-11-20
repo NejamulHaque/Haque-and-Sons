@@ -26,5 +26,5 @@
 
 ## Reporting Vulnerabilities
 
-Email: nejamulhaque.works@gmail.com
+Email: nejamulhaque@haquestudio.me
 Expected response time: 48 hours

@@ -29,23 +29,22 @@ export function Features() {
   return (
     <section
       id="features"
-      className="py-32 bg-gradient-to-b from-black to-gray-950 px-6 relative overflow-hidden"
+      className="py-28 bg-black px-6 relative overflow-hidden"
     >
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-16"
         >
-          <span className="text-cyan-400 text-sm font-semibold tracking-widest uppercase">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.1] text-neutral-300 text-xs font-medium uppercase tracking-wider mb-4">
             Why Choose Us
           </span>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mt-3 mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
             What You{" "}
-            <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-              Get
+            <span className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
+              Receive
             </span>
           </h2>
         </motion.div>
@@ -53,20 +52,20 @@ export function Features() {
           {FEATURES.map((feature, i) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.6 }}
-              className="group p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-cyan-500/30 transition-all duration-500 flex gap-6 items-start"
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              className="p-8 rounded-3xl bg-[#0c0c0e]/80 border border-white/[0.08] hover:border-white/[0.18] transition-all flex gap-6 items-start"
             >
-              <div className="shrink-0 p-4 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-white/[0.06] group-hover:border-cyan-500/30 transition-colors">
-                <feature.icon className="w-7 h-7 text-cyan-400" />
+              <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+                <feature.icon className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
+                <h3 className="text-lg font-semibold tracking-tight text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
+                <p className="text-sm text-neutral-400 leading-relaxed font-normal">{feature.desc}</p>
               </div>
             </motion.div>
           ))}

@@ -17,8 +17,9 @@ interface VerifyPageProps {
 export async function generateMetadata({ params }: VerifyPageProps) {
   const { id } = await params;
   return {
-    title: `Verify Certificate ${id.toUpperCase()} | AICTE Approved | Haque & Sons`,
-    description: `Official cryptographic verification of Haque & Sons Certificate of Internship Completion (${id.toUpperCase()}) with verified industry competencies and ISO 9001:2015 standards.`,
+    title: `Verify Certificate ${id.toUpperCase()} | AICTE Approved | Haque Studio`,
+    description: `Official cryptographic verification of Haque Studio Certificate of Internship Completion (${id.toUpperCase()}) with verified industry competencies and ISO 9001:2015 standards.`,
+    alternates: { canonical: `https://haquestudio.me/verify/${id.toUpperCase()}` },
   };
 }
 
@@ -44,21 +45,21 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
 
   if (!certRecord) {
     return (
-      <div className="min-h-screen bg-black text-white pt-28 pb-20 px-6 flex items-center justify-center">
-        <div className="max-w-md w-full text-center p-8 rounded-3xl bg-gray-950/80 border border-red-500/30 space-y-5 shadow-[0_0_50px_rgba(239,68,68,0.15)]">
-          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 mx-auto flex items-center justify-center">
-            <AlertTriangle className="w-8 h-8" />
+      <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6 flex items-center justify-center selection:bg-white selection:text-black">
+        <div className="max-w-md w-full text-center p-8 rounded-3xl bg-[#0c0c0e] border border-white/[0.08] space-y-6">
+          <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-rose-400 mx-auto flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7" />
           </div>
 
-          <h1 className="text-2xl font-bold text-white">Certificate Not Found</h1>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            The certificate identifier <code className="text-red-400 font-mono font-bold">{cleanId}</code> does not match any valid records in the Haque & Sons verification registry.
+          <h1 className="text-2xl font-bold tracking-tight text-white">Certificate Not Found</h1>
+          <p className="text-xs text-neutral-400 leading-relaxed font-normal">
+            The certificate identifier <code className="text-white font-mono bg-white/[0.08] px-1.5 py-0.5 rounded">{cleanId}</code> does not match any valid records in the Haque Studio verification registry.
           </p>
 
-          <div className="pt-2 flex flex-col gap-2">
+          <div className="pt-2 flex flex-col gap-3">
             <Link
               href="/verify"
-              className="px-5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-white transition-all inline-flex items-center justify-center gap-1.5"
+              className="px-6 py-2.5 rounded-full bg-white text-black hover:bg-neutral-200 text-xs font-medium transition-all inline-flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Try Another Certificate ID</span>
@@ -66,9 +67,9 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
 
             <Link
               href="/internships"
-              className="text-xs text-cyan-400 hover:underline pt-2"
+              className="text-xs font-mono text-neutral-400 hover:text-white transition-colors pt-2"
             >
-              Explore Haque & Sons College Internships →
+              Explore Haque Studio College Internships →
             </Link>
           </div>
         </div>
@@ -94,33 +95,29 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
   const aicte = getAicteComplianceInfo(certData.duration);
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-cyan-500/30 selection:text-white pt-24 pb-24 px-6 relative overflow-hidden">
-      {/* Glow backgrounds */}
-      <div className="fixed top-1/4 left-1/4 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[160px] pointer-events-none" />
-      <div className="fixed bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[160px] pointer-events-none" />
-
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black pt-28 pb-24 px-6 relative overflow-hidden">
       <div className="max-w-5xl mx-auto space-y-8 relative z-10">
         {/* Verification Status Banner */}
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-black to-cyan-950/40 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.15)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-6 rounded-3xl bg-[#0c0c0e] border border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-emerald-400 flex items-center justify-center">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-bold text-white tracking-tight">
+                <h2 className="text-lg font-bold tracking-tight text-white">
                   Official Verified Credential
                 </h2>
-                <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Status: {certData.status || "Valid"}
                 </span>
-                <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-white/[0.04] text-neutral-300 border border-white/[0.08]">
                   Industry Practicum
                 </span>
               </div>
-              <p className="text-xs text-gray-300 mt-0.5">
-                Issued to <strong className="text-white">{certData.studentName}</strong> for completing{" "}
-                <strong className="text-cyan-400">{certData.domain}</strong> internship ({aicte.totalHours}+ Hours).
+              <p className="text-xs text-neutral-400 mt-1 font-normal">
+                Issued to <strong className="text-white font-medium">{certData.studentName}</strong> for completing{" "}
+                <strong className="text-white font-medium">{certData.domain}</strong> internship ({aicte.totalHours}+ Hours).
               </p>
             </div>
           </div>
@@ -128,7 +125,7 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
           <div className="flex items-center gap-2">
             <Link
               href="/verify"
-              className="px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-neutral-300 hover:text-white transition-all flex items-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Verify Another</span>
@@ -137,42 +134,42 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
         </div>
 
         {/* Accreditation & Practicum Immersion Breakdown Card */}
-        <div className="p-5 rounded-3xl bg-gray-950/80 border border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 shadow-xl">
-          <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-1">
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold font-mono">
+        <div className="p-5 rounded-3xl bg-[#0c0c0e] border border-white/[0.08] grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-2xl bg-black/60 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2 text-neutral-400 text-xs font-mono">
               <GraduationCap className="w-4 h-4" />
               <span>TECHNICAL IMMERSION</span>
             </div>
-            <span className="text-xl font-extrabold text-white block">
+            <span className="text-2xl font-bold tracking-tight text-white block">
               {aicte.totalHours}+ Hours
             </span>
-            <span className="text-[11px] text-gray-400 block font-mono">
+            <span className="text-[11px] text-neutral-500 block font-mono">
               {certData.duration || "90 days"} • {certData.mode || "Online"} Practicum
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-1">
-            <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold font-mono">
+          <div className="p-5 rounded-2xl bg-black/60 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2 text-neutral-400 text-xs font-mono">
               <Award className="w-4 h-4" />
               <span>GOVT. MSME REGISTRATION</span>
             </div>
-            <span className="text-base font-extrabold text-white block font-mono">
+            <span className="text-base font-bold text-white block font-mono">
               {aicte.msmeUdyamId}
             </span>
-            <span className="text-[11px] text-gray-400 block">
+            <span className="text-[11px] text-neutral-500 block font-normal">
               ISO 9001:2015 Quality Management
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/30 space-y-1">
-            <div className="flex items-center gap-2 text-purple-400 text-xs font-bold font-mono">
+          <div className="p-5 rounded-2xl bg-black/60 border border-white/[0.06] space-y-1">
+            <div className="flex items-center gap-2 text-neutral-400 text-xs font-mono">
               <CheckCircle2 className="w-4 h-4" />
               <span>PRACTICUM CLASSIFICATION</span>
             </div>
-            <span className="text-xs font-extrabold text-white block font-mono">
+            <span className="text-xs font-bold text-white block font-mono">
               {aicte.aicteCode}
             </span>
-            <span className="text-[11px] text-gray-400 block">
+            <span className="text-[11px] text-neutral-500 block font-normal">
               Category-B Industry Practicum
             </span>
           </div>
@@ -191,29 +188,29 @@ export default async function VerifyCertificateDetailPage({ params }: VerifyPage
 
         {/* Verification Metadata Details */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-            <span className="text-[10px] text-gray-500 uppercase font-semibold block">
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] space-y-1">
+            <span className="text-[10px] text-neutral-500 uppercase font-mono block">
               Recipient College
             </span>
-            <span className="text-xs font-bold text-white block truncate">
+            <span className="text-xs font-medium text-white block truncate">
               {certData.college}
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-            <span className="text-[10px] text-gray-500 uppercase font-semibold block">
-              Track Modality & Duration
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] space-y-1">
+            <span className="text-[10px] text-neutral-500 uppercase font-mono block">
+              Track Modality &amp; Duration
             </span>
-            <span className="text-xs font-bold text-cyan-300 block">
+            <span className="text-xs font-mono text-neutral-300 block">
               {certData.mode || "Online"} • {certData.duration || "4 Weeks"} ({aicte.totalHours} Hours)
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-            <span className="text-[10px] text-gray-500 uppercase font-semibold block">
+          <div className="p-5 rounded-2xl bg-[#0c0c0e] border border-white/[0.08] space-y-1">
+            <span className="text-[10px] text-neutral-500 uppercase font-mono block">
               Signatory Authority
             </span>
-            <span className="text-xs font-bold text-white block">
+            <span className="text-xs font-medium text-white block">
               {certData.signatoryTitle || "Nejamul Haque, CEO & Director"}
             </span>
           </div>

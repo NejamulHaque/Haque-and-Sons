@@ -89,45 +89,46 @@ export function Navbar() {
   const navStyle: React.CSSProperties = darkMode
     ? scrolled || !isHome
       ? {
-          backgroundColor: "rgba(0,0,0,0.8)",
+          backgroundColor: "rgba(0, 0, 0, 0.75)",
           backdropFilter: "blur(24px)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         }
-      : { backgroundColor: "transparent", borderBottom: "none", boxShadow: "none" }
+      : { backgroundColor: "transparent", borderBottom: "none" }
     : scrolled || !isHome
     ? {
-        backgroundColor: "rgba(255,255,255,0.92)",
+        backgroundColor: "rgba(255, 255, 255, 0.85)",
         backdropFilter: "blur(24px)",
-        borderBottom: "1px solid #e2e8f0",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderBottom: "1px solid #e5e7eb",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
       }
     : {
-        backgroundColor: "rgba(255,255,255,0.85)",
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
         backdropFilter: "blur(24px)",
-        borderBottom: "1px solid #e2e8f0",
-        boxShadow: "none",
+        WebkitBackdropFilter: "blur(24px)",
+        borderBottom: "1px solid #f3f4f6",
       };
 
-  const textColor = darkMode ? "#9ca3af" : "#475569";
-  const textHoverColor = darkMode ? "#ffffff" : "#0f172a";
-  const logoTextColor = darkMode ? "#ffffff" : "#0f172a";
+  const textColor = darkMode ? "#a1a1aa" : "#52525b";
+  const textHoverColor = darkMode ? "#ffffff" : "#09090b";
+  const logoTextColor = darkMode ? "#ffffff" : "#09090b";
 
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       style={navStyle}
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 print:hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <button
           onClick={() => scrollToSection("home")}
-          className="group flex items-center gap-3 cursor-pointer bg-transparent border-none"
+          className="group flex items-center gap-2.5 cursor-pointer bg-transparent border-none"
         >
-          <div className="relative w-9 h-9 overflow-hidden rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-1.5 shadow-lg group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all">
+          <div className="relative w-8 h-8 overflow-hidden rounded-xl bg-white/[0.08] border border-white/[0.12] p-1.5 transition-transform group-hover:scale-105">
             <Image
               src="/logo.svg"
               alt="Haque & Sons Logo"
@@ -138,10 +139,10 @@ export function Navbar() {
           </div>
 
           <div className="text-left">
-            <span style={{ color: logoTextColor }} className="text-lg font-bold tracking-tight block">
+            <span style={{ color: logoTextColor }} className="text-sm font-semibold tracking-tight block">
               Haque<span className="text-cyan-400">&</span>Sons
             </span>
-            <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase block -mt-1">
+            <span className="text-[10px] text-neutral-500 font-medium tracking-wider uppercase block -mt-0.5">
               Studio OS
             </span>
           </div>
@@ -157,12 +158,16 @@ export function Navbar() {
                 onClick={() =>
                   "href" in item ? router.push(item.href!) : scrollToSection(item.sectionId!)
                 }
-                style={{ color: isActive ? "#22d3ee" : textColor }}
-                className="px-3.5 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10 bg-transparent border-none cursor-pointer"
-                onMouseEnter={(e) => (e.currentTarget.style.color = textHoverColor)}
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = isActive ? "#22d3ee" : textColor)
-                }
+                style={{ color: isActive ? "#ffffff" : textColor }}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors rounded-full bg-transparent border-none cursor-pointer ${
+                  isActive ? "bg-white/[0.08] text-white" : "hover:text-white"
+                }`}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.color = textHoverColor;
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.color = textColor;
+                }}
               >
                 {item.label}
               </button>
@@ -172,28 +177,28 @@ export function Navbar() {
           {/* Cmd+K Quick Button */}
           <button
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
-            className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition-all cursor-pointer"
+            className="ml-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[11px] text-neutral-400 hover:text-white transition-all cursor-pointer"
             title="Open Command Palette"
           >
-            <Command size={13} className="text-cyan-400" />
-            <span className="font-mono text-[11px]">⌘K</span>
+            <Command size={11} className="text-neutral-400" />
+            <span className="font-mono text-[10px]">⌘K</span>
           </button>
 
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className={`ml-1.5 p-2 rounded-xl border transition-all duration-300 cursor-pointer flex items-center justify-center ${
+            className={`ml-1.5 p-1.5 rounded-full border transition-all duration-200 cursor-pointer flex items-center justify-center ${
               darkMode
-                ? "bg-white/5 hover:bg-white/10 border-white/10 text-yellow-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.25)]"
-                : "bg-slate-100 hover:bg-slate-200 border-slate-200 text-cyan-600 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                ? "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-neutral-400 hover:text-white"
+                : "bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-600 hover:text-black"
             }`}
             aria-label="Toggle theme"
-            title={darkMode ? "Switch to Light Studio OS" : "Switch to Dark Cyber OS"}
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {darkMode ? (
-              <Sun size={17} className="text-yellow-400" />
+              <Sun size={14} className="text-neutral-300" />
             ) : (
-              <Moon size={17} className="text-cyan-600" />
+              <Moon size={14} className="text-neutral-700" />
             )}
           </button>
 
@@ -201,25 +206,24 @@ export function Navbar() {
           {session?.user ? (
             <Link
               href="/profile"
-              className="ml-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all flex items-center gap-1.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-105"
+              className="ml-2 px-3.5 py-1.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] text-white text-xs font-medium transition-all flex items-center gap-1.5 backdrop-blur-md"
             >
-              <User className="w-3.5 h-3.5" />
-              <span>Internship Dashboard</span>
+              <User className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Dashboard</span>
             </Link>
           ) : (
-            <div className="ml-2 flex items-center gap-1.5">
+            <div className="ml-2 flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => openAuthModal({ mode: "signin" })}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-xl hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-white/10"
-                style={{ color: textColor }}
+                className="px-3 py-1.5 text-xs font-medium rounded-full text-neutral-400 hover:text-white transition-colors cursor-pointer border-none bg-transparent"
               >
                 Sign In
               </button>
               <button
                 type="button"
                 onClick={() => openAuthModal({ mode: "signup" })}
-                className="px-4 py-1.5 text-xs font-bold text-black bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:scale-105 active:scale-95 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-medium text-white bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] rounded-full transition-all cursor-pointer"
               >
                 Sign Up
               </button>
@@ -229,7 +233,7 @@ export function Navbar() {
           {/* CTA */}
           <button
             onClick={() => scrollToSection("contact")}
-            className="ml-2 px-5 py-2.5 text-sm font-semibold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 rounded-full transition-all hover:scale-105 active:scale-95 cursor-pointer border-none shadow-[0_0_20px_rgba(6,182,212,0.35)]"
+            className="ml-2 px-4 py-1.5 text-xs font-semibold text-black bg-white hover:bg-neutral-200 rounded-full transition-all active:scale-95 cursor-pointer border-none shadow-sm"
           >
             Let&apos;s Build
           </button>
@@ -239,22 +243,22 @@ export function Navbar() {
         <div className="md:hidden flex items-center gap-2">
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2 rounded-full border transition-all cursor-pointer ${
               darkMode
-                ? "bg-white/5 border-white/10 text-yellow-400"
-                : "bg-slate-100 border-slate-200 text-cyan-600"
+                ? "bg-white/[0.05] border-white/[0.1] text-neutral-300"
+                : "bg-neutral-100 border-neutral-200 text-neutral-700"
             }`}
             aria-label="Toggle theme"
           >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             style={{ color: logoTextColor }}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors bg-transparent border-none"
+            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors bg-transparent border-none"
             aria-label="Toggle menu"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
@@ -293,14 +297,14 @@ export function Navbar() {
               ))}
 
               {/* Mobile Auth Links */}
-              <div className="pt-3 mt-2 border-t border-white/10 flex flex-col gap-2">
+              <div className="pt-3 mt-2 border-t border-white/[0.08] flex flex-col gap-2">
                 {session?.user ? (
                   <Link
                     href="/profile"
                     onClick={() => setMobileOpen(false)}
-                    className="px-4 py-2.5 text-center text-xs font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 rounded-xl"
+                    className="px-4 py-2.5 text-center text-xs font-medium text-white bg-white/[0.08] border border-white/[0.12] rounded-full"
                   >
-                    My Internship Dashboard
+                    Internship Dashboard
                   </Link>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
@@ -310,7 +314,7 @@ export function Navbar() {
                         setMobileOpen(false);
                         openAuthModal({ mode: "signin" });
                       }}
-                      className="px-4 py-2.5 text-center text-xs font-bold text-white bg-white/5 border border-white/10 rounded-xl cursor-pointer"
+                      className="px-4 py-2 text-center text-xs font-medium text-white bg-white/[0.06] border border-white/[0.1] rounded-full cursor-pointer"
                     >
                       Sign In
                     </button>
@@ -320,7 +324,7 @@ export function Navbar() {
                         setMobileOpen(false);
                         openAuthModal({ mode: "signup" });
                       }}
-                      className="px-4 py-2.5 text-center text-xs font-bold text-black bg-cyan-400 rounded-xl cursor-pointer"
+                      className="px-4 py-2 text-center text-xs font-medium text-black bg-white rounded-full cursor-pointer"
                     >
                       Sign Up
                     </button>
@@ -330,9 +334,9 @@ export function Navbar() {
 
               <button
                 onClick={() => scrollToSection("contact")}
-                className="mt-2 px-4 py-3 text-center text-black bg-cyan-400 font-semibold rounded-xl cursor-pointer border-none"
+                className="mt-2 px-4 py-2.5 text-center text-black bg-white font-medium text-xs rounded-full cursor-pointer border-none"
               >
-                Let&apos;s Talk
+                Let&apos;s Build
               </button>
             </div>
           </motion.div>

@@ -9,7 +9,7 @@ import { SpotlightCard } from "@/components/SpotlightCard";
 export default function SignInPage() {
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [name, setName] = useState("Nejamul Haque");
-  const [email, setEmail] = useState("nejamulhaque.works@gmail.com");
+  const [email, setEmail] = useState("nejamulhaque@haquestudio.me");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -270,7 +270,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-black/60 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all font-mono text-xs"
-                  placeholder="nejamulhaque.works@gmail.com"
+                  placeholder="nejamulhaque@haquestudio.me"
                   required
                 />
               </div>
@@ -325,7 +325,7 @@ export default function SignInPage() {
           </form>
 
           <div className="mt-6 text-center text-[11px] text-gray-500">
-            <span>Admin authorized email: nejamulhaque.works@gmail.com</span>
+            <span>Admin authorized email: nejamulhaque@haquestudio.me</span>
           </div>
         </SpotlightCard>
       </div>
